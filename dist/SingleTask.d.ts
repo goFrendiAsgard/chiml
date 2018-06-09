@@ -5,6 +5,8 @@ declare enum Mode {
 export default class SingleTask {
     ins: string[];
     out: string;
+    branchCondition: string;
+    loopCondition: string;
     command: any[];
     mode: Mode;
     vars: {

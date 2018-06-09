@@ -32,8 +32,15 @@ export default class SingleTask {
     this.command = "command" in rawObj ? rawObj.command : "{$.assign}";
   }
 
+  public getScript(): string {
+    // TODO: make this into script
+    return "";
+  }
+
   public execute(...inputs): Promise<any> {
     return new Promise((resolve, reject) => {
+      const script = this.getScript();
+      // TODO: vm.runInNewContext
       resolve(true);
     });
   }
