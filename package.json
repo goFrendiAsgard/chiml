@@ -14,16 +14,13 @@
   },
   "jest": {
     "transform": {
-      "^.+\\.tsx?$": "ts-jest"
+      "\\.(ts|tsx)$": "<rootDir>/node_modules/ts-jest/preprocessor.js"
     },
-    "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
+    "testRegex": "/.*\\.test\\.(ts|tsx)$",
     "moduleFileExtensions": [
       "ts",
       "tsx",
-      "js",
-      "jsx",
-      "json",
-      "node"
+      "js"
     ]
   },
   "keywords": [
@@ -47,6 +44,7 @@
   },
   "devDependencies": {
     "@types/jest": "^23.0.0",
+    "eslint-config-google": "^0.9.1",
     "jest": "^23.1.0",
     "ts-jest": "^22.4.6"
   }
