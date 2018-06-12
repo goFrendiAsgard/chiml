@@ -1,0 +1,20 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const stringUtil_1 = require("./stringUtil");
+it("able to smartsplit", (done) => {
+    const result = stringUtil_1.smartSplit("'a -> b' -> \"$a->call();\" -> \"c->d\"", "->");
+    expect(result[0]).toBe("'a -> b'");
+    expect(result[1]).toBe("\"$a->call();\"");
+    expect(result[2]).toBe("\"c->d\"");
+    done();
+});
+it("able to remove parantheses", (done) => {
+    const result1 = stringUtil_1.removeParantheses("(abc)");
+    expect(result1).toBe("abc");
+    const result2 = stringUtil_1.removeParantheses("(abc");
+    expect(result2).toBe("(abc");
+    const result3 = stringUtil_1.removeParantheses("abc)");
+    expect(result3).toBe("abc)");
+    done();
+});
+//# sourceMappingURL=stringUtil.test.js.map

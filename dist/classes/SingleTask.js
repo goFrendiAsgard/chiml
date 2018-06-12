@@ -1,12 +1,35 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const stringUtil_1 = require("../libraries/stringUtil");
 var Mode;
 (function (Mode) {
     Mode[Mode["parallel"] = 0] = "parallel";
     Mode[Mode["series"] = 1] = "series";
 })(Mode || (Mode = {}));
 function createRawObject(str) {
-    const obj = {};
+    const obj = { ins: null, out: "__ans", command: null };
+    let shortArrowParts = stringUtil_1.smartSplit(str, "->");
+    if (shortArrowParts.length === 1) {
+        shortArrowParts = stringUtil_1.smartSplit(str, "<-").reverse();
+    }
+    if (shortArrowParts.length === 3) {
+        obj.ins = stringUtil_1.smartSplit(shortArrowParts[0], ",");
+        obj.command = shortArrowParts[1];
+        obj.out = shortArrowParts[3];
+    }
+    else if (shortArrowParts.length === 2) {
+        // pass
+    }
+    else {
+        let longArrowParts = stringUtil_1.smartSplit(str, "-->");
+        if (longArrowParts.length === 1) {
+            longArrowParts = stringUtil_1.smartSplit(str, "<--").reverse();
+        }
+        if (longArrowParts.length === 2) {
+            obj.ins = longArrowParts[0];
+            obj.out = longArrowParts[1];
+        }
+    }
     return normalizeRawObject(obj);
 }
 function normalizeRawObject(obj) {

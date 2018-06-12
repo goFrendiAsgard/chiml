@@ -1,10 +1,31 @@
+import {smartSplit} from "../libraries/stringUtil";
 enum Mode {
   parallel,
   series,
 }
 
 function createRawObject(str: string): {[key: string]: any} {
-  const obj = {};
+  const obj = {ins: null, out: "__ans", command: null};
+  let shortArrowParts = smartSplit(str, "->");
+  if (shortArrowParts.length === 1) {
+    shortArrowParts = smartSplit(str, "<-").reverse();
+  }
+  if (shortArrowParts.length === 3) {
+    obj.ins = smartSplit(shortArrowParts[0], ",");
+    obj.command = shortArrowParts[1];
+    obj.out = shortArrowParts[3];
+  } else if (shortArrowParts.length === 2) {
+    // pass
+  } else {
+    let longArrowParts = smartSplit(str, "-->");
+    if (longArrowParts.length === 1) {
+      longArrowParts = smartSplit(str, "<--").reverse();
+    }
+    if (longArrowParts.length === 2) {
+      obj.ins = longArrowParts[0];
+      obj.out = longArrowParts[1];
+    }
+  }
   return normalizeRawObject(obj);
 }
 
