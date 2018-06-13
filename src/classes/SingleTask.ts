@@ -1,10 +1,19 @@
 import {smartSplit} from "../libraries/stringUtil";
+
 enum Mode {
   parallel,
   series,
+  single,
 }
 
-function createRawObject(str: string): {[key: string]: any} {
+enum CommandType {
+  cmd,
+  jsAsyncFunction,
+  jsSyncFunction,
+  jsPromise,
+}
+
+function strToRawObj(str: string): {[key: string]: any} {
   const obj = {ins: null, out: "__ans", command: null};
   let shortArrowParts = smartSplit(str, "->");
   if (shortArrowParts.length === 1) {
@@ -30,7 +39,18 @@ function createRawObject(str: string): {[key: string]: any} {
 }
 
 function normalizeRawObject(obj: {[key: string]: any}): {[key: string]: any} {
-  const normalizedObj = {};
+  const normalizedObj: {[key: string]: any} = {
+    ins: "ins" in obj ? obj.ins : [],
+    mode: Mode.single,
+    out: "out" in obj ? obj.out : "__ans",
+    vars: "vars" in obj ? obj.vars : {},
+  };
+  if ("command" in obj) {
+    if (!obj.command) {
+      normalizedObj.command = "(x) => x";
+    }
+    normalizedObj.mode = Mode.single;
+  }
   return normalizedObj;
 }
 
@@ -39,18 +59,22 @@ export default class SingleTask {
   public out: string;
   public branchCondition: string;
   public loopCondition: string;
-  public command: any[];
+  public command: string;
+  public commandList: SingleTask[];
+  public commandType: CommandType;
   public mode: Mode;
   public vars: {[key: string]: any};
 
   constructor(config: any) {
     const rawObj: {[key: string]: any} = typeof config === "string" ?
-      createRawObject(config) : normalizeRawObject(config);
-    this.ins = "ins" in rawObj ? rawObj.ins : [];
-    this.out = "out" in rawObj ? rawObj.out : "__ans";
-    this.vars = "vars" in rawObj ? rawObj.vars : {};
-    this.vars = "mode" in rawObj ? rawObj.mode : Mode.series;
-    this.command = "command" in rawObj ? rawObj.command : "{$.assign}";
+      strToRawObj(config) : normalizeRawObject(config);
+    this.ins = rawObj.ins;
+    this.out = rawObj.out;
+    this.vars = rawObj.vars;
+    this.vars = rawObj.mode;
+    this.mode = rawObj.mode;
+    this.command = rawObj.command;
+    this.commandList = rawObj.commandList;
   }
 
   public getScript(): string {

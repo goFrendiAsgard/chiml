@@ -34,6 +34,11 @@ function createRawObject(str) {
 }
 function normalizeRawObject(obj) {
     const normalizedObj = {};
+    normalizedObj.ins = "ins" in obj ? obj.ins : [];
+    normalizedObj.out = "out" in obj ? obj.out : "__ans";
+    normalizedObj.vars = "vars" in obj ? obj.vars : {};
+    normalizedObj.vars = "mode" in obj ? obj.mode : Mode.series;
+    normalizedObj.command = "command" in obj ? obj.command : "(x) => x";
     return normalizedObj;
 }
 class SingleTask {
