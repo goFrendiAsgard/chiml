@@ -1,2 +1,3 @@
 export declare function smartSplit(str: string, delimiter: string): string[];
-export declare function removeParantheses(str: string): string;
+export declare function isFlanked(str: string, openFlank: string, closeFlank: string): boolean;
+export declare function removeFlank(str: string, openFlank: any, closeFlank: any): string;

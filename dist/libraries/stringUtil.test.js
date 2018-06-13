@@ -8,13 +8,26 @@ it("able to smartsplit", (done) => {
     expect(result[2]).toBe("\"c->d\"");
     done();
 });
+it("able to recognized flanks", (done) => {
+    const result1 = stringUtil_1.isFlanked("(abc)", "(", ")");
+    expect(result1).toBeTruthy();
+    const result2 = stringUtil_1.isFlanked("(abc", "(", ")");
+    expect(result2).toBeFalsy();
+    const result3 = stringUtil_1.isFlanked("abc)", "(", ")");
+    expect(result3).toBeFalsy();
+    const result4 = stringUtil_1.isFlanked("abc", "(", ")");
+    expect(result4).toBeFalsy();
+    done();
+});
 it("able to remove parantheses", (done) => {
-    const result1 = stringUtil_1.removeParantheses("(abc)");
+    const result1 = stringUtil_1.removeFlank("(abc)", "(", ")");
     expect(result1).toBe("abc");
-    const result2 = stringUtil_1.removeParantheses("(abc");
+    const result2 = stringUtil_1.removeFlank("(abc", "(", ")");
     expect(result2).toBe("(abc");
-    const result3 = stringUtil_1.removeParantheses("abc)");
+    const result3 = stringUtil_1.removeFlank("abc)", "(", ")");
     expect(result3).toBe("abc)");
+    const result4 = stringUtil_1.removeFlank("abc", "(", ")");
+    expect(result4).toBe("abc");
     done();
 });
 //# sourceMappingURL=stringUtil.test.js.map

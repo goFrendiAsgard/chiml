@@ -25,9 +25,17 @@ export function smartSplit(str: string, delimiter: string): string[] {
   return data;
 }
 
-export function removeParantheses(str: string): string {
-  if (str[0] === "(" && str[str.length - 1] === ")") {
-    return str.trim().substr(1, str.length - 2);
+export function isFlanked(str: string, openFlank: string, closeFlank: string): boolean {
+  if (str.substr(0, openFlank.length) === openFlank &&
+    str.substr(str.length - closeFlank.length, closeFlank.length) === closeFlank) {
+    return true;
+  }
+  return false;
+}
+
+export function removeFlank(str: string, openFlank, closeFlank): string {
+  if (isFlanked(str, openFlank, closeFlank)) {
+    return str.substr(openFlank.length, str.length - openFlank.length - closeFlank.length);
   }
   return str;
 }
