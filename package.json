@@ -21,7 +21,9 @@
       "ts",
       "tsx",
       "js"
-    ]
+    ],
+    "verbose": true,
+    "collectCoverage": true
   },
   "keywords": [
     "Orchestration"

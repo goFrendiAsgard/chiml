@@ -1,10 +1,15 @@
 import {isFlanked, removeFlank, smartSplit} from "./stringUtil";
 
 it("able to smartsplit", (done) => {
-  const result: string[] = smartSplit("'a -> b' -> \"$a->call();\" -> \"c->d\"", "->");
-  expect(result[0]).toBe("'a -> b'");
-  expect(result[1]).toBe("\"$a->call();\"");
-  expect(result[2]).toBe("\"c->d\"");
+  const result1: string[] = smartSplit("'a -> b' -> \"$a->call();\" -> \"c->d\"", "->");
+  expect(result1.length).toBe(3);
+  expect(result1[0]).toBe("'a -> b'");
+  expect(result1[1]).toBe("\"$a->call();\"");
+  expect(result1[2]).toBe("\"c->d\"");
+
+  const result2: string[] = smartSplit("a, b, c", "->");
+  expect(result2.length).toBe(1);
+  expect(result2[0]).toBe("a, b, c");
   done();
 });
 

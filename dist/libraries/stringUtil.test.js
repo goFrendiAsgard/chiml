@@ -2,10 +2,14 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const stringUtil_1 = require("./stringUtil");
 it("able to smartsplit", (done) => {
-    const result = stringUtil_1.smartSplit("'a -> b' -> \"$a->call();\" -> \"c->d\"", "->");
-    expect(result[0]).toBe("'a -> b'");
-    expect(result[1]).toBe("\"$a->call();\"");
-    expect(result[2]).toBe("\"c->d\"");
+    const result1 = stringUtil_1.smartSplit("'a -> b' -> \"$a->call();\" -> \"c->d\"", "->");
+    expect(result1.length).toBe(3);
+    expect(result1[0]).toBe("'a -> b'");
+    expect(result1[1]).toBe("\"$a->call();\"");
+    expect(result1[2]).toBe("\"c->d\"");
+    const result2 = stringUtil_1.smartSplit("a, b, c", "->");
+    expect(result2.length).toBe(1);
+    expect(result2[0]).toBe("a, b, c");
     done();
 });
 it("able to recognized flanks", (done) => {
