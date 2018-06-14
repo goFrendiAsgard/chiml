@@ -254,3 +254,113 @@ it("constructor works with config string `ls`", (done) => {
   expect(task.loopCondition).toBe("false");
   done();
 });
+
+it("constructor works with nested config object", (done) => {
+  const config = {
+    do: [
+      {parallel: [
+        "(a, b) -> (x, y) => x + y -> c",
+        "(a, b) -> (x, y) => x - y -> d",
+      ]},
+      "(c, d) -> (x, y) => x * y -> e",
+    ],
+    ins: "a, b",
+    out: "e",
+  };
+  const task = new SingleTask(config);
+  expect(task.ins.length).toBe(2);
+  expect(task.ins[0]).toBe("a");
+  expect(task.ins[1]).toBe("b");
+  expect(task.out).toBe("e");
+  expect(task.mode).toBe(Mode.series);
+  expect(task.commandList.length).toBe(2);
+  expect(task.commandList[0].mode).toBe(Mode.parallel);
+  // (a, b) -> (x, y) => x + y -> c
+  expect(task.commandList[0].commandList[0].mode).toBe(Mode.single);
+  expect(task.commandList[0].commandList[0].commandType).toBe(CommandType.jsSyncFunction);
+  expect(task.commandList[0].commandList[0].branchCondition).toBe("true");
+  expect(task.commandList[0].commandList[0].loopCondition).toBe("false");
+  expect(task.commandList[0].commandList[0].ins.length).toBe(2);
+  expect(task.commandList[0].commandList[0].ins[0]).toBe("a");
+  expect(task.commandList[0].commandList[0].ins[1]).toBe("b");
+  expect(task.commandList[0].commandList[0].out).toBe("c");
+  expect(task.commandList[0].commandList[0].command).toBe("(x, y) => x + y");
+  // (a, b) -> (x, y) => x - y -> d
+  expect(task.commandList[0].commandList[1].mode).toBe(Mode.single);
+  expect(task.commandList[0].commandList[1].commandType).toBe(CommandType.jsSyncFunction);
+  expect(task.commandList[0].commandList[1].branchCondition).toBe("true");
+  expect(task.commandList[0].commandList[1].loopCondition).toBe("false");
+  expect(task.commandList[0].commandList[1].ins.length).toBe(2);
+  expect(task.commandList[0].commandList[1].ins[0]).toBe("a");
+  expect(task.commandList[0].commandList[1].ins[1]).toBe("b");
+  expect(task.commandList[0].commandList[1].out).toBe("d");
+  expect(task.commandList[0].commandList[1].command).toBe("(x, y) => x - y");
+  // (c, d) -> (x, y) => x * y -> e
+  expect(task.commandList[1].mode).toBe(Mode.single);
+  expect(task.commandList[1].commandType).toBe(CommandType.jsSyncFunction);
+  expect(task.commandList[1].branchCondition).toBe("true");
+  expect(task.commandList[1].loopCondition).toBe("false");
+  expect(task.commandList[1].ins.length).toBe(2);
+  expect(task.commandList[1].ins[0]).toBe("c");
+  expect(task.commandList[1].ins[1]).toBe("d");
+  expect(task.commandList[1].out).toBe("e");
+  expect(task.commandList[1].command).toBe("(x, y) => x * y");
+  expect(task.branchCondition).toBe("true");
+  expect(task.loopCondition).toBe("false");
+  done();
+});
+
+it("constructor works with nested config object", (done) => {
+  const config = {
+    ins: "a, b",
+    out: "e",
+    series: [
+      {parallel: [
+        "(a, b) -> (x, y) => x + y -> c",
+        "(a, b) -> (x, y) => x - y -> d",
+      ]},
+      "(c, d) -> (x, y) => x * y -> e",
+    ],
+  };
+  const task = new SingleTask(config);
+  expect(task.ins.length).toBe(2);
+  expect(task.ins[0]).toBe("a");
+  expect(task.ins[1]).toBe("b");
+  expect(task.out).toBe("e");
+  expect(task.mode).toBe(Mode.series);
+  expect(task.commandList.length).toBe(2);
+  expect(task.commandList[0].mode).toBe(Mode.parallel);
+  // (a, b) -> (x, y) => x + y -> c
+  expect(task.commandList[0].commandList[0].mode).toBe(Mode.single);
+  expect(task.commandList[0].commandList[0].commandType).toBe(CommandType.jsSyncFunction);
+  expect(task.commandList[0].commandList[0].branchCondition).toBe("true");
+  expect(task.commandList[0].commandList[0].loopCondition).toBe("false");
+  expect(task.commandList[0].commandList[0].ins.length).toBe(2);
+  expect(task.commandList[0].commandList[0].ins[0]).toBe("a");
+  expect(task.commandList[0].commandList[0].ins[1]).toBe("b");
+  expect(task.commandList[0].commandList[0].out).toBe("c");
+  expect(task.commandList[0].commandList[0].command).toBe("(x, y) => x + y");
+  // (a, b) -> (x, y) => x - y -> d
+  expect(task.commandList[0].commandList[1].mode).toBe(Mode.single);
+  expect(task.commandList[0].commandList[1].commandType).toBe(CommandType.jsSyncFunction);
+  expect(task.commandList[0].commandList[1].branchCondition).toBe("true");
+  expect(task.commandList[0].commandList[1].loopCondition).toBe("false");
+  expect(task.commandList[0].commandList[1].ins.length).toBe(2);
+  expect(task.commandList[0].commandList[1].ins[0]).toBe("a");
+  expect(task.commandList[0].commandList[1].ins[1]).toBe("b");
+  expect(task.commandList[0].commandList[1].out).toBe("d");
+  expect(task.commandList[0].commandList[1].command).toBe("(x, y) => x - y");
+  // (c, d) -> (x, y) => x * y -> e
+  expect(task.commandList[1].mode).toBe(Mode.single);
+  expect(task.commandList[1].commandType).toBe(CommandType.jsSyncFunction);
+  expect(task.commandList[1].branchCondition).toBe("true");
+  expect(task.commandList[1].loopCondition).toBe("false");
+  expect(task.commandList[1].ins.length).toBe(2);
+  expect(task.commandList[1].ins[0]).toBe("c");
+  expect(task.commandList[1].ins[1]).toBe("d");
+  expect(task.commandList[1].out).toBe("e");
+  expect(task.commandList[1].command).toBe("(x, y) => x * y");
+  expect(task.branchCondition).toBe("true");
+  expect(task.loopCondition).toBe("false");
+  done();
+});
