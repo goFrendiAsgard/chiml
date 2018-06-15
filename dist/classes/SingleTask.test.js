@@ -346,4 +346,42 @@ it("constructor works with nested config object", (done) => {
     expect(task.loopCondition).toBe("false");
     done();
 });
+it("constructor recognize map", (done) => {
+    const config = { map: "[1, 2, 3, 4, 5]", into: "square", do: "(x) => x * x" };
+    const task = new SingleTask_1.default(config);
+    expect(task.src).toBe("[1, 2, 3, 4, 5]");
+    expect(task.dst).toBe("square");
+    expect(task.functionalMode).toBe(SingleTask_2.FunctionalMode.map);
+    expect(task.command).toBe("(x) => x * x");
+    done();
+});
+it("constructor recognize filter", (done) => {
+    const config = { filter: "[1, 2, 3, 4, 5]", into: "even", do: "(x) => x % 2" };
+    const task = new SingleTask_1.default(config);
+    expect(task.src).toBe("[1, 2, 3, 4, 5]");
+    expect(task.dst).toBe("even");
+    expect(task.functionalMode).toBe(SingleTask_2.FunctionalMode.filter);
+    expect(task.command).toBe("(x) => x % 2");
+    done();
+});
+it("constructor recognize reduce", (done) => {
+    const config = { reduce: "[1, 2, 3, 4, 5]", into: "sum", do: "(x, y) => x + y" };
+    const task = new SingleTask_1.default(config);
+    expect(task.src).toBe("[1, 2, 3, 4, 5]");
+    expect(task.dst).toBe("sum");
+    expect(task.functionalMode).toBe(SingleTask_2.FunctionalMode.reduce);
+    expect(task.command).toBe("(x, y) => x + y");
+    expect(task.accumulator).toBe("0");
+    done();
+});
+it("constructor recognize reduce (with accumulator)", (done) => {
+    const config = { reduce: "[1, 2, 3, 4, 5]", into: "sum", accumulator: "1", do: "(x, y) => x + y" };
+    const task = new SingleTask_1.default(config);
+    expect(task.src).toBe("[1, 2, 3, 4, 5]");
+    expect(task.dst).toBe("sum");
+    expect(task.functionalMode).toBe(SingleTask_2.FunctionalMode.reduce);
+    expect(task.command).toBe("(x, y) => x + y");
+    expect(task.accumulator).toBe("1");
+    done();
+});
 //# sourceMappingURL=SingleTask.test.js.map

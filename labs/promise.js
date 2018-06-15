@@ -1,5 +1,5 @@
 /*
- * ins: a, b
+ * ins: a, b                                                  # p0
  * out: out
  * do:
  *   - parallel:                                              # p1

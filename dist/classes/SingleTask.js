@@ -7,6 +7,13 @@ var Mode;
     Mode[Mode["series"] = 1] = "series";
     Mode[Mode["single"] = 2] = "single";
 })(Mode = exports.Mode || (exports.Mode = {}));
+var FunctionalMode;
+(function (FunctionalMode) {
+    FunctionalMode[FunctionalMode["none"] = 0] = "none";
+    FunctionalMode[FunctionalMode["map"] = 1] = "map";
+    FunctionalMode[FunctionalMode["filter"] = 2] = "filter";
+    FunctionalMode[FunctionalMode["reduce"] = 3] = "reduce";
+})(FunctionalMode = exports.FunctionalMode || (exports.FunctionalMode = {}));
 var CommandType;
 (function (CommandType) {
     CommandType[CommandType["cmd"] = 0] = "cmd";
@@ -16,19 +23,18 @@ var CommandType;
 })(CommandType = exports.CommandType || (exports.CommandType = {}));
 const jsArrowFunctionPattern = /^\(.*\)\s*=>.+/g;
 const jsFunctionPattern = /^function\s*\(.*\)\s*{.+}$/g;
-function splitByShortArrow(str) {
-    let shortArrowParts = stringUtil_1.smartSplit(str, "->");
-    if (shortArrowParts.length === 1) {
-        shortArrowParts = stringUtil_1.smartSplit(str, "<-").reverse();
+function splitBy(str, splitter, reverseSplitter) {
+    let parts = stringUtil_1.smartSplit(str, splitter);
+    if (parts.length === 1) {
+        parts = stringUtil_1.smartSplit(str, reverseSplitter).reverse();
     }
-    return shortArrowParts;
+    return parts;
+}
+function splitByShortArrow(str) {
+    return splitBy(str, "->", "<-");
 }
 function splitByLongArrow(str) {
-    let longArrowParts = stringUtil_1.smartSplit(str, "-->");
-    if (longArrowParts.length === 1) {
-        longArrowParts = stringUtil_1.smartSplit(str, "<--").reverse();
-    }
-    return longArrowParts;
+    return splitBy(str, "-->", "<--");
 }
 function strToRawObj(str) {
     const obj = { out: "__ans" };
@@ -73,7 +79,7 @@ function getNormalIns(ins) {
     }
     return ins;
 }
-function parseCommand(normalizedObj, obj) {
+function parseSingleCommand(normalizedObj, obj) {
     if ("do" in obj && typeof obj.do === "string") {
         normalizedObj.command = obj.do ? obj.do : "(x) => x";
         if (stringUtil_1.isFlanked(normalizedObj.command, "{", "}")) {
@@ -99,7 +105,10 @@ function parseCommand(normalizedObj, obj) {
         }
         normalizedObj.mode = Mode.single;
     }
-    else if ("do" in obj) {
+    return normalizedObj;
+}
+function parseNestedCommand(normalizedObj, obj) {
+    if ("do" in obj && typeof obj.do !== "string") {
         normalizedObj.commandList = obj.do;
         normalizedObj.mode = Mode.series;
     }
@@ -111,30 +120,58 @@ function parseCommand(normalizedObj, obj) {
         normalizedObj.commandList = obj.parallel;
         normalizedObj.mode = Mode.parallel;
     }
-    else {
+    else if (!normalizedObj.command) {
         normalizedObj.command = "(x) => x";
         normalizedObj.commandType = CommandType.jsSyncFunction;
         normalizedObj.mode = Mode.single;
     }
     return normalizedObj;
 }
+function parseFunctionalCommand(normalizedObj, obj) {
+    if ("map" in obj || "filter" in obj || "reduce" in obj) {
+        normalizedObj.dst = obj.into;
+        if ("map" in obj) {
+            normalizedObj.src = obj.map;
+            normalizedObj.functionalMode = FunctionalMode.map;
+        }
+        else if ("filter" in obj) {
+            normalizedObj.src = obj.filter;
+            normalizedObj.functionalMode = FunctionalMode.filter;
+        }
+        else if ("reduce" in obj) {
+            normalizedObj.src = obj.reduce;
+            normalizedObj.functionalMode = FunctionalMode.reduce;
+        }
+    }
+    return normalizedObj;
+}
+function parseCommand(normalizedObj, obj) {
+    normalizedObj = parseFunctionalCommand(normalizedObj, obj);
+    normalizedObj = parseSingleCommand(normalizedObj, obj);
+    normalizedObj = parseNestedCommand(normalizedObj, obj);
+    return normalizedObj;
+}
 function normalizeRawObject(obj) {
     let normalizedObj = {
+        accumulator: "accumulator" in obj ? obj.accumulator : "0",
         branchCondition: "if" in obj ? obj.if : "true",
         command: null,
         commandList: [],
         commandType: CommandType.cmd,
+        dst: null,
+        functionalMode: FunctionalMode.none,
         ins: getNormalIns(obj.ins),
         loopCondition: "while" in obj ? obj.while : "false",
         mode: Mode.single,
         out: "out" in obj ? obj.out : "__ans",
+        src: null,
         vars: "vars" in obj ? obj.vars : {},
     };
     normalizedObj = parseCommand(normalizedObj, obj);
     return normalizedObj;
 }
 class SingleTask {
-    constructor(config) {
+    constructor(config, parentId = "_", id = 1) {
         const rawObj = typeof config === "string" ?
             strToRawObj(config) : normalizeRawObject(config);
         this.ins = rawObj.ins;
@@ -147,8 +184,13 @@ class SingleTask {
         this.command = rawObj.command;
         this.commandType = rawObj.commandType;
         this.commandList = rawObj.commandList;
+        this.src = rawObj.src;
+        this.dst = rawObj.dst;
+        this.accumulator = rawObj.accumulator;
+        this.functionalMode = rawObj.functionalMode;
+        this.id = parentId + id;
         for (let i = 0; i < this.commandList.length; i++) {
-            this.commandList[i] = new SingleTask(this.commandList[i]);
+            this.commandList[i] = new SingleTask(this.commandList[i], this.id, i);
         }
     }
     getScript() {
