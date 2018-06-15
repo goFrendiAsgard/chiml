@@ -1,26 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const singleTaskProperty_1 = require("../enums/singleTaskProperty");
 const stringUtil_1 = require("../libraries/stringUtil");
-var Mode;
-(function (Mode) {
-    Mode[Mode["parallel"] = 0] = "parallel";
-    Mode[Mode["series"] = 1] = "series";
-    Mode[Mode["single"] = 2] = "single";
-})(Mode = exports.Mode || (exports.Mode = {}));
-var FunctionalMode;
-(function (FunctionalMode) {
-    FunctionalMode[FunctionalMode["none"] = 0] = "none";
-    FunctionalMode[FunctionalMode["map"] = 1] = "map";
-    FunctionalMode[FunctionalMode["filter"] = 2] = "filter";
-    FunctionalMode[FunctionalMode["reduce"] = 3] = "reduce";
-})(FunctionalMode = exports.FunctionalMode || (exports.FunctionalMode = {}));
-var CommandType;
-(function (CommandType) {
-    CommandType[CommandType["cmd"] = 0] = "cmd";
-    CommandType[CommandType["jsAsyncFunction"] = 1] = "jsAsyncFunction";
-    CommandType[CommandType["jsSyncFunction"] = 2] = "jsSyncFunction";
-    CommandType[CommandType["jsPromise"] = 3] = "jsPromise";
-})(CommandType = exports.CommandType || (exports.CommandType = {}));
 const jsArrowFunctionPattern = /^\(.*\)\s*=>.+/g;
 const jsFunctionPattern = /^function\s*\(.*\)\s*{.+}$/g;
 function splitBy(str, splitter, reverseSplitter) {
@@ -84,46 +65,46 @@ function parseSingleCommand(normalizedObj, obj) {
         normalizedObj.command = obj.do ? obj.do : "(x) => x";
         if (stringUtil_1.isFlanked(normalizedObj.command, "{", "}")) {
             normalizedObj.command = stringUtil_1.removeFlank(normalizedObj.command, "{", "}");
-            normalizedObj.commandType = CommandType.jsSyncFunction;
+            normalizedObj.commandType = singleTaskProperty_1.CommandType.jsSyncFunction;
         }
         else if (stringUtil_1.isFlanked(normalizedObj.command, "<", ">")) {
             normalizedObj.command = stringUtil_1.removeFlank(normalizedObj.command, "<", ">");
-            normalizedObj.commandType = CommandType.jsPromise;
+            normalizedObj.commandType = singleTaskProperty_1.CommandType.jsPromise;
         }
         else if (stringUtil_1.isFlanked(normalizedObj.command, "[", "]")) {
             normalizedObj.command = stringUtil_1.removeFlank(normalizedObj.command, "[", "]");
-            normalizedObj.commandType = CommandType.jsAsyncFunction;
+            normalizedObj.commandType = singleTaskProperty_1.CommandType.jsAsyncFunction;
         }
         else {
             const command = normalizedObj.command;
             if (command.match(jsArrowFunctionPattern) || command.match(jsFunctionPattern)) {
-                normalizedObj.commandType = CommandType.jsSyncFunction;
+                normalizedObj.commandType = singleTaskProperty_1.CommandType.jsSyncFunction;
             }
             else {
-                normalizedObj.commandType = CommandType.cmd;
+                normalizedObj.commandType = singleTaskProperty_1.CommandType.cmd;
             }
         }
-        normalizedObj.mode = Mode.single;
+        normalizedObj.mode = singleTaskProperty_1.Mode.single;
     }
     return normalizedObj;
 }
 function parseNestedCommand(normalizedObj, obj) {
     if ("do" in obj && typeof obj.do !== "string") {
         normalizedObj.commandList = obj.do;
-        normalizedObj.mode = Mode.series;
+        normalizedObj.mode = singleTaskProperty_1.Mode.series;
     }
     else if ("series" in obj) {
         normalizedObj.commandList = obj.series;
-        normalizedObj.mode = Mode.series;
+        normalizedObj.mode = singleTaskProperty_1.Mode.series;
     }
     else if ("parallel" in obj) {
         normalizedObj.commandList = obj.parallel;
-        normalizedObj.mode = Mode.parallel;
+        normalizedObj.mode = singleTaskProperty_1.Mode.parallel;
     }
     else if (!normalizedObj.command) {
         normalizedObj.command = "(x) => x";
-        normalizedObj.commandType = CommandType.jsSyncFunction;
-        normalizedObj.mode = Mode.single;
+        normalizedObj.commandType = singleTaskProperty_1.CommandType.jsSyncFunction;
+        normalizedObj.mode = singleTaskProperty_1.Mode.single;
     }
     return normalizedObj;
 }
@@ -132,15 +113,15 @@ function parseFunctionalCommand(normalizedObj, obj) {
         normalizedObj.dst = obj.into;
         if ("map" in obj) {
             normalizedObj.src = obj.map;
-            normalizedObj.functionalMode = FunctionalMode.map;
+            normalizedObj.functionalMode = singleTaskProperty_1.FunctionalMode.map;
         }
         else if ("filter" in obj) {
             normalizedObj.src = obj.filter;
-            normalizedObj.functionalMode = FunctionalMode.filter;
+            normalizedObj.functionalMode = singleTaskProperty_1.FunctionalMode.filter;
         }
         else if ("reduce" in obj) {
             normalizedObj.src = obj.reduce;
-            normalizedObj.functionalMode = FunctionalMode.reduce;
+            normalizedObj.functionalMode = singleTaskProperty_1.FunctionalMode.reduce;
         }
     }
     return normalizedObj;
@@ -157,12 +138,12 @@ function normalizeRawObject(obj) {
         branchCondition: "if" in obj ? obj.if : "true",
         command: null,
         commandList: [],
-        commandType: CommandType.cmd,
+        commandType: singleTaskProperty_1.CommandType.cmd,
         dst: null,
-        functionalMode: FunctionalMode.none,
+        functionalMode: singleTaskProperty_1.FunctionalMode.none,
         ins: getNormalIns(obj.ins),
         loopCondition: "while" in obj ? obj.while : "false",
-        mode: Mode.single,
+        mode: singleTaskProperty_1.Mode.single,
         out: "out" in obj ? obj.out : "__ans",
         src: null,
         vars: "vars" in obj ? obj.vars : {},
@@ -171,7 +152,7 @@ function normalizeRawObject(obj) {
     return normalizedObj;
 }
 class SingleTask {
-    constructor(config, parentId = "_", id = 1) {
+    constructor(config, parentId = "", id = 0) {
         const rawObj = typeof config === "string" ?
             strToRawObj(config) : normalizeRawObject(config);
         this.ins = rawObj.ins;
@@ -188,7 +169,7 @@ class SingleTask {
         this.dst = rawObj.dst;
         this.accumulator = rawObj.accumulator;
         this.functionalMode = rawObj.functionalMode;
-        this.id = parentId + id;
+        this.id = parentId + "_" + id;
         for (let i = 0; i < this.commandList.length; i++) {
             this.commandList[i] = new SingleTask(this.commandList[i], this.id, i);
         }

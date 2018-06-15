@@ -1,24 +1,5 @@
+import {CommandType, FunctionalMode, Mode} from "../enums/singleTaskProperty";
 import {isFlanked, removeFlank, smartSplit} from "../libraries/stringUtil";
-
-export enum Mode {
-  parallel,
-  series,
-  single,
-}
-
-export enum FunctionalMode {
-  none,
-  map,
-  filter,
-  reduce,
-}
-
-export enum CommandType {
-  cmd,
-  jsAsyncFunction,
-  jsSyncFunction,
-  jsPromise,
-}
 
 const jsArrowFunctionPattern = /^\(.*\)\s*=>.+/g;
 const jsFunctionPattern = /^function\s*\(.*\)\s*{.+}$/g;
@@ -182,7 +163,7 @@ export default class SingleTask {
   public functionalMode: FunctionalMode;
   public accumulator: string;
 
-  constructor(config: any, parentId: string = "_", id: number = 1) {
+  constructor(config: any, parentId: string = "", id: number = 0) {
     const rawObj: {[key: string]: any} = typeof config === "string" ?
       strToRawObj(config) : normalizeRawObject(config);
     this.ins = rawObj.ins;
@@ -199,7 +180,7 @@ export default class SingleTask {
     this.dst = rawObj.dst;
     this.accumulator = rawObj.accumulator;
     this.functionalMode = rawObj.functionalMode;
-    this.id = parentId + id;
+    this.id = parentId + "_" + id;
     for (let i = 0; i < this.commandList.length; i++) {
       this.commandList[i] = new SingleTask(this.commandList[i], this.id, i);
     }

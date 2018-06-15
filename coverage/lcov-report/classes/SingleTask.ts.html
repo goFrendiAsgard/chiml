@@ -20,24 +20,24 @@
     </h1>
     <div class='clearfix'>
       <div class='fl pad1y space-right2'>
-        <span class="strong">96.72% </span>
+        <span class="strong">96.33% </span>
         <span class="quiet">Statements</span>
-        <span class='fraction'>118/122</span>
+        <span class='fraction'>105/109</span>
       </div>
       <div class='fl pad1y space-right2'>
-        <span class="strong">98.7% </span>
+        <span class="strong">98.59% </span>
         <span class="quiet">Branches</span>
-        <span class='fraction'>76/77</span>
+        <span class='fraction'>70/71</span>
       </div>
       <div class='fl pad1y space-right2'>
-        <span class="strong">82.35% </span>
+        <span class="strong">78.57% </span>
         <span class="quiet">Functions</span>
-        <span class='fraction'>14/17</span>
+        <span class='fraction'>11/14</span>
       </div>
       <div class='fl pad1y space-right2'>
-        <span class="strong">96.72% </span>
+        <span class="strong">96.33% </span>
         <span class="quiet">Lines</span>
-        <span class='fraction'>118/122</span>
+        <span class='fraction'>105/109</span>
       </div>
     </div>
     <p class="quiet">
@@ -248,46 +248,8 @@
 <a name='L200'></a><a href='#L200'>200</a>
 <a name='L201'></a><a href='#L201'>201</a>
 <a name='L202'></a><a href='#L202'>202</a>
-<a name='L203'></a><a href='#L203'>203</a>
-<a name='L204'></a><a href='#L204'>204</a>
-<a name='L205'></a><a href='#L205'>205</a>
-<a name='L206'></a><a href='#L206'>206</a>
-<a name='L207'></a><a href='#L207'>207</a>
-<a name='L208'></a><a href='#L208'>208</a>
-<a name='L209'></a><a href='#L209'>209</a>
-<a name='L210'></a><a href='#L210'>210</a>
-<a name='L211'></a><a href='#L211'>211</a>
-<a name='L212'></a><a href='#L212'>212</a>
-<a name='L213'></a><a href='#L213'>213</a>
-<a name='L214'></a><a href='#L214'>214</a>
-<a name='L215'></a><a href='#L215'>215</a>
-<a name='L216'></a><a href='#L216'>216</a>
-<a name='L217'></a><a href='#L217'>217</a>
-<a name='L218'></a><a href='#L218'>218</a>
-<a name='L219'></a><a href='#L219'>219</a>
-<a name='L220'></a><a href='#L220'>220</a>
-<a name='L221'></a><a href='#L221'>221</a>
-<a name='L222'></a><a href='#L222'>222</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L203'></a><a href='#L203'>203</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
@@ -488,27 +450,8 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import {isFlanked, removeFlank, smartSplit} from "../libraries/stringUtil";
-&nbsp;
-export enum Mode {
-  parallel,
-  series,
-  single,
-}
-&nbsp;
-export enum FunctionalMode {
-  none,
-  map,
-  filter,
-  reduce,
-}
-&nbsp;
-export enum CommandType {
-  cmd,
-  jsAsyncFunction,
-  jsSyncFunction,
-  jsPromise,
-}
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import {CommandType, FunctionalMode, Mode} from "../enums/singleTaskProperty";
+import {isFlanked, removeFlank, smartSplit} from "../libraries/stringUtil";
 &nbsp;
 const jsArrowFunctionPattern = /^\(.*\)\s*=&gt;.+/g;
 const jsFunctionPattern = /^function\s*\(.*\)\s*{.+}$/g;
@@ -672,7 +615,7 @@ export default class SingleTask {
   public functionalMode: FunctionalMode;
   public accumulator: string;
 &nbsp;
-  constructor(config: any, parentId: string = "_", id: number = 1) {
+  constructor(config: any, parentId: string = "", id: number = 0) {
     const rawObj: {[key: string]: any} = typeof config === "string" ?
       strToRawObj(config) : normalizeRawObject(config);
     this.ins = rawObj.ins;
@@ -689,7 +632,7 @@ export default class SingleTask {
     this.dst = rawObj.dst;
     this.accumulator = rawObj.accumulator;
     this.functionalMode = rawObj.functionalMode;
-    this.id = parentId + id;
+    this.id = parentId + "_" + id;
     for (let i = 0; i &lt; this.commandList.length; i++) {
       this.commandList[i] = new SingleTask(this.commandList[i], this.id, i);
     }
@@ -715,7 +658,7 @@ export default class SingleTask {
 </div><!-- /wrapper -->
 <div class='footer quiet pad2 space-top1 center small'>
   Code coverage
-  generated by <a href="https://istanbul.js.org/" target="_blank">istanbul</a> at Fri Jun 15 2018 10:59:43 GMT+0700 (WIB)
+  generated by <a href="https://istanbul.js.org/" target="_blank">istanbul</a> at Fri Jun 15 2018 11:22:16 GMT+0700 (WIB)
 </div>
 </div>
 <script src="../prettify.js"></script>
