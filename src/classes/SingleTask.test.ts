@@ -1,5 +1,5 @@
 import {CommandType, FunctionalMode, Mode} from "../enums/singleTaskProperty";
-import SingleTask from "./SingleTask";
+import {SingleTask} from "./SingleTask";
 
 it("constructor works with complete config object", (done) => {
   const config = {do: "{(x,y) => x+y}", if: "a < b", ins: ["a", "b"],
@@ -261,6 +261,142 @@ it("constructor works with config string `b <-- a`", (done) => {
 
 it("constructor works with config string `ls`", (done) => {
   const config = "ls";
+  const task = new SingleTask(config);
+  expect(task.id).toBe("_0");
+  expect(task.ins.length).toBe(0);
+  expect(task.out).toBe("__ans");
+  expect(task.command).toBe("ls");
+  expect(task.commandType).toBe(CommandType.cmd);
+  expect(task.mode).toBe(Mode.single);
+  expect(task.branchCondition).toBe("true");
+  expect(task.loopCondition).toBe("false");
+  done();
+});
+
+it("constructor works with config.do = `(a, b) -> (x, y) => x+y -> c`", (done) => {
+  const config = {do: "(a, b) -> (x, y) => x+y -> c"};
+  const task = new SingleTask(config);
+  expect(task.id).toBe("_0");
+  expect(task.ins.length).toBe(2);
+  expect(task.ins[0]).toBe("a");
+  expect(task.ins[1]).toBe("b");
+  expect(task.out).toBe("c");
+  expect(task.command).toBe("(x, y) => x+y");
+  expect(task.commandType).toBe(CommandType.jsSyncFunction);
+  expect(task.mode).toBe(Mode.single);
+  expect(task.branchCondition).toBe("true");
+  expect(task.loopCondition).toBe("false");
+  done();
+});
+
+it("constructor works with config.do = `c <- (x, y) => x+y <- (a, b)`", (done) => {
+  const config = {do: "c <- (x, y) => x+y <- (a, b)"};
+  const task = new SingleTask(config);
+  expect(task.id).toBe("_0");
+  expect(task.ins.length).toBe(2);
+  expect(task.ins[0]).toBe("a");
+  expect(task.ins[1]).toBe("b");
+  expect(task.out).toBe("c");
+  expect(task.command).toBe("(x, y) => x+y");
+  expect(task.commandType).toBe(CommandType.jsSyncFunction);
+  expect(task.mode).toBe(Mode.single);
+  expect(task.branchCondition).toBe("true");
+  expect(task.loopCondition).toBe("false");
+  done();
+});
+
+it("constructor works with config.do = `(a, b) -> (x, y) => x+y`", (done) => {
+  const config = {do: "(a, b) -> (x, y) => x+y"};
+  const task = new SingleTask(config);
+  expect(task.id).toBe("_0");
+  expect(task.ins.length).toBe(2);
+  expect(task.ins[0]).toBe("a");
+  expect(task.ins[1]).toBe("b");
+  expect(task.out).toBe("__ans");
+  expect(task.command).toBe("(x, y) => x+y");
+  expect(task.commandType).toBe(CommandType.jsSyncFunction);
+  expect(task.mode).toBe(Mode.single);
+  expect(task.branchCondition).toBe("true");
+  expect(task.loopCondition).toBe("false");
+  done();
+});
+
+it("constructor works with config.do = `(x, y) => x+y <- (a, b)`", (done) => {
+  const config = {do: "(x, y) => x+y <- (a, b)"};
+  const task = new SingleTask(config);
+  expect(task.id).toBe("_0");
+  expect(task.ins.length).toBe(2);
+  expect(task.ins[0]).toBe("a");
+  expect(task.ins[1]).toBe("b");
+  expect(task.out).toBe("__ans");
+  expect(task.command).toBe("(x, y) => x+y");
+  expect(task.commandType).toBe(CommandType.jsSyncFunction);
+  expect(task.mode).toBe(Mode.single);
+  expect(task.branchCondition).toBe("true");
+  expect(task.loopCondition).toBe("false");
+  done();
+});
+
+it("constructor works with config.do = `() => 73 -> a`", (done) => {
+  const config = {do: "() => 73 -> a"};
+  const task = new SingleTask(config);
+  expect(task.id).toBe("_0");
+  expect(task.ins.length).toBe(0);
+  expect(task.out).toBe("a");
+  expect(task.command).toBe("() => 73");
+  expect(task.commandType).toBe(CommandType.jsSyncFunction);
+  expect(task.mode).toBe(Mode.single);
+  expect(task.branchCondition).toBe("true");
+  expect(task.loopCondition).toBe("false");
+  done();
+});
+
+it("constructor works with config.do = `a <- () => 73`", (done) => {
+  const config = {do: "a <- () => 73"};
+  const task = new SingleTask(config);
+  expect(task.id).toBe("_0");
+  expect(task.ins.length).toBe(0);
+  expect(task.out).toBe("a");
+  expect(task.command).toBe("() => 73");
+  expect(task.commandType).toBe(CommandType.jsSyncFunction);
+  expect(task.mode).toBe(Mode.single);
+  expect(task.branchCondition).toBe("true");
+  expect(task.loopCondition).toBe("false");
+  done();
+});
+
+it("constructor works with config.do = `a --> b`", (done) => {
+  const config = {do: "a --> b"};
+  const task = new SingleTask(config);
+  expect(task.id).toBe("_0");
+  expect(task.ins.length).toBe(1);
+  expect(task.ins[0]).toBe("a");
+  expect(task.out).toBe("b");
+  expect(task.command).toBe("(x) => x");
+  expect(task.commandType).toBe(CommandType.jsSyncFunction);
+  expect(task.mode).toBe(Mode.single);
+  expect(task.branchCondition).toBe("true");
+  expect(task.loopCondition).toBe("false");
+  done();
+});
+
+it("constructor works with config.do = `b <-- a`", (done) => {
+  const config = {do: "b <-- a"};
+  const task = new SingleTask(config);
+  expect(task.id).toBe("_0");
+  expect(task.ins.length).toBe(1);
+  expect(task.ins[0]).toBe("a");
+  expect(task.out).toBe("b");
+  expect(task.command).toBe("(x) => x");
+  expect(task.commandType).toBe(CommandType.jsSyncFunction);
+  expect(task.mode).toBe(Mode.single);
+  expect(task.branchCondition).toBe("true");
+  expect(task.loopCondition).toBe("false");
+  done();
+});
+
+it("constructor works with config.do = `ls`", (done) => {
+  const config = {do: "ls"};
   const task = new SingleTask(config);
   expect(task.id).toBe("_0");
   expect(task.ins.length).toBe(0);

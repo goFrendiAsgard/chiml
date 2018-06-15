@@ -1,6 +1,5 @@
 import { CommandType, FunctionalMode, Mode } from "../enums/singleTaskProperty";
-import { ISingleTask } from "../interfaces/ISingleTask";
-export declare class SingleTask implements ISingleTask {
+export interface ISingleTask {
     id: string;
     src: string;
     dst: string;
@@ -13,11 +12,8 @@ export declare class SingleTask implements ISingleTask {
     branchCondition: string;
     loopCondition: string;
     command: string;
-    commandList: SingleTask[];
+    commandList: ISingleTask[];
     commandType: CommandType;
     functionalMode: FunctionalMode;
     accumulator: string;
-    constructor(config: any, parentId?: string, id?: number);
-    getScript(): string;
-    execute(...inputs: any[]): Promise<any>;
 }

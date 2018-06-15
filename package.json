@@ -35,10 +35,12 @@
   },
   "homepage": "https://github.com/goFrendiAsgard/chimera-framework#readme",
   "dependencies": {
+    "@types/ejs": "^2.6.0",
     "@types/express": "^4.16.0",
     "@types/js-yaml": "^3.11.1",
     "@types/node": "^10.3.2",
     "@types/request": "^2.47.0",
+    "ejs": "^2.6.1",
     "express": "^4.16.3",
     "js-yaml": "^3.12.0",
     "request": "^2.87.0",

@@ -1,32 +1,32 @@
 /*
- * ins: a, b                                                  # 0
+ * ins: a, b                                                  # p0
  * out: out
  * do:
- *   - parallel:                                              # 0_0
- *       - (a,b) -> (x,y) => x-y -> c                         # 0_0_0
- *       - (a,b) -> (x,y) => x+y -> d                         # 0_0_1
+ *   - parallel:                                              # p1
+ *       - (a,b) -> (x,y) => x-y -> c                         # p2
+ *       - (a,b) -> (x,y) => x+y -> d                         # p3
  *
- *   - (c,d) -> (x,y) => x*y -> e                             # 0_1
+ *   - (c,d) -> (x,y) => x*y -> e                             # p4
  *
- *   - parallel:                                              # 0_2
+ *   - parallel:                                              # p5
  *
- *     - if: b < 100                                          # 0_2_0
+ *     - if: b < 100                                          # p6
  *       do: (b) -> (x) => x*x -> b
  *       while: b < 10000
  *
- *     - (e) -> factor -> f                                   # 0_2_1 (external command, callback)
+ *     - (e) -> factor -> f                                   # p7 (external command, callback)
  *
- *   - () -> <p73> -> g                                       # 0_3 (promise)
+ *   - () -> <p73> -> g                                       # p8 (promise)
  *
- *   - map: [1, 2, 3, 4, 5]                                   # 0_4 (map)
+ *   - map: [1, 2, 3, 4, 5]                                   # p9 (map)
  *     into: h
  *     do: (x) -> (x) => x*x
  *
- *   - filter: [1, 2, 3, 4, 5]                                # 0_5 (filter)
+ *   - filter: [1, 2, 3, 4, 5]                                # p10 (filter)
  *     into: i
  *     do: (x) -> (x) => x%2
  *
- *   - ([a, b, c, d, e, f, g, h, i]) -> (x) => x -> out       # 0_6
+ *   - ([a, b, c, d, e, f, g, h, i]) -> (x) => x -> out       # p11
  */
 
 // Promise example:
@@ -38,18 +38,6 @@ const p73 = new Promise((resolve, reject) => {
 // Code started here:
 
 const childProcess = require('child_process');
-
-function __f_0_0 (a,b) {
-  let c, d, e, f, g, out;
-  let __f_0First = true;
-  let __p_0 = new Promise((__resolve, __reject) => {
-    const __branchCondition = true;
-    if ((__f_0First && __branchCondition) || !__f_0First) {
-      __f_0First = false;
-    }
-  });
-  return __p_0;
-}
 
 function __main (a, b) {
   let c, d, e, f, g, out;
