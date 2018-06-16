@@ -238,6 +238,124 @@ it("strToNormalizedConfig works with config string `ls`", (done) => {
     expect(config.loopCondition).toBe("false");
     done();
 });
+it("normalizeRawConfig works with config.do = `(a, b) -> (x, y) => x+y -> c`", (done) => {
+    const rawConfig = { do: "(a, b) -> (x, y) => x+y -> c" };
+    const config = singleTaskConfigProcessor_1.normalizeRawConfig(rawConfig);
+    expect(config.ins.length).toBe(2);
+    expect(config.ins[0]).toBe("a");
+    expect(config.ins[1]).toBe("b");
+    expect(config.out).toBe("c");
+    expect(config.command).toBe("(x, y) => x+y");
+    expect(config.commandType).toBe(singleTaskProperty_1.CommandType.jsSyncFunction);
+    expect(config.mode).toBe(singleTaskProperty_1.Mode.single);
+    expect(config.branchCondition).toBe("true");
+    expect(config.loopCondition).toBe("false");
+    done();
+});
+it("normalizeRawConfig works with config.do = `c <- (x, y) => x+y <- (a, b)`", (done) => {
+    const rawConfig = { do: "c <- (x, y) => x+y <- (a, b)" };
+    const config = singleTaskConfigProcessor_1.normalizeRawConfig(rawConfig);
+    expect(config.ins.length).toBe(2);
+    expect(config.ins[0]).toBe("a");
+    expect(config.ins[1]).toBe("b");
+    expect(config.out).toBe("c");
+    expect(config.command).toBe("(x, y) => x+y");
+    expect(config.commandType).toBe(singleTaskProperty_1.CommandType.jsSyncFunction);
+    expect(config.mode).toBe(singleTaskProperty_1.Mode.single);
+    expect(config.branchCondition).toBe("true");
+    expect(config.loopCondition).toBe("false");
+    done();
+});
+it("normalizeRawConfig works with config.do = `(a, b) -> (x, y) => x+y`", (done) => {
+    const rawConfig = { do: "(a, b) -> (x, y) => x+y" };
+    const config = singleTaskConfigProcessor_1.normalizeRawConfig(rawConfig);
+    expect(config.ins.length).toBe(2);
+    expect(config.ins[0]).toBe("a");
+    expect(config.ins[1]).toBe("b");
+    expect(config.out).toBe("__ans");
+    expect(config.command).toBe("(x, y) => x+y");
+    expect(config.commandType).toBe(singleTaskProperty_1.CommandType.jsSyncFunction);
+    expect(config.mode).toBe(singleTaskProperty_1.Mode.single);
+    expect(config.branchCondition).toBe("true");
+    expect(config.loopCondition).toBe("false");
+    done();
+});
+it("normalizeRawConfig works with config.do = `(x, y) => x+y <- (a, b)`", (done) => {
+    const rawConfig = { do: "(x, y) => x+y <- (a, b)" };
+    const config = singleTaskConfigProcessor_1.normalizeRawConfig(rawConfig);
+    expect(config.ins.length).toBe(2);
+    expect(config.ins[0]).toBe("a");
+    expect(config.ins[1]).toBe("b");
+    expect(config.out).toBe("__ans");
+    expect(config.command).toBe("(x, y) => x+y");
+    expect(config.commandType).toBe(singleTaskProperty_1.CommandType.jsSyncFunction);
+    expect(config.mode).toBe(singleTaskProperty_1.Mode.single);
+    expect(config.branchCondition).toBe("true");
+    expect(config.loopCondition).toBe("false");
+    done();
+});
+it("normalizeRawConfig works with config.do = `() => 73 -> a`", (done) => {
+    const rawConfig = { do: "() => 73 -> a" };
+    const config = singleTaskConfigProcessor_1.normalizeRawConfig(rawConfig);
+    expect(config.ins.length).toBe(0);
+    expect(config.out).toBe("a");
+    expect(config.command).toBe("() => 73");
+    expect(config.commandType).toBe(singleTaskProperty_1.CommandType.jsSyncFunction);
+    expect(config.mode).toBe(singleTaskProperty_1.Mode.single);
+    expect(config.branchCondition).toBe("true");
+    expect(config.loopCondition).toBe("false");
+    done();
+});
+it("normalizeRawConfig works with config.do = `a <- () => 73`", (done) => {
+    const rawConfig = { do: "a <- () => 73" };
+    const config = singleTaskConfigProcessor_1.normalizeRawConfig(rawConfig);
+    expect(config.ins.length).toBe(0);
+    expect(config.out).toBe("a");
+    expect(config.command).toBe("() => 73");
+    expect(config.commandType).toBe(singleTaskProperty_1.CommandType.jsSyncFunction);
+    expect(config.mode).toBe(singleTaskProperty_1.Mode.single);
+    expect(config.branchCondition).toBe("true");
+    expect(config.loopCondition).toBe("false");
+    done();
+});
+it("normalizeRawConfig works with config.do = `a --> b`", (done) => {
+    const rawConfig = { do: "a --> b" };
+    const config = singleTaskConfigProcessor_1.normalizeRawConfig(rawConfig);
+    expect(config.ins.length).toBe(1);
+    expect(config.ins[0]).toBe("a");
+    expect(config.out).toBe("b");
+    expect(config.command).toBe("(x) => x");
+    expect(config.commandType).toBe(singleTaskProperty_1.CommandType.jsSyncFunction);
+    expect(config.mode).toBe(singleTaskProperty_1.Mode.single);
+    expect(config.branchCondition).toBe("true");
+    expect(config.loopCondition).toBe("false");
+    done();
+});
+it("normalizeRawConfig works with config.do = `b <-- a`", (done) => {
+    const rawConfig = { do: "b <-- a" };
+    const config = singleTaskConfigProcessor_1.normalizeRawConfig(rawConfig);
+    expect(config.ins.length).toBe(1);
+    expect(config.ins[0]).toBe("a");
+    expect(config.out).toBe("b");
+    expect(config.command).toBe("(x) => x");
+    expect(config.commandType).toBe(singleTaskProperty_1.CommandType.jsSyncFunction);
+    expect(config.mode).toBe(singleTaskProperty_1.Mode.single);
+    expect(config.branchCondition).toBe("true");
+    expect(config.loopCondition).toBe("false");
+    done();
+});
+it("normalizeRawConfig works with config.do = `ls`", (done) => {
+    const rawConfig = { do: "ls" };
+    const config = singleTaskConfigProcessor_1.normalizeRawConfig(rawConfig);
+    expect(config.ins.length).toBe(0);
+    expect(config.out).toBe("__ans");
+    expect(config.command).toBe("ls");
+    expect(config.commandType).toBe(singleTaskProperty_1.CommandType.cmd);
+    expect(config.mode).toBe(singleTaskProperty_1.Mode.single);
+    expect(config.branchCondition).toBe("true");
+    expect(config.loopCondition).toBe("false");
+    done();
+});
 it("normalizeRawConfig works with nested config object", (done) => {
     const rawConfig = {
         do: [

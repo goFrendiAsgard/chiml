@@ -32,8 +32,7 @@ do:
   - "{pairs, isosceles, total, biggestIsosceles} --> result"      # 0_4
 `;
 const taskSample = new SingleTask_1.SingleTask(js_yaml_1.safeLoad(chimlSample));
-it("fetch variables from", (done) => {
-    // console.log(JSON.stringify(taskSample, null, 2));
+it("fetch variables from taskSample", (done) => {
     const vars00 = singleTaskScriptGenerator_1.getVariables(taskSample);
     expect(vars00.length).toBe(6);
     expect(vars00).toContain("hypothenuses");
@@ -45,6 +44,32 @@ it("fetch variables from", (done) => {
     const vars000 = singleTaskScriptGenerator_1.getVariables(taskSample.commandList[0].commandList[0]);
     expect(vars000.length).toBe(1);
     expect(vars000).toContain("__ans");
+    done();
+});
+it("fetch variables from miniTask `(a) -> (x) => x+1 -> a`", (done) => {
+    const miniTask = new SingleTask_1.SingleTask("(a) -> (x) => x+1 -> a");
+    const miniVars = singleTaskScriptGenerator_1.getVariables(miniTask);
+    expect(miniVars.length).toBe(0);
+    done();
+});
+it("render template correctly", (done) => {
+    const template = "function <%= functionName %> (<%= inputs.join(', ') %>){\n" +
+        "  vars <%= vars.join(', ') %>;\n" +
+        "  return true;\n" +
+        "}";
+    const config = { functionName: "fn", inputs: ["n1", "n2"], vars: ["a", "b", "c"] };
+    const expect1 = "function fn (n1, n2){\n" +
+        "  vars a, b, c;\n" +
+        "  return true;\n" +
+        "}";
+    const result1 = singleTaskScriptGenerator_1.renderTemplate(template, config);
+    expect(result1).toBe(expect1);
+    const expect2 = "  function fn (n1, n2){\n" +
+        "    vars a, b, c;\n" +
+        "    return true;\n" +
+        "  }";
+    const result2 = singleTaskScriptGenerator_1.renderTemplate(template, config, 2);
+    expect(result2).toBe(expect2);
     done();
 });
 //# sourceMappingURL=singleTaskScriptGenerator.test.js.map
