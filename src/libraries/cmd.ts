@@ -1,4 +1,5 @@
 import {exec} from "child_process";
+import {doubleQuote} from "./stringUtil";
 
 export function cmd(command: string, options?: {[key: string]: any}): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -29,4 +30,16 @@ export function cmd(command: string, options?: {[key: string]: any}): Promise<st
     });
 
   });
+}
+
+export function composeCommand(command: string, ins: any[] = []): string {
+  const echoes = ins.map((element) => "echo " + doubleQuote(String(element))).join(" && ");
+  const inputs = ins.map((element) => doubleQuote(String(element))).join(" ");
+  const composedCommand = `(${echoes}) | ${command} ${inputs}`;
+  return composedCommand;
+}
+
+export function cmdComposedCommand(command: string, ins: any[] = [],
+                                   options?: {[key: string]: any}): Promise<string> {
+  return cmd(composeCommand(command, ins), options);
 }

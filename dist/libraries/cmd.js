@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const child_process_1 = require("child_process");
+const stringUtil_1 = require("./stringUtil");
 function cmd(command, options) {
     return new Promise((resolve, reject) => {
         const subProcess = child_process_1.exec(command, options, (error, stdout, stderr) => {
@@ -28,4 +29,15 @@ function cmd(command, options) {
     });
 }
 exports.cmd = cmd;
+function composeCommand(command, ins = []) {
+    const echoes = ins.map((element) => "echo " + stringUtil_1.doubleQuote(String(element))).join(" && ");
+    const inputs = ins.map((element) => stringUtil_1.doubleQuote(String(element))).join(" ");
+    const composedCommand = `(${echoes}) | ${command} ${inputs}`;
+    return composedCommand;
+}
+exports.composeCommand = composeCommand;
+function cmdComposedCommand(command, ins = [], options) {
+    return cmd(composeCommand(command, ins), options);
+}
+exports.cmdComposedCommand = cmdComposedCommand;
 //# sourceMappingURL=cmd.js.map

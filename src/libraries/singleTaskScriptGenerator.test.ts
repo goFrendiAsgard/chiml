@@ -1,7 +1,8 @@
 import {safeLoad} from "js-yaml";
+import {resolve} from "path";
 import {SingleTask} from "../classes/SingleTask";
 import {ISingleTask} from "../interfaces/ISingleTask";
-import {getVariables, renderTemplate} from "./singleTaskScriptGenerator";
+import {createHandlerScript, getVariables, renderTemplate} from "./singleTaskScriptGenerator";
 
 const chimlSample = `
 ins: pairs                                                        # 0
@@ -79,5 +80,31 @@ it("render template correctly", (done) => {
   const result2 = renderTemplate(template, config, 2);
   expect(result2).toBe(expect2);
 
+  done();
+});
+
+it("createHandlerScript", (done) => {
+  const scriptPath = (resolve(__dirname, "cmd.test.add.js"));
+  const resultCmd = createHandlerScript(new SingleTask(`(a,b) -> node ${scriptPath}`));
+  const resultAsync = createHandlerScript(new SingleTask("(a,b) -> [(x, y, callback) => callback(null, x + y)]"));
+  const resultSync = createHandlerScript(new SingleTask("(a,b) -> (x, y) => x + y"));
+  const resultPromise = createHandlerScript(new SingleTask("(a,b) -> <Promise.resolve(a + b)>"));
+  const resultSeries = createHandlerScript(new SingleTask({
+    do: [
+      "(a) -> (x) => x + 1 -> b",
+      "(b) -> (x) => x * 2",
+    ],
+    ins: "a",
+  }));
+  const resultParallel = createHandlerScript(new SingleTask({
+    ins: "a",
+    parallel: [
+      "(a) -> (x) => x + 1",
+      "(a) -> (x) => x * 2",
+    ],
+  }));
+  for (const script of [resultCmd, resultAsync, resultSync, resultPromise, resultSeries, resultParallel]) {
+    console.log(script);
+  }
   done();
 });

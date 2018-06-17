@@ -39,3 +39,8 @@ export function removeFlank(str: string, openFlank, closeFlank): string {
   }
   return str;
 }
+
+export function doubleQuote(str: string): string {
+  const newStr = str.replace(/"/g, "\\\"");
+  return `"${newStr}"`;
+}

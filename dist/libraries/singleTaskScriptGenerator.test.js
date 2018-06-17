@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const js_yaml_1 = require("js-yaml");
+const path_1 = require("path");
 const SingleTask_1 = require("../classes/SingleTask");
 const singleTaskScriptGenerator_1 = require("./singleTaskScriptGenerator");
 const chimlSample = `
@@ -70,6 +71,31 @@ it("render template correctly", (done) => {
         "  }";
     const result2 = singleTaskScriptGenerator_1.renderTemplate(template, config, 2);
     expect(result2).toBe(expect2);
+    done();
+});
+it("createHandlerScript", (done) => {
+    const scriptPath = (path_1.resolve(__dirname, "cmd.test.add.js"));
+    const resultCmd = singleTaskScriptGenerator_1.createHandlerScript(new SingleTask_1.SingleTask(`(a,b) -> node ${scriptPath}`));
+    const resultAsync = singleTaskScriptGenerator_1.createHandlerScript(new SingleTask_1.SingleTask("(a,b) -> [(x, y, callback) => callback(null, x + y)]"));
+    const resultSync = singleTaskScriptGenerator_1.createHandlerScript(new SingleTask_1.SingleTask("(a,b) -> (x, y) => x + y"));
+    const resultPromise = singleTaskScriptGenerator_1.createHandlerScript(new SingleTask_1.SingleTask("(a,b) -> <Promise.resolve(a + b)>"));
+    const resultSeries = singleTaskScriptGenerator_1.createHandlerScript(new SingleTask_1.SingleTask({
+        do: [
+            "(a) -> (x) => x + 1 -> b",
+            "(b) -> (x) => x * 2",
+        ],
+        ins: "a",
+    }));
+    const resultParallel = singleTaskScriptGenerator_1.createHandlerScript(new SingleTask_1.SingleTask({
+        ins: "a",
+        parallel: [
+            "(a) -> (x) => x + 1",
+            "(a) -> (x) => x * 2",
+        ],
+    }));
+    for (const script of [resultCmd, resultAsync, resultSync, resultPromise, resultSeries, resultParallel]) {
+        console.log(script);
+    }
     done();
 });
 //# sourceMappingURL=singleTaskScriptGenerator.test.js.map

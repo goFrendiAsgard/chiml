@@ -44,4 +44,9 @@ function removeFlank(str, openFlank, closeFlank) {
     return str;
 }
 exports.removeFlank = removeFlank;
+function doubleQuote(str) {
+    const newStr = str.replace(/"/g, "\\\"");
+    return `"${newStr}"`;
+}
+exports.doubleQuote = doubleQuote;
 //# sourceMappingURL=stringUtil.js.map

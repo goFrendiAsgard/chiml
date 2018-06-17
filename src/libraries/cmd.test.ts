@@ -1,5 +1,5 @@
 import {resolve} from "path";
-import {cmd} from "./cmd";
+import {cmd, cmdComposedCommand, composeCommand} from "./cmd";
 
 it("should able to run `node -e \"console.log('hello');\"`", (done) => {
   cmd("node -e \"console.log('hello');\"").then((stdout) => {
@@ -11,7 +11,7 @@ it("should able to run `node -e \"console.log('hello');\"`", (done) => {
   });
 });
 
-it("should yield error when run `sendNukeToKrypton`", (done) => {
+it("should yield error when run `sendNukeToKrypton` (assuming that command is not exists)", (done) => {
   cmd("sendNukeToKrypton").then((stdout) => {
     expect(stdout).toBeNull();
     done();
@@ -21,10 +21,25 @@ it("should yield error when run `sendNukeToKrypton`", (done) => {
   });
 });
 
-it("should able to run `node` interactively", (done) => {
+it("should able to run `node add.js` with input redirection", (done) => {
   const scriptPath = (resolve(__dirname, "cmd.test.add.js"));
-  cmd(`printf '2\n3\n' | node ${scriptPath}`).then((stdout) => {
+  cmd(`(echo "2" && echo "3") | node ${scriptPath}`).then((stdout) => {
     expect(stdout).toBe("5\n");
+    done();
+  }).catch((error) => {
+    expect(error).toBeNull();
+    done(error);
+  });
+});
+
+it("should able to compose command and run it", (done) => {
+  const scriptPath = (resolve(__dirname, "cmd.test.add.js"));
+  const command = `node ${scriptPath}`;
+  const ins = [7, 4];
+  const composedCommand = composeCommand(command, ins);
+  expect(composedCommand).toBe(`(echo "7" && echo "4") | ${command} "7" "4"`);
+  cmdComposedCommand(command, ins).then((stdout) => {
+    expect(stdout).toBe("11\n");
     done();
   }).catch((error) => {
     expect(error).toBeNull();

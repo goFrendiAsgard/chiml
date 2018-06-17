@@ -17,6 +17,7 @@ export declare class SingleTask implements ISingleTask {
     commandType: CommandType;
     functionalMode: FunctionalMode;
     accumulator: string;
+    isMainParent: boolean;
     constructor(config: any, parentId?: string, id?: number);
     getScript(): string;
     execute(...inputs: any[]): Promise<any>;

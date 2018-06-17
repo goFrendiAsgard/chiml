@@ -17,6 +17,7 @@ export class SingleTask implements ISingleTask {
   public commandType: CommandType;
   public functionalMode: FunctionalMode;
   public accumulator: string;
+  public isMainParent: boolean;
 
   constructor(config: any, parentId: string = "", id: number = 0) {
     const normalizedConfig: {[key: string]: any} = typeof config === "string" ?
@@ -36,6 +37,7 @@ export class SingleTask implements ISingleTask {
     this.accumulator = normalizedConfig.accumulator;
     this.functionalMode = normalizedConfig.functionalMode;
     this.id = parentId + "_" + id;
+    this.isMainParent = parentId === "" || this.functionalMode !== FunctionalMode.none;
     for (let i = 0; i < this.commandList.length; i++) {
       this.commandList[i] = new SingleTask(this.commandList[i], this.id, i);
     }

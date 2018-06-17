@@ -1,4 +1,4 @@
-import {isFlanked, removeFlank, smartSplit} from "./stringUtil";
+import {doubleQuote, isFlanked, removeFlank, smartSplit} from "./stringUtil";
 
 it("able to smartsplit", (done) => {
   const result1: string[] = smartSplit("'a -> b' -> \"$a->call();\" -> \"c->d\"", "->");
@@ -42,5 +42,11 @@ it ("able to remove parantheses", (done) => {
   const result4: string = removeFlank("abc", "(", ")");
   expect(result4).toBe("abc");
 
+  done();
+});
+
+it ("able to double quote", (done) => {
+  const result1: string = doubleQuote("System.out.println(\"Hello world\");");
+  expect(result1).toBe("\"System.out.println(\\\"Hello world\\\");\"");
   done();
 });
