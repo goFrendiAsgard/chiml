@@ -12,7 +12,7 @@ export function renderTemplate(template: string, config: {[key: string]: any}, s
   return lines.join("\n");
 }
 
-function wrapJsSyncFunction(task: ISingleTask, spaceCount: number = 0): string {
+function wrapJsSyncFunction(task: ISingleTask, spaceCount: number): string {
   const ins = task.ins.join(", ");
   const template = "const __promise<%- task.id %> = " +
     "Promise.resolve((<%- task.command %>)(<%- ins %>)).then(\n" +
@@ -21,7 +21,7 @@ function wrapJsSyncFunction(task: ISingleTask, spaceCount: number = 0): string {
   return renderTemplate(template, {task, ins}, spaceCount);
 }
 
-function wrapJsAsyncFunction(task: ISingleTask, spaceCount: number = 0): string {
+function wrapJsAsyncFunction(task: ISingleTask, spaceCount: number): string {
   const ins = task.ins.join(", ");
   const template = "const __promise<%- task.id %> = " +
     "new Promise((__resolve, __reject) => {\n" +
@@ -36,14 +36,14 @@ function wrapJsAsyncFunction(task: ISingleTask, spaceCount: number = 0): string 
   return renderTemplate(template, {task, ins}, spaceCount);
 }
 
-function wrapJsPromise(task: ISingleTask, spaceCount: number = 0): string {
+function wrapJsPromise(task: ISingleTask, spaceCount: number): string {
   const ins = task.ins.join(", ");
   const template = "const __promise<%- task.id %> = " +
     "<%- task.command %>.then((__result) => {<%- task.out %> = __result;});";
   return renderTemplate(template, {task, ins}, spaceCount);
 }
 
-function wrapCmd(task: ISingleTask, spaceCount: number = 0): string {
+function wrapCmd(task: ISingleTask, spaceCount: number): string {
   const ins = task.ins.join(", ");
   const template = "const __promise<%- task.id %> = " +
     'cmdComposedCommand("<%- task.command %>", [<%- ins %>])' +
@@ -51,7 +51,7 @@ function wrapCmd(task: ISingleTask, spaceCount: number = 0): string {
   return renderTemplate(template, {task, ins}, spaceCount);
 }
 
-function createSubHandlerDeclaration(task: ISingleTask, spaceCount: number = 0): string {
+function createSubHandlerDeclaration(task: ISingleTask, spaceCount: number): string {
   return task.commandList.map((subTask) => createHandlerScript(subTask, spaceCount)).join("\n");
 }
 
@@ -59,7 +59,7 @@ function getSubHandlerNames(task: ISingleTask): string[] {
   return task.commandList.map((subTask) => "__main" + subTask.id);
 }
 
-function wrapParallel(task: ISingleTask, spaceCount: number = 0): string {
+function wrapParallel(task: ISingleTask, spaceCount: number): string {
   const subHandlerDeclaration = createSubHandlerDeclaration(task, 0);
   const subHandlerNames = getSubHandlerNames(task);
   const parallelCall = subHandlerNames.map((name) => name + "()").join(", ");
@@ -68,7 +68,7 @@ function wrapParallel(task: ISingleTask, spaceCount: number = 0): string {
   return renderTemplate(template, {task, parallelCall, subHandlerDeclaration}, spaceCount);
 }
 
-function wrapSeries(task: ISingleTask, spaceCount: number = 0): string {
+function wrapSeries(task: ISingleTask, spaceCount: number): string {
   const subHandlerDeclaration = createSubHandlerDeclaration(task, 0);
   const subHandlerNames = getSubHandlerNames(task);
   const seriesChain = subHandlerNames.map((name) => `.then(() => ${name}())`).join("");
@@ -104,17 +104,37 @@ function getVariableDeclaration(task: ISingleTask, spaceCount): string {
   return variableDeclaration;
 }
 
-export function createHandlerScript(task: ISingleTask, spaceCount: number = 0): string {
-  const wrapper = getWrapper(task);
-  const promiseScript = wrapper(task, spaceCount + 6) + "\n";
-  const variableDeclaration = getVariableDeclaration(task, spaceCount + 2);
-  const ins = task.isMainParent ? task.ins.join(", ") : "";
-  const firstFlag = `__first${task.id}`;
-  const branch = task.branchCondition;
-  const loop = task.loopCondition;
-  const template = "function __main<%- task.id %>(<%- ins %>) {\n" +
-    "  let <%- firstFlag %> = true;\n" +
+function getNonFunctionalTemplate(task: ISingleTask, unitTemplate: string): string {
+  return `${unitTemplate}\n__main<%- task.id %> = __unit<%- task.id %>;`;
+}
+
+function getFunctionalUnitTemplate(unitTemplate: string): string {
+  return unitTemplate.split("\n").map((line) => `  ${line}`).join("\n");
+}
+
+function getMapTemplate(task: ISingleTask, unitTemplate: string): string {
+  const functionalUnitTemplate = getFunctionalUnitTemplate(unitTemplate);
+  return "function __main<%- task.id %>() {\n" +
+    functionalUnitTemplate + "\n" +
+    "  const __promises = <%- task.src %>.map((__element) => __unit<%- task.id %>(__element));\n" +
+    "  return Promise.all(__promises).then((__result) => <%- task.dst %> = __result);\n" +
+    "}";
+}
+
+function getFilterTemplate(task: ISingleTask, unitTemplate: string): string {
+  return unitTemplate + "\n" +
+    "__main<%- task.id %> = __unit<%- task.id %>;";
+}
+
+function getReduceTemplate(task: ISingleTask, unitTemplate: string): string {
+  return unitTemplate + "\n" +
+    "__main<%- task.id %> = __unit<%- task.id %>;";
+}
+
+function getTemplate(task: ISingleTask): string {
+  const unitTemplate = "function __unit<%- task.id %>(<%- ins %>) {\n" +
     "<%- variableDeclaration -%>" +
+    "  let <%- firstFlag %> = true;\n" +
     "  function __fn<%- task.id %>() {\n" +
     "    if ((<%- firstFlag %> && (<%- branch %>)) || (!<%- firstFlag %> && <%- loop %>)) {\n" +
     "<%- promiseScript -%>" +
@@ -125,6 +145,23 @@ export function createHandlerScript(task: ISingleTask, spaceCount: number = 0): 
     "  }\n" +
     "  return __fn<%- task.id %>();\n" +
     "}";
+  switch (task.functionalMode) {
+    case FunctionalMode.none: return getNonFunctionalTemplate(task, unitTemplate);
+    case FunctionalMode.map: return getMapTemplate(task, unitTemplate);
+    case FunctionalMode.filter: return getFilterTemplate(task, unitTemplate);
+    case FunctionalMode.reduce: return getReduceTemplate(task, unitTemplate);
+  }
+}
+
+export function createHandlerScript(task: ISingleTask, spaceCount: number = 0): string {
+  const wrapper = getWrapper(task);
+  const promiseScript = wrapper(task, spaceCount + 6) + "\n";
+  const variableDeclaration = getVariableDeclaration(task, spaceCount + 2);
+  const ins = task.isMainParent ? task.ins.join(", ") : "";
+  const firstFlag = `__first${task.id}`;
+  const branch = task.branchCondition;
+  const loop = task.loopCondition;
+  const template = getTemplate(task);
   return renderTemplate(template, {task, promiseScript, variableDeclaration, ins, firstFlag, branch, loop}, spaceCount);
 }
 
@@ -132,9 +169,10 @@ function getTopLevelVariable(variableName: string): string {
   return (variableName.split(".")[0]).split("[")[0];
 }
 
-export function getVariables(task: ISingleTask): string[] {
+function getVariables(task: ISingleTask): string[] {
   let vars: string[] = Object.keys(task.vars);
   const out = getTopLevelVariable(task.out);
+  const dst = getTopLevelVariable(task.dst);
   if (task.ins.indexOf(out) === -1 && vars.indexOf(out) === -1) {
     if (task.mode === Mode.single) {
       vars.push(out);
