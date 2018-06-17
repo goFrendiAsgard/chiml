@@ -193,3 +193,4 @@ function parseFunctionalCommand(normalizedConfig, config) {
     }
     return normalizedConfig;
 }
+//# sourceMappingURL=singleTaskConfigProcessor.js.map

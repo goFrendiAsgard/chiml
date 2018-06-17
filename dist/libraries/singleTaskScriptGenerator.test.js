@@ -135,6 +135,29 @@ it("jsPromise handler works `(a,b) -> <Promise.resolve(a + b)>`", (done) => {
         done();
     });
 });
+it("loop handler works", (done) => {
+    const config = {
+        do: "(a) -> (x) => x + 1 -> a",
+        if: "a < 5",
+        while: "a < 10",
+    };
+    createScriptAndHandler(config).then(({ script, handler }) => {
+        console.log(script);
+        const promises = [handler(4), handler(8), handler(12)];
+        Promise.all(promises).then((results) => {
+            expect(results[0]).toBe(10);
+            expect(results[1]).toBe(8);
+            expect(results[2]).toBe(12);
+            done();
+        }).catch((error) => {
+            expect(error).toBeNull();
+            done();
+        });
+    }).catch((error) => {
+        expect(error).toBeNull();
+        done();
+    });
+});
 it("series handler works", (done) => {
     const config = {
         do: [
@@ -176,31 +199,4 @@ it("parallel handler works", (done) => {
         done();
     });
 });
-it("loop handler works", (done) => {
-    const config = {
-        do: "(a) -> (x) => x + 1 -> a",
-        if: "a < 5",
-        while: "a < 10",
-    };
-    createScriptAndHandler(config).then(({ script, handler }) => {
-        console.log(script);
-        handler(4).then((result) => {
-            expect(result).toBe(10);
-        }).then(() => {
-            return handler(6);
-        }).then((result) => {
-            expect(result).toBe(6);
-        }).then(() => {
-            return handler(11);
-        }).then((result) => {
-            expect(result).toBe(11);
-            done();
-        }).catch((error) => {
-            expect(error).toBeNull();
-            done();
-        });
-    }).catch((error) => {
-        expect(error).toBeNull();
-        done();
-    });
-});
+//# sourceMappingURL=singleTaskScriptGenerator.test.js.map

@@ -543,3 +543,4 @@ it("constructor recognize reduce (with accumulator)", (done) => {
     expect(task.accumulator).toBe("1");
     done();
 });
+//# sourceMappingURL=SingleTask.test.js.map

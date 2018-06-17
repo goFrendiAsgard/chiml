@@ -44,3 +44,4 @@ it("should able to compose command and run it", (done) => {
         done(error);
     });
 });
+//# sourceMappingURL=cmd.test.js.map

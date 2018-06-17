@@ -11,3 +11,4 @@ function tsToJs(source) {
     return result.outputText;
 }
 exports.tsToJs = tsToJs;
+//# sourceMappingURL=scriptTransform.js.map

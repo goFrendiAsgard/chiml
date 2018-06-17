@@ -96,7 +96,7 @@ function getVariableDeclaration(task, spaceCount) {
 }
 function createHandlerScript(task, spaceCount = 0) {
     const wrapper = getWrapper(task);
-    const promiseScript = wrapper(task, spaceCount + 2) + "\n";
+    const promiseScript = wrapper(task, spaceCount + 6) + "\n";
     const variableDeclaration = getVariableDeclaration(task, spaceCount + 2);
     const ins = task.isMainParent ? task.ins.join(", ") : "";
     const firstFlag = `__first${task.id}`;
@@ -105,9 +105,9 @@ function createHandlerScript(task, spaceCount = 0) {
     const template = "function __main<%- task.id %>(<%- ins %>) {\n" +
         "  let <%- firstFlag %> = true;\n" +
         "<%- variableDeclaration -%>" +
-        "<%- promiseScript -%>" +
         "  function __fn<%- task.id %>() {\n" +
         "    if ((<%- firstFlag %> && (<%- branch %>)) || (!<%- firstFlag %> && <%- loop %>)) {\n" +
+        "<%- promiseScript -%>" +
         "      __first<%- task.id %> = false;\n" +
         "      return __promise<%- task.id %>.then(() => __fn<%- task.id %>());\n" +
         "    }\n" +
@@ -137,3 +137,4 @@ function getVariables(task) {
     return vars;
 }
 exports.getVariables = getVariables;
+//# sourceMappingURL=singleTaskScriptGenerator.js.map
