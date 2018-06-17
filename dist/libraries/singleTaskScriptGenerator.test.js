@@ -154,8 +154,8 @@ it("series handler works", (done) => {
         done();
     });
 });
-it("createHandlerScript", (done) => {
-    const configParallel = {
+it("parallel handler works", (done) => {
+    const config = {
         ins: "a",
         out: "b",
         parallel: [
@@ -164,11 +164,44 @@ it("createHandlerScript", (done) => {
         ],
         vars: { b: [] },
     };
-    const configLoop = {
+    createScriptAndHandler(config).then(({ script, handler }) => {
+        console.log(script);
+        handler(4).then((result) => {
+            expect(result[0]).toBe(5);
+            expect(result[1]).toBe(8);
+            done();
+        });
+    }).catch((error) => {
+        expect(error).toBeNull();
+        done();
+    });
+});
+it("loop handler works", (done) => {
+    const config = {
         do: "(a) -> (x) => x + 1 -> a",
-        if: "a < 0",
+        if: "a < 5",
         while: "a < 10",
     };
-    done();
+    createScriptAndHandler(config).then(({ script, handler }) => {
+        console.log(script);
+        handler(4).then((result) => {
+            expect(result).toBe(10);
+        }).then(() => {
+            return handler(6);
+        }).then((result) => {
+            expect(result).toBe(6);
+        }).then(() => {
+            return handler(11);
+        }).then((result) => {
+            expect(result).toBe(11);
+            done();
+        }).catch((error) => {
+            expect(error).toBeNull();
+            done();
+        });
+    }).catch((error) => {
+        expect(error).toBeNull();
+        done();
+    });
 });
 //# sourceMappingURL=singleTaskScriptGenerator.test.js.map
