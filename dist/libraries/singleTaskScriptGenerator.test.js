@@ -204,4 +204,3 @@ it("loop handler works", (done) => {
         done();
     });
 });
-//# sourceMappingURL=singleTaskScriptGenerator.test.js.map

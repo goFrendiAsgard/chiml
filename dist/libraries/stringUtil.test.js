@@ -39,4 +39,3 @@ it("able to double quote", (done) => {
     expect(result1).toBe("\"System.out.println(\\\"Hello world\\\");\"");
     done();
 });
-//# sourceMappingURL=stringUtil.test.js.map

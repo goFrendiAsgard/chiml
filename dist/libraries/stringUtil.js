@@ -49,4 +49,3 @@ function doubleQuote(str) {
     return `"${newStr}"`;
 }
 exports.doubleQuote = doubleQuote;
-//# sourceMappingURL=stringUtil.js.map

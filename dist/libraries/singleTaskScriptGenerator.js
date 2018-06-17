@@ -137,4 +137,3 @@ function getVariables(task) {
     return vars;
 }
 exports.getVariables = getVariables;
-//# sourceMappingURL=singleTaskScriptGenerator.js.map

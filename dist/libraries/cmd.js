@@ -40,4 +40,3 @@ function cmdComposedCommand(command, ins = [], options) {
     return cmd(composeCommand(command, ins), options);
 }
 exports.cmdComposedCommand = cmdComposedCommand;
-//# sourceMappingURL=cmd.js.map
