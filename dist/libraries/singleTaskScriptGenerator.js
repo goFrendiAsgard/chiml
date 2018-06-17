@@ -16,7 +16,7 @@ function wrapJsSyncFunction(task, spaceCount = 0) {
     const ins = task.ins.join(", ");
     const template = "const __promise<%- task.id %> = " +
         "Promise.resolve((<%- task.command %>)(<%- ins %>)).then(\n" +
-        "  (__result) => <%- task.out %> = __result;\n" +
+        "  (__result) => <%- task.out %> = __result\n" +
         ");";
     return renderTemplate(template, { task, ins }, spaceCount);
 }
@@ -30,7 +30,7 @@ function wrapJsAsyncFunction(task, spaceCount = 0) {
         "    }\n" +
         "    <%- task.out %> = __result;\n" +
         "    return __resolve(true);\n" +
-        "  })\n" +
+        "  });\n" +
         "});";
     return renderTemplate(template, { task, ins }, spaceCount);
 }
@@ -52,7 +52,7 @@ function createSubHandlerDeclaration(task, spaceCount = 0) {
     return "";
 }
 function getSubHandlerNames(task) {
-    return task.commandList.map((subTask) => "__main_" + task.id);
+    return task.commandList.map((subTask) => "__main" + subTask.id);
 }
 function wrapParallel(task, spaceCount = 0) {
     const subHandlerDeclaration = createSubHandlerDeclaration(task, 0);
@@ -83,23 +83,51 @@ function getWrapper(task) {
             }
     }
 }
+function getVariableDeclaration(task, spaceCount) {
+    const variables = task.isMainParent ? getVariables(task) : [];
+    const template = "let <%- variableName %> = <%- value %>;";
+    let variableDeclaration = variables.map((variableName) => {
+        const value = variableName in task.vars ? JSON.stringify(task.vars[variableName]) : "null";
+        return renderTemplate(template, { variableName, value }, spaceCount);
+    }).join("\n");
+    if (variableDeclaration !== "") {
+        variableDeclaration += "\n";
+    }
+    return variableDeclaration;
+}
 function createHandlerScript(task, spaceCount = 0) {
-    const promiseSpaceIndent = spaceCount + 2;
     const wrapper = getWrapper(task);
-    const promiseScript = wrapper(task, promiseSpaceIndent);
-    const vars = task.isMainParent ? getVariables(task) : {};
-    const template = 'function __main<%- task.id %>(<%- task.ins.join(", ") %>) {\n' +
-        "<%- promiseScript -%>\n\n" +
-        "  return __promise<%- task.id %>;\n" +
+    const promiseScript = wrapper(task, spaceCount + 2) + "\n";
+    const variableDeclaration = getVariableDeclaration(task, spaceCount + 2);
+    const ins = task.ins.join(", ");
+    const firstFlag = `__first${task.id}`;
+    const branch = task.branchCondition;
+    const loop = task.loopCondition;
+    const template = "function __main<%- task.id %>(<%- ins %>) {\n" +
+        "  let <%- firstFlag %> = true;\n" +
+        "<%- variableDeclaration -%>" +
+        "<%- promiseScript -%>" +
+        "  function __fn<%- task.id %>() {\n" +
+        "    if ((<%- firstFlag %> && (<%- branch %>)) || (!<%- firstFlag %> && <%- loop %>)) {\n" +
+        "      __first<%- task.id %> = false;\n" +
+        "      return __promise<%- task.id %>.then(() => __fn<%- task.id %>());\n" +
+        "    }\n" +
+        "    return Promise.resolve(<%- task.out %>);\n" +
+        "  }\n" +
+        "  return __fn<%- task.id %>();\n" +
         "}";
-    return renderTemplate(template, { task, promiseScript }, spaceCount);
+    return renderTemplate(template, { task, promiseScript, variableDeclaration, ins, firstFlag, branch, loop }, spaceCount);
 }
 exports.createHandlerScript = createHandlerScript;
+function getTopLevelVariable(variableName) {
+    return (variableName.split(".")[0]).split("[")[0];
+}
 function getVariables(task) {
-    let vars = [];
-    if (task.ins.indexOf(task.out) === -1) {
+    let vars = Object.keys(task.vars);
+    const out = getTopLevelVariable(task.out);
+    if (task.ins.indexOf(out) === -1 && vars.indexOf(out) === -1) {
         if (task.mode === singleTaskProperty_1.Mode.single) {
-            vars.push(task.out);
+            vars.push(out);
         }
         for (const subTask of task.commandList) {
             const subVars = subTask.functionalMode === singleTaskProperty_1.FunctionalMode.none ? getVariables(subTask) : [subTask.dst];

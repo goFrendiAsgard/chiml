@@ -25,7 +25,6 @@ export class SingleTask implements ISingleTask {
     this.ins = normalizedConfig.ins;
     this.out = normalizedConfig.out;
     this.vars = normalizedConfig.vars;
-    this.vars = normalizedConfig.mode;
     this.mode = normalizedConfig.mode;
     this.branchCondition = normalizedConfig.branchCondition;
     this.loopCondition = normalizedConfig.loopCondition;

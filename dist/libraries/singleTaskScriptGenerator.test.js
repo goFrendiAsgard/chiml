@@ -2,7 +2,9 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const js_yaml_1 = require("js-yaml");
 const path_1 = require("path");
+const vm_1 = require("vm");
 const SingleTask_1 = require("../classes/SingleTask");
+const cmd_1 = require("./cmd");
 const singleTaskScriptGenerator_1 = require("./singleTaskScriptGenerator");
 const chimlSample = `
 ins: pairs                                                        # 0
@@ -32,8 +34,8 @@ do:
 
   - "{pairs, isosceles, total, biggestIsosceles} --> result"      # 0_4
 `;
-const taskSample = new SingleTask_1.SingleTask(js_yaml_1.safeLoad(chimlSample));
 it("fetch variables from taskSample", (done) => {
+    const taskSample = new SingleTask_1.SingleTask(js_yaml_1.safeLoad(chimlSample));
     const vars00 = singleTaskScriptGenerator_1.getVariables(taskSample);
     expect(vars00.length).toBe(6);
     expect(vars00).toContain("hypothenuses");
@@ -73,29 +75,103 @@ it("render template correctly", (done) => {
     expect(result2).toBe(expect2);
     done();
 });
+function createScriptAndHandler(config) {
+    const script = singleTaskScriptGenerator_1.createHandlerScript(new SingleTask_1.SingleTask(config));
+    const sandbox = { cmdComposedCommand: cmd_1.cmdComposedCommand, __main_0: null };
+    vm_1.runInNewContext(script, sandbox);
+    const handler = sandbox.__main_0;
+    return Promise.resolve({ script, handler });
+}
+it("cmdHandler works `(a, b) -> node add.js`", (done) => {
+    const testProgramPath = path_1.resolve(__dirname, "cmd.test.add.js");
+    const config = `(a, b) -> node ${testProgramPath}`;
+    createScriptAndHandler(config).then(({ script, handler }) => {
+        console.log(script);
+        handler(4, 5).then((result) => {
+            expect(result).toBe("9\n");
+            done();
+        });
+    }).catch((error) => {
+        expect(error).toBeNull();
+        done();
+    });
+});
+it("jsAsyncHandler works `(a,b) -> [(x, y, callback) => callback(null, x + y)]`", (done) => {
+    const config = "(a,b) -> [(x, y, callback) => callback(null, x + y)]";
+    createScriptAndHandler(config).then(({ script, handler }) => {
+        console.log(script);
+        handler(4, 5).then((result) => {
+            expect(result).toBe(9);
+            done();
+        });
+    }).catch((error) => {
+        expect(error).toBeNull();
+        done();
+    });
+});
+it("jsSyncHandler works `(a,b) -> (x, y) => x + y`", (done) => {
+    const config = "(a,b) -> (x, y) => x + y";
+    createScriptAndHandler(config).then(({ script, handler }) => {
+        console.log(script);
+        handler(4, 5).then((result) => {
+            expect(result).toBe(9);
+            done();
+        });
+    }).catch((error) => {
+        expect(error).toBeNull();
+        done();
+    });
+});
+it("jsPromise works `(a,b) -> <Promise.resolve(a + b)>`", (done) => {
+    const config = "(a,b) -> <Promise.resolve(a + b)>";
+    createScriptAndHandler(config).then(({ script, handler }) => {
+        console.log(script);
+        handler(4, 5).then((result) => {
+            expect(result).toBe(9);
+            done();
+        });
+    }).catch((error) => {
+        expect(error).toBeNull();
+        done();
+    });
+});
 it("createHandlerScript", (done) => {
-    const scriptPath = (path_1.resolve(__dirname, "cmd.test.add.js"));
-    const resultCmd = singleTaskScriptGenerator_1.createHandlerScript(new SingleTask_1.SingleTask(`(a,b) -> node ${scriptPath}`));
-    const resultAsync = singleTaskScriptGenerator_1.createHandlerScript(new SingleTask_1.SingleTask("(a,b) -> [(x, y, callback) => callback(null, x + y)]"));
-    const resultSync = singleTaskScriptGenerator_1.createHandlerScript(new SingleTask_1.SingleTask("(a,b) -> (x, y) => x + y"));
-    const resultPromise = singleTaskScriptGenerator_1.createHandlerScript(new SingleTask_1.SingleTask("(a,b) -> <Promise.resolve(a + b)>"));
-    const resultSeries = singleTaskScriptGenerator_1.createHandlerScript(new SingleTask_1.SingleTask({
+    const configAsync = "(a,b) -> [(x, y, callback) => callback(null, x + y)]";
+    const configSync = "(a,b) -> (x, y) => x + y";
+    const configPromise = "(a,b) -> <Promise.resolve(a + b)>";
+    const configSeries = {
         do: [
             "(a) -> (x) => x + 1 -> b",
             "(b) -> (x) => x * 2",
         ],
         ins: "a",
-    }));
-    const resultParallel = singleTaskScriptGenerator_1.createHandlerScript(new SingleTask_1.SingleTask({
+    };
+    const configParallel = {
         ins: "a",
+        out: "b",
         parallel: [
-            "(a) -> (x) => x + 1",
-            "(a) -> (x) => x * 2",
+            "(a) -> (x) => x + 1 -> b[0]",
+            "(a) -> (x) => x * 2 -> b[1]",
         ],
-    }));
-    for (const script of [resultCmd, resultAsync, resultSync, resultPromise, resultSeries, resultParallel]) {
-        console.log(script);
+        vars: { b: [] },
+    };
+    const configLoop = {
+        do: "(a) -> (x) => x + 1 -> a",
+        if: "a < 0",
+        while: "a < 10",
+    };
+    const scriptAsync = singleTaskScriptGenerator_1.createHandlerScript(new SingleTask_1.SingleTask(configAsync));
+    const handlerAsync = vm_1.runInNewContext(scriptAsync);
+    const scriptSync = singleTaskScriptGenerator_1.createHandlerScript(new SingleTask_1.SingleTask(configSync));
+    const scriptPromise = singleTaskScriptGenerator_1.createHandlerScript(new SingleTask_1.SingleTask(configPromise));
+    const scriptSeries = singleTaskScriptGenerator_1.createHandlerScript(new SingleTask_1.SingleTask(configSeries));
+    const scriptParallel = singleTaskScriptGenerator_1.createHandlerScript(new SingleTask_1.SingleTask(configParallel));
+    const scriptLoop = singleTaskScriptGenerator_1.createHandlerScript(new SingleTask_1.SingleTask(configLoop));
+    /*
+    for (const script of [scriptCmd, scriptAsync, scriptSync, scriptPromise, scriptSeries, scriptParallel, scriptLoop]) {
+      console.log(script);
     }
+    */
     done();
 });
 //# sourceMappingURL=singleTaskScriptGenerator.test.js.map
