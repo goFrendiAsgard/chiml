@@ -49,7 +49,6 @@ function wrapCmd(task, spaceCount = 0) {
 }
 function createSubHandlerDeclaration(task, spaceCount = 0) {
     return task.commandList.map((subTask) => createHandlerScript(subTask, spaceCount)).join("\n");
-    return "";
 }
 function getSubHandlerNames(task) {
     return task.commandList.map((subTask) => "__main" + subTask.id);

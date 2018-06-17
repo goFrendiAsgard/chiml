@@ -93,7 +93,7 @@ function createScriptAndHandler(config): Promise<any> {
   return Promise.resolve({script, handler});
 }
 
-it("cmdHandler works `(a, b) -> node add.js`", (done) => {
+it("cmd handler works `(a, b) -> node add.js`", (done) => {
   const testProgramPath = resolve(__dirname, "cmd.test.add.js");
   const config = `(a, b) -> node ${testProgramPath}`;
   createScriptAndHandler(config).then(({script, handler}) => {
@@ -108,7 +108,7 @@ it("cmdHandler works `(a, b) -> node add.js`", (done) => {
   });
 });
 
-it("jsAsyncHandler works `(a,b) -> [(x, y, callback) => callback(null, x + y)]`", (done) => {
+it("jsAsync handler works `(a,b) -> [(x, y, callback) => callback(null, x + y)]`", (done) => {
   const config = "(a,b) -> [(x, y, callback) => callback(null, x + y)]";
   createScriptAndHandler(config).then(({script, handler}) => {
     console.log(script);
@@ -122,7 +122,7 @@ it("jsAsyncHandler works `(a,b) -> [(x, y, callback) => callback(null, x + y)]`"
   });
 });
 
-it("jsSyncHandler works `(a,b) -> (x, y) => x + y`", (done) => {
+it("jsSync handler works `(a,b) -> (x, y) => x + y`", (done) => {
   const config = "(a,b) -> (x, y) => x + y";
   createScriptAndHandler(config).then(({script, handler}) => {
     console.log(script);
@@ -136,7 +136,7 @@ it("jsSyncHandler works `(a,b) -> (x, y) => x + y`", (done) => {
   });
 });
 
-it("jsPromise works `(a,b) -> <Promise.resolve(a + b)>`", (done) => {
+it("jsPromise handler works `(a,b) -> <Promise.resolve(a + b)>`", (done) => {
   const config = "(a,b) -> <Promise.resolve(a + b)>";
   createScriptAndHandler(config).then(({script, handler}) => {
     console.log(script);
@@ -150,17 +150,27 @@ it("jsPromise works `(a,b) -> <Promise.resolve(a + b)>`", (done) => {
   });
 });
 
-it("createHandlerScript", (done) => {
-  const configAsync = "(a,b) -> [(x, y, callback) => callback(null, x + y)]";
-  const configSync = "(a,b) -> (x, y) => x + y";
-  const configPromise = "(a,b) -> <Promise.resolve(a + b)>";
-  const configSeries = {
+it("series handler works", (done) => {
+  const config = {
     do: [
       "(a) -> (x) => x + 1 -> b",
       "(b) -> (x) => x * 2",
     ],
     ins: "a",
   };
+  createScriptAndHandler(config).then(({script, handler}) => {
+    console.log(script);
+    handler(4).then((result) => {
+      expect(result).toBe(10);
+      done();
+    });
+  }).catch((error) => {
+    expect(error).toBeNull();
+    done();
+  });
+});
+
+it("createHandlerScript", (done) => {
   const configParallel = {
     ins: "a",
     out: "b",
@@ -176,17 +186,5 @@ it("createHandlerScript", (done) => {
     while: "a < 10",
   };
 
-  const scriptAsync = createHandlerScript(new SingleTask(configAsync));
-  const handlerAsync = runInNewContext(scriptAsync);
-  const scriptSync = createHandlerScript(new SingleTask(configSync));
-  const scriptPromise = createHandlerScript(new SingleTask(configPromise));
-  const scriptSeries = createHandlerScript(new SingleTask(configSeries));
-  const scriptParallel = createHandlerScript(new SingleTask(configParallel));
-  const scriptLoop = createHandlerScript(new SingleTask(configLoop));
-  /*
-  for (const script of [scriptCmd, scriptAsync, scriptSync, scriptPromise, scriptSeries, scriptParallel, scriptLoop]) {
-    console.log(script);
-  }
-  */
   done();
 });
