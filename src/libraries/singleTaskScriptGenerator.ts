@@ -91,16 +91,12 @@ function getWrapper(task: ISingleTask): (task: ISingleTask, spaceCount: number) 
   }
 }
 
-function getVariableDeclaration(task: ISingleTask, spaceCount): string {
-  const variables = task.isMainParent ? getVariables(task) : [];
+function getVariableDeclaration(variables, task: ISingleTask, spaceCount): string {
   const template = "let <%- variableName %> = <%- value %>;";
-  let variableDeclaration = variables.map((variableName) => {
+  const variableDeclaration = variables.map((variableName) => {
     const value = variableName in task.vars ? JSON.stringify(task.vars[variableName]) : "null";
     return renderTemplate(template, {variableName, value}, spaceCount);
   }).join("\n");
-  if (variableDeclaration !== "") {
-    variableDeclaration += "\n";
-  }
   return variableDeclaration;
 }
 
@@ -108,36 +104,73 @@ function getNonFunctionalTemplate(task: ISingleTask, unitTemplate: string): stri
   return `${unitTemplate}\n__main<%- task.id %> = __unit<%- task.id %>;`;
 }
 
-function getFunctionalUnitTemplate(unitTemplate: string): string {
-  return unitTemplate.split("\n").map((line) => `  ${line}`).join("\n");
+function getFunctionalUnitTemplate(task: ISingleTask, unitTemplate: string): string {
+  const dstVariableDeclaration = task.hasParent ? "" :
+    "  let " + getVariableName(task.dst) + ";\n";
+  const functionalTemplate = unitTemplate.split("\n").map((line) => {
+    return `  ${line}`;
+  }).join("\n");
+  return dstVariableDeclaration + functionalTemplate;
 }
 
 function getMapTemplate(task: ISingleTask, unitTemplate: string): string {
-  const functionalUnitTemplate = getFunctionalUnitTemplate(unitTemplate);
-  return "function __main<%- task.id %>() {\n" +
+  const functionalUnitTemplate = getFunctionalUnitTemplate(task, unitTemplate);
+  return "function __main<%- task.id %>(__src = <%- task.src %>) {\n" +
     functionalUnitTemplate + "\n" +
-    "  const __promises = <%- task.src %>.map((__element) => __unit<%- task.id %>(__element));\n" +
-    "  return Promise.all(__promises).then((__result) => <%- task.dst %> = __result);\n" +
+    "  const __promises = __src.map((__element) => __unit<%- task.id %>(__element));\n" +
+    "  return Promise.all(__promises).then((__result) => {\n" +
+    "    <%- task.dst %> = __result;\n" +
+    "  }).then(() => Promise.resolve(<%- task.dst %>));\n" +
     "}";
 }
 
 function getFilterTemplate(task: ISingleTask, unitTemplate: string): string {
-  return unitTemplate + "\n" +
-    "__main<%- task.id %> = __unit<%- task.id %>;";
+  const functionalUnitTemplate = getFunctionalUnitTemplate(task, unitTemplate);
+  return "function __main<%- task.id %>(__src = <%- task.src %>) {\n" +
+    functionalUnitTemplate + "\n" +
+    "  const __promises = __src.map((__element) => __unit<%- task.id %>(__element));\n" +
+    "  return Promise.all(__promises).then((__result) => {\n" +
+    "    __filtered = [];\n" +
+    "    for (let __i = 0; __i < __src.length; __i++){\n" +
+    "      if (__result[__i]) {\n" +
+    "        __filtered.push(__src[__i]);\n" +
+    "      }\n" +
+    "    }\n" +
+    "    <%- task.dst %> = __filtered;\n" +
+    "  }).then(() => Promise.resolve(<%- task.dst %>));\n" +
+    "}";
 }
 
 function getReduceTemplate(task: ISingleTask, unitTemplate: string): string {
-  return unitTemplate + "\n" +
-    "__main<%- task.id %> = __unit<%- task.id %>;";
+  const functionalUnitTemplate = getFunctionalUnitTemplate(task, unitTemplate);
+  return "function __main<%- task.id %>(__src = <%- task.src %>) {\n" +
+    "  let __accumulator = <%- task.accumulator %>;\n" +
+    functionalUnitTemplate + "\n" +
+    "  let __promise = Promise.resolve(true);\n" +
+    "  for (let __i = 0; __i < __src.length; __i++){\n" +
+    "    __promise = __promise.then(\n" +
+    "      () => __unit<%- task.id %>(__src[__i], __accumulator)\n" +
+    "    ).then((__result) => {\n" +
+    "      __accumulator = __result;\n" +
+    "    });\n" +
+    "  }\n" +
+    "  return __promise.then(() => {\n" +
+    "    <%- task.dst %> = __accumulator;\n" +
+    "  }).then(() => Promise.resolve(<%- task.dst %>));\n" +
+    "}";
 }
 
 function getTemplate(task: ISingleTask): string {
+  const variables = task.expectLocalScope ? getLocalScopeVariables(task) : [];
+  const wrapper = getWrapper(task);
+  const promiseScript = wrapper(task, 6);
+  const variableDeclaration = getVariableDeclaration(variables, task, 2);
   const unitTemplate = "function __unit<%- task.id %>(<%- ins %>) {\n" +
-    "<%- variableDeclaration -%>" +
+    (variableDeclaration ? variableDeclaration + "\n" : "") +
     "  let <%- firstFlag %> = true;\n" +
     "  function __fn<%- task.id %>() {\n" +
     "    if ((<%- firstFlag %> && (<%- branch %>)) || (!<%- firstFlag %> && <%- loop %>)) {\n" +
-    "<%- promiseScript -%>" +
+    promiseScript + "\n" +
     "      __first<%- task.id %> = false;\n" +
     "      return __promise<%- task.id %>.then(() => __fn<%- task.id %>());\n" +
     "    }\n" +
@@ -154,34 +187,28 @@ function getTemplate(task: ISingleTask): string {
 }
 
 export function createHandlerScript(task: ISingleTask, spaceCount: number = 0): string {
-  const wrapper = getWrapper(task);
-  const promiseScript = wrapper(task, spaceCount + 6) + "\n";
-  const variableDeclaration = getVariableDeclaration(task, spaceCount + 2);
-  const ins = task.isMainParent ? task.ins.join(", ") : "";
+  const ins = task.expectLocalScope ? task.ins.join(", ") : "";
   const firstFlag = `__first${task.id}`;
   const branch = task.branchCondition;
   const loop = task.loopCondition;
   const template = getTemplate(task);
-  return renderTemplate(template, {task, promiseScript, variableDeclaration, ins, firstFlag, branch, loop}, spaceCount);
+  return renderTemplate(template, {task, ins, firstFlag, branch, loop}, spaceCount);
 }
 
-function getTopLevelVariable(variableName: string): string {
+function getVariableName(variableName: string): string {
   return (variableName.split(".")[0]).split("[")[0];
 }
 
-function getVariables(task: ISingleTask): string[] {
+function getLocalScopeVariables(task: ISingleTask): string[] {
   let vars: string[] = Object.keys(task.vars);
-  const out = getTopLevelVariable(task.out);
-  const dst = getTopLevelVariable(task.dst);
+  const out = getVariableName(task.out);
   if (task.ins.indexOf(out) === -1 && vars.indexOf(out) === -1) {
-    if (task.mode === Mode.single) {
-      vars.push(out);
-    }
-    for (const subTask of task.commandList) {
-      const subVars = subTask.functionalMode === FunctionalMode.none ? getVariables(subTask) : [subTask.dst];
-      const uniqueSubVars = subVars.filter((element) => vars.indexOf(element) === -1);
-      vars = vars.concat(uniqueSubVars);
-    }
+    vars.push(out);
+  }
+  for (const subTask of task.commandList) {
+    const subVars = subTask.functionalMode === FunctionalMode.none ? getLocalScopeVariables(subTask) : [subTask.dst];
+    const uniqueSubVars = subVars.filter((element) => vars.indexOf(element) === -1);
+    vars = vars.concat(uniqueSubVars);
   }
   return vars;
 }

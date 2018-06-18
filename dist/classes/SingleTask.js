@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const singleTaskProperty_1 = require("../enums/singleTaskProperty");
 const singleTaskConfigProcessor_1 = require("../libraries/singleTaskConfigProcessor");
+const singleTaskScriptGenerator_1 = require("../libraries/singleTaskScriptGenerator");
 class SingleTask {
     constructor(config, parentId = "", id = 0) {
         const normalizedConfig = typeof config === "string" ?
@@ -20,14 +21,14 @@ class SingleTask {
         this.accumulator = normalizedConfig.accumulator;
         this.functionalMode = normalizedConfig.functionalMode;
         this.id = parentId + "_" + id;
-        this.isMainParent = parentId === "" || this.functionalMode !== singleTaskProperty_1.FunctionalMode.none;
+        this.hasParent = parentId !== "";
+        this.expectLocalScope = parentId === "" || this.functionalMode !== singleTaskProperty_1.FunctionalMode.none;
         for (let i = 0; i < this.commandList.length; i++) {
             this.commandList[i] = new SingleTask(this.commandList[i], this.id, i);
         }
     }
     getScript() {
-        // TODO: make this into script
-        return "";
+        return singleTaskScriptGenerator_1.createHandlerScript(this);
     }
     execute(...inputs) {
         return new Promise((resolve, reject) => {

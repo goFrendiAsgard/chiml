@@ -437,6 +437,16 @@ it("normalizeRawConfig recognize map", (done) => {
   done();
 });
 
+it("normalizeRawConfig recognize map (config.src is array, and config.into is null)", (done) => {
+  const rawConfig = {map: [1, 2, 3, 4, 5], do: "(x) => x * x"};
+  const config = normalizeRawConfig(rawConfig);
+  expect(config.src).toBe("[1,2,3,4,5]");
+  expect(config.dst).toBe("__fx");
+  expect(config.functionalMode).toBe(FunctionalMode.map);
+  expect(config.command).toBe("(x) => x * x");
+  done();
+});
+
 it("normalizeRawConfig recognize filter", (done) => {
   const rawConfig = {filter: "[1, 2, 3, 4, 5]", into: "even", do: "(x) => x % 2"};
   const config = normalizeRawConfig(rawConfig);

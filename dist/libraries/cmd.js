@@ -37,7 +37,9 @@ function composeCommand(command, ins = []) {
 }
 exports.composeCommand = composeCommand;
 function cmdComposedCommand(command, ins = [], options) {
-    return cmd(composeCommand(command, ins), options);
+    return cmd(composeCommand(command, ins), options).then((result) => {
+        return Promise.resolve(result);
+    });
 }
 exports.cmdComposedCommand = cmdComposedCommand;
 //# sourceMappingURL=cmd.js.map

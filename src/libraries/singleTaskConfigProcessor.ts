@@ -16,7 +16,7 @@ export function normalizeRawConfig(rawConfig: {[key: string]: any}): {[key: stri
     command: null,
     commandList: [],
     commandType: CommandType.cmd,
-    dst: null,
+    dst: "into" in config ? config.into : "__fx",
     functionalMode: FunctionalMode.none,
     ins: getNormalIns(config.ins),
     loopCondition: "while" in config ? config.while : "false",
@@ -177,17 +177,23 @@ function parseNestedCommand(normalizedConfig: {[key: string]: any},
 function parseFunctionalCommand(normalizedConfig: {[key: string]: any},
                                 config: {[key: string]: any}): {[key: string]: any} {
   if ("map" in config || "filter" in config || "reduce" in config) {
-    normalizedConfig.dst = config.into;
     if ("map" in config) { // map
-      normalizedConfig.src = config.map;
+      normalizedConfig.src = getNormalSrc(config.map);
       normalizedConfig.functionalMode = FunctionalMode.map;
     } else if ("filter" in config) { // filter
-      normalizedConfig.src = config.filter;
+      normalizedConfig.src = getNormalSrc(config.filter);
       normalizedConfig.functionalMode = FunctionalMode.filter;
     } else { // reduce
-      normalizedConfig.src = config.reduce;
+      normalizedConfig.src = getNormalSrc(config.reduce);
       normalizedConfig.functionalMode = FunctionalMode.reduce;
     }
   }
   return normalizedConfig;
+}
+
+function getNormalSrc(src: any): string {
+  if (typeof src !== "string" && Array.isArray(src)) {
+    return JSON.stringify(src);
+  }
+  return src;
 }

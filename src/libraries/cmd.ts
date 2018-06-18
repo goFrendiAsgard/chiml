@@ -39,7 +39,8 @@ export function composeCommand(command: string, ins: any[] = []): string {
   return composedCommand;
 }
 
-export function cmdComposedCommand(command: string, ins: any[] = [],
-                                   options?: {[key: string]: any}): Promise<string> {
-  return cmd(composeCommand(command, ins), options);
+export function cmdComposedCommand(command: string, ins: any[] = [], options?: {[key: string]: any}): Promise<string> {
+  return cmd(composeCommand(command, ins), options).then((result) => {
+    return Promise.resolve(result);
+  });
 }

@@ -16,5 +16,6 @@ export interface ISingleTask {
     commandType: CommandType;
     functionalMode: FunctionalMode;
     accumulator: string;
-    isMainParent: boolean;
+    expectLocalScope: boolean;
+    hasParent: boolean;
 }

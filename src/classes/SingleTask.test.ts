@@ -540,6 +540,17 @@ it("constructor recognize map", (done) => {
   done();
 });
 
+it("constructor recognize map (config.src is array, and config.into is null)", (done) => {
+  const config = {map: [1, 2, 3, 4, 5], do: "(x) => x * x"};
+  const task = new SingleTask(config);
+  expect(task.id).toBe("_0");
+  expect(task.src).toBe("[1,2,3,4,5]");
+  expect(task.dst).toBe("__fx");
+  expect(task.functionalMode).toBe(FunctionalMode.map);
+  expect(task.command).toBe("(x) => x * x");
+  done();
+});
+
 it("constructor recognize filter", (done) => {
   const config = {filter: "[1, 2, 3, 4, 5]", into: "even", do: "(x) => x % 2"};
   const task = new SingleTask(config);

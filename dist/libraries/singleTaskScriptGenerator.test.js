@@ -151,17 +151,113 @@ it("parallel handler works", (done) => {
 });
 it("map handler works", (done) => {
     const config = {
-        do: "(a) -> (x) => x*x",
-        into: "x",
+        do: "(n) -> (x) => x * x",
+        into: "y",
         map: "x",
     };
     createScriptAndHandler(config).then(({ script, handler }) => {
         console.log(script);
         handler([1, 2, 3, 4]).then((result) => {
+            expect(result.length).toBe(4);
             expect(result[0]).toBe(1);
             expect(result[1]).toBe(4);
             expect(result[2]).toBe(9);
             expect(result[3]).toBe(16);
+            done();
+        });
+    }).catch((error) => {
+        expect(error).toBeNull();
+        done();
+    });
+});
+it("filter handler works", (done) => {
+    const config = {
+        do: "(n) -> (x) => x % 2 === 0",
+        filter: "x",
+        into: "y",
+    };
+    createScriptAndHandler(config).then(({ script, handler }) => {
+        console.log(script);
+        handler([1, 2, 3, 4]).then((result) => {
+            expect(result.length).toBe(2);
+            expect(result[0]).toBe(2);
+            expect(result[1]).toBe(4);
+            done();
+        });
+    }).catch((error) => {
+        expect(error).toBeNull();
+        done();
+    });
+});
+it("reduce handler works", (done) => {
+    const config = {
+        do: "(n, total) -> (x, acc) => x + acc",
+        into: "y",
+        reduce: "x",
+    };
+    createScriptAndHandler(config).then(({ script, handler }) => {
+        console.log(script);
+        handler([1, 2, 3, 4]).then((result) => {
+            expect(result).toBe(10);
+            done();
+        });
+    }).catch((error) => {
+        expect(error).toBeNull();
+        done();
+    });
+});
+it("complex handler works", (done) => {
+    const config = {
+        do: [
+            {
+                parallel: [
+                    {
+                        do: "(n) -> (x) => x*x",
+                        into: "squares",
+                        map: "input",
+                    },
+                    {
+                        do: "(n) -> (x) => x % 2 === 0",
+                        filter: "input",
+                        into: "even",
+                    },
+                    {
+                        do: "(n, total) -> (x, acc) => x + acc",
+                        into: "sum",
+                        reduce: "input",
+                    },
+                    {
+                        do: [
+                            "n <-- 0",
+                            {
+                                do: "(n+1) --> n",
+                                if: "n < 73",
+                                while: "n < 73",
+                            },
+                        ],
+                    },
+                ],
+            },
+            "{even, squares, sum, n} --> output",
+        ],
+        ins: "input",
+        out: "output",
+    };
+    createScriptAndHandler(config).then(({ script, handler }) => {
+        console.log(script);
+        handler([1, 2, 3, 4]).then((result) => {
+            const keys = Object.keys(result);
+            expect(keys.length).toBe(4);
+            expect(keys).toContain("even");
+            expect(keys).toContain("squares");
+            expect(keys).toContain("sum");
+            expect(keys).toContain("n");
+            expect(result.even.length).toBe(2);
+            expect(result.even).toMatchObject([2, 4]);
+            expect(result.squares.length).toBe(4);
+            expect(result.squares).toMatchObject([1, 4, 9, 16]);
+            expect(result.sum).toBe(10);
+            expect(result.n).toBe(73);
             done();
         });
     }).catch((error) => {

@@ -16,7 +16,7 @@ function normalizeRawConfig(rawConfig) {
         command: null,
         commandList: [],
         commandType: singleTaskProperty_1.CommandType.cmd,
-        dst: null,
+        dst: "into" in config ? config.into : "__fx",
         functionalMode: singleTaskProperty_1.FunctionalMode.none,
         ins: getNormalIns(config.ins),
         loopCondition: "while" in config ? config.while : "false",
@@ -177,20 +177,25 @@ function parseNestedCommand(normalizedConfig, config) {
 }
 function parseFunctionalCommand(normalizedConfig, config) {
     if ("map" in config || "filter" in config || "reduce" in config) {
-        normalizedConfig.dst = config.into;
         if ("map" in config) { // map
-            normalizedConfig.src = config.map;
+            normalizedConfig.src = getNormalSrc(config.map);
             normalizedConfig.functionalMode = singleTaskProperty_1.FunctionalMode.map;
         }
         else if ("filter" in config) { // filter
-            normalizedConfig.src = config.filter;
+            normalizedConfig.src = getNormalSrc(config.filter);
             normalizedConfig.functionalMode = singleTaskProperty_1.FunctionalMode.filter;
         }
         else { // reduce
-            normalizedConfig.src = config.reduce;
+            normalizedConfig.src = getNormalSrc(config.reduce);
             normalizedConfig.functionalMode = singleTaskProperty_1.FunctionalMode.reduce;
         }
     }
     return normalizedConfig;
+}
+function getNormalSrc(src) {
+    if (typeof src !== "string" && Array.isArray(src)) {
+        return JSON.stringify(src);
+    }
+    return src;
 }
 //# sourceMappingURL=singleTaskConfigProcessor.js.map
