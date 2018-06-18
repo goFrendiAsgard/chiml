@@ -33,14 +33,23 @@ export function cmd(command: string, options?: {[key: string]: any}): Promise<st
 }
 
 export function composeCommand(command: string, ins: any[] = []): string {
+  if (ins.length === 0) {
+    return command;
+  }
   const echoes = ins.map((element) => "echo " + doubleQuote(String(element))).join(" && ");
   const inputs = ins.map((element) => doubleQuote(String(element))).join(" ");
   const composedCommand = `(${echoes}) | ${command} ${inputs}`;
   return composedCommand;
 }
 
-export function cmdComposedCommand(command: string, ins: any[] = [], options?: {[key: string]: any}): Promise<string> {
+export function cmdComposedCommand(command: string, ins: any[] = [], options?: {[key: string]: any}): Promise<any> {
   return cmd(composeCommand(command, ins), options).then((result) => {
-    return Promise.resolve(result);
+    return new Promise((resolve, reject) => {
+      try {
+        resolve(JSON.parse(result.trim()));
+      } catch (error) {
+        resolve(result.trim());
+      }
+    });
   });
 }

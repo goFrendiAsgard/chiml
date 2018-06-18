@@ -1,5 +1,5 @@
 {
-  "name": "neo-chimera",
+  "name": "chimera-framework",
   "version": "0.0.0",
   "description": "Better version of Chimera-Framework",
   "main": "dist/index.js",
@@ -48,8 +48,8 @@
   },
   "devDependencies": {
     "@types/jest": "^23.0.0",
-    "eslint-config-google": "^0.9.1",
     "jest": "^23.1.0",
-    "ts-jest": "^22.4.6"
+    "ts-jest": "^22.4.6",
+    "tslint": "^5.10.0"
   }
 }

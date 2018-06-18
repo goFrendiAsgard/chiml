@@ -1,8 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const vm_1 = require("vm");
 const singleTaskProperty_1 = require("../enums/singleTaskProperty");
 const singleTaskConfigProcessor_1 = require("../libraries/singleTaskConfigProcessor");
 const singleTaskScriptGenerator_1 = require("../libraries/singleTaskScriptGenerator");
+const utilities = require("../libraries/utilities");
 class SingleTask {
     constructor(config, parentId = "", id = 0) {
         const normalizedConfig = typeof config === "string" ?
@@ -32,9 +34,17 @@ class SingleTask {
     }
     execute(...inputs) {
         return new Promise((resolve, reject) => {
-            const script = this.getScript();
-            // TODO: vm.runInNewContext
-            resolve(true);
+            try {
+                const sandbox = Object.assign(utilities);
+                sandbox.require = require;
+                const script = this.getScript();
+                vm_1.runInNewContext(script, sandbox);
+                const handler = sandbox.__main_0;
+                handler(...inputs).then(resolve).catch(reject);
+            }
+            catch (error) {
+                reject(error);
+            }
         });
     }
 }

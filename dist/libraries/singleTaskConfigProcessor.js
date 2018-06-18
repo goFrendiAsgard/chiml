@@ -180,14 +180,23 @@ function parseFunctionalCommand(normalizedConfig, config) {
         if ("map" in config) { // map
             normalizedConfig.src = getNormalSrc(config.map);
             normalizedConfig.functionalMode = singleTaskProperty_1.FunctionalMode.map;
+            if (normalizedConfig.ins.length < 1) {
+                normalizedConfig.ins = ["__el"];
+            }
         }
         else if ("filter" in config) { // filter
             normalizedConfig.src = getNormalSrc(config.filter);
             normalizedConfig.functionalMode = singleTaskProperty_1.FunctionalMode.filter;
+            if (normalizedConfig.ins.length < 1) {
+                normalizedConfig.ins = ["__el"];
+            }
         }
         else { // reduce
             normalizedConfig.src = getNormalSrc(config.reduce);
             normalizedConfig.functionalMode = singleTaskProperty_1.FunctionalMode.reduce;
+            if (normalizedConfig.ins.length < 2) {
+                normalizedConfig.ins = ["__el", "__acc"];
+            }
         }
     }
     return normalizedConfig;

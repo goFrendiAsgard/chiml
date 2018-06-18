@@ -32,7 +32,7 @@ it("render template correctly", (done) => {
 
 function createScriptAndHandler(config): Promise<any> {
   const script = createHandlerScript(new SingleTask(config));
-  const sandbox = {cmdComposedCommand, __main_0: null};
+  const sandbox = {__cmd: cmdComposedCommand, __main_0: null};
   runInNewContext(script, sandbox);
   const handler = sandbox.__main_0;
   return Promise.resolve({script, handler});
@@ -42,9 +42,8 @@ it("cmd handler works `(a, b) -> node add.js`", (done) => {
   const testProgramPath = resolve(__dirname, "cmd.test.add.js");
   const config = `(a, b) -> node ${testProgramPath}`;
   createScriptAndHandler(config).then(({script, handler}) => {
-    console.log(script);
     handler(4, 5).then((result) => {
-      expect(result).toBe("9\n");
+      expect(result).toBe(9);
       done();
     });
   }).catch((error) => {
@@ -56,7 +55,6 @@ it("cmd handler works `(a, b) -> node add.js`", (done) => {
 it("jsAsync handler works `(a,b) -> [(x, y, callback) => callback(null, x + y)]`", (done) => {
   const config = "(a,b) -> [(x, y, callback) => callback(null, x + y)]";
   createScriptAndHandler(config).then(({script, handler}) => {
-    console.log(script);
     handler(4, 5).then((result) => {
       expect(result).toBe(9);
       done();
@@ -70,7 +68,6 @@ it("jsAsync handler works `(a,b) -> [(x, y, callback) => callback(null, x + y)]`
 it("jsSync handler works `(a,b) -> (x, y) => x + y`", (done) => {
   const config = "(a,b) -> (x, y) => x + y";
   createScriptAndHandler(config).then(({script, handler}) => {
-    console.log(script);
     handler(4, 5).then((result) => {
       expect(result).toBe(9);
       done();
@@ -84,7 +81,6 @@ it("jsSync handler works `(a,b) -> (x, y) => x + y`", (done) => {
 it("jsPromise handler works `(a,b) -> <Promise.resolve(a + b)>`", (done) => {
   const config = "(a,b) -> <Promise.resolve(a + b)>";
   createScriptAndHandler(config).then(({script, handler}) => {
-    console.log(script);
     handler(4, 5).then((result) => {
       expect(result).toBe(9);
       done();
@@ -102,7 +98,6 @@ it("loop handler works", (done) => {
     while: "a < 10",
   };
   createScriptAndHandler(config).then(({script, handler}) => {
-    console.log(script);
     const promises = [handler(4), handler(8), handler(12)];
     Promise.all(promises).then((results) => {
       expect(results[0]).toBe(10);
@@ -128,7 +123,6 @@ it("series handler works", (done) => {
     ins: "a",
   };
   createScriptAndHandler(config).then(({script, handler}) => {
-    console.log(script);
     handler(4).then((result) => {
       expect(result).toBe(10);
       done();
@@ -150,7 +144,6 @@ it("parallel handler works", (done) => {
     vars: {b: []},
   };
   createScriptAndHandler(config).then(({script, handler}) => {
-    console.log(script);
     handler(4).then((result) => {
       expect(result[0]).toBe(5);
       expect(result[1]).toBe(8);
@@ -169,7 +162,6 @@ it("map handler works", (done) => {
     map: "x",
   };
   createScriptAndHandler(config).then(({script, handler}) => {
-    console.log(script);
     handler([1, 2, 3, 4]).then((result) => {
       expect(result.length).toBe(4);
       expect(result[0]).toBe(1);
@@ -191,7 +183,6 @@ it("filter handler works", (done) => {
     into: "y",
   };
   createScriptAndHandler(config).then(({script, handler}) => {
-    console.log(script);
     handler([1, 2, 3, 4]).then((result) => {
       expect(result.length).toBe(2);
       expect(result[0]).toBe(2);
@@ -211,7 +202,6 @@ it("reduce handler works", (done) => {
     reduce: "x",
   };
   createScriptAndHandler(config).then(({script, handler}) => {
-    console.log(script);
     handler([1, 2, 3, 4]).then((result) => {
       expect(result).toBe(10);
       done();
@@ -260,7 +250,6 @@ it("complex handler works", (done) => {
     out: "output",
   };
   createScriptAndHandler(config).then(({script, handler}) => {
-    console.log(script);
     handler([1, 2, 3, 4]).then((result) => {
       const keys = Object.keys(result);
       expect(keys.length).toBe(4);

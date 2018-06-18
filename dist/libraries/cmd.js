@@ -30,6 +30,9 @@ function cmd(command, options) {
 }
 exports.cmd = cmd;
 function composeCommand(command, ins = []) {
+    if (ins.length === 0) {
+        return command;
+    }
     const echoes = ins.map((element) => "echo " + stringUtil_1.doubleQuote(String(element))).join(" && ");
     const inputs = ins.map((element) => stringUtil_1.doubleQuote(String(element))).join(" ");
     const composedCommand = `(${echoes}) | ${command} ${inputs}`;
@@ -38,7 +41,14 @@ function composeCommand(command, ins = []) {
 exports.composeCommand = composeCommand;
 function cmdComposedCommand(command, ins = [], options) {
     return cmd(composeCommand(command, ins), options).then((result) => {
-        return Promise.resolve(result);
+        return new Promise((resolve, reject) => {
+            try {
+                resolve(JSON.parse(result.trim()));
+            }
+            catch (error) {
+                resolve(result.trim());
+            }
+        });
     });
 }
 exports.cmdComposedCommand = cmdComposedCommand;

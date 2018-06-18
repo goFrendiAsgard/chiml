@@ -46,7 +46,7 @@ function wrapJsPromise(task: ISingleTask, spaceCount: number): string {
 function wrapCmd(task: ISingleTask, spaceCount: number): string {
   const ins = task.ins.join(", ");
   const template = "const __promise<%- task.id %> = " +
-    'cmdComposedCommand("<%- task.command %>", [<%- ins %>])' +
+    '__cmd("<%- task.command %>", [<%- ins %>])' +
     ".then((__result) => {<%- task.out %> = __result;});";
   return renderTemplate(template, {task, ins}, spaceCount);
 }

@@ -1,7 +1,10 @@
+import {runInNewContext} from "vm";
 import {CommandType, FunctionalMode, Mode} from "../enums/singleTaskProperty";
 import {ISingleTask} from "../interfaces/ISingleTask";
+import {cmdComposedCommand} from "../libraries/cmd";
 import {normalizeRawConfig, strToNormalizedConfig} from "../libraries/singleTaskConfigProcessor";
 import {createHandlerScript} from "../libraries/singleTaskScriptGenerator";
+import * as utilities from "../libraries/utilities";
 
 export class SingleTask implements ISingleTask {
   public id: string;
@@ -51,9 +54,16 @@ export class SingleTask implements ISingleTask {
 
   public execute(...inputs): Promise<any> {
     return new Promise((resolve, reject) => {
-      const script = this.getScript();
-      // TODO: vm.runInNewContext
-      resolve(true);
+      try {
+        const sandbox = Object.assign(utilities);
+        sandbox.require = require;
+        const script = this.getScript();
+        runInNewContext(script, sandbox);
+        const handler = sandbox.__main_0;
+        handler(...inputs).then(resolve).catch(reject);
+      } catch (error) {
+        reject(error);
+      }
     });
   }
 

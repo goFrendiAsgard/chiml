@@ -30,14 +30,40 @@ it("should able to run `node add.js` with input redirection", (done) => {
         done(error);
     });
 });
-it("should able to compose command and run it", (done) => {
+it("should able to compose command `node add.js` and run it", (done) => {
     const scriptPath = (path_1.resolve(__dirname, "cmd.test.add.js"));
     const command = `node ${scriptPath}`;
     const ins = [7, 4];
     const composedCommand = cmd_1.composeCommand(command, ins);
     expect(composedCommand).toBe(`(echo "7" && echo "4") | ${command} "7" "4"`);
     cmd_1.cmdComposedCommand(command, ins).then((stdout) => {
-        expect(stdout).toBe("11\n");
+        expect(stdout).toBe(11);
+        done();
+    }).catch((error) => {
+        expect(error).toBeNull();
+        done(error);
+    });
+});
+it("should able to compose command `echo` and run it", (done) => {
+    const command = "echo";
+    const ins = ["hello"];
+    const composedCommand = cmd_1.composeCommand(command, ins);
+    expect(composedCommand).toBe('(echo "hello") | echo "hello"');
+    cmd_1.cmdComposedCommand(command, ins).then((stdout) => {
+        expect(stdout).toBe("hello");
+        done();
+    }).catch((error) => {
+        expect(error).toBeNull();
+        done(error);
+    });
+});
+it("should able to compose command `echo abc` and run it", (done) => {
+    const command = "echo abc";
+    const ins = [];
+    const composedCommand = cmd_1.composeCommand(command, ins);
+    expect(composedCommand).toBe("echo abc");
+    cmd_1.cmdComposedCommand(command, ins).then((stdout) => {
+        expect(stdout).toBe("abc");
         done();
     }).catch((error) => {
         expect(error).toBeNull();
