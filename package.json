@@ -1,7 +1,7 @@
 {
-  "name": "chimera-framework",
+  "name": "chiml",
   "version": "0.0.0",
-  "description": "Better version of Chimera-Framework",
+  "description": "(Javascript + YAML + Magic) --> CHIML",
   "main": "dist/index.js",
   "bin": {
     "chie": "dist/tools/chie.js",

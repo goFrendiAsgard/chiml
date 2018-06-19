@@ -40,19 +40,23 @@ it("yield error when translate incorrect chiml script", (done) => {
         done();
     });
 });
+const srcFilePath = path_1.resolve(__dirname, "testCompile/test.chiml");
+it("ensure chiml file is executable", (done) => {
+    tools_1.execute(srcFilePath, 5, 4).then((result) => {
+        expect(result).toBe(9);
+        done();
+    }).catch((error) => {
+        expect(error).toBeNull();
+        done();
+    });
+});
 it("compile testCompile/test.chiml", (done) => {
-    const srcFilePath = path_1.resolve(__dirname, "testCompile/test.chiml");
     const compiledFilePath = path_1.resolve(__dirname, "testCompile/test.js");
-    const libDirPath = path_1.resolve(__dirname, ".chiml");
-    tools_1.compileChimlFile(srcFilePath).then((result) => {
-        return tools_1.execute(srcFilePath, 10, 6);
-    }).then((result) => {
-        expect(result).toBe(64);
-    }).then(() => {
+    const libDirPath = path_1.resolve(__dirname, "testCompile/_chiml");
+    tools_1.compileChimlFile(srcFilePath).then(() => {
         return cmd_1.cmdComposedCommand(`node ${compiledFilePath}`, [10, 8]);
     }).then((result) => {
         expect(result).toBe(36);
-    }).then(() => {
         return fs_extra_1.remove(compiledFilePath);
     }).then(() => {
         return fs_extra_1.remove(libDirPath);

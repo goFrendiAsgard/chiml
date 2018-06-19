@@ -22,7 +22,7 @@ function getCompiledScript(chiml) {
             const task = new SingleTask_1.SingleTask(config);
             const mainScript = task.getScript();
             const script = [
-                'import {__cmd, __parseIns} from "./.chiml/libraries/utilities.js";',
+                'import {__cmd, __parseIns} from "./_chiml/libraries/utilities.js";',
                 mainScript,
                 "module.exports = __main_0;",
                 "if (require.main === module) {",
@@ -44,9 +44,11 @@ function compileChimlFile(chiml) {
     const chimlFileName = path_1.basename(chiml);
     const jsFileName = chimlFileName.replace(".chiml", ".js");
     const jsFilePath = path_1.resolve(chimlDirPath, jsFileName);
-    const distDstPath = path_1.resolve(path_1.dirname(chiml), ".chiml");
+    const distDstPath = path_1.resolve(path_1.dirname(chiml), "_chiml");
     const distSrcPath = path_1.resolve(path_1.dirname(path_1.dirname(__dirname)), "dist");
-    return getCompiledScript(chiml).then((compiledScript) => {
+    return fs_extra_1.readFile(chiml).then(() => {
+        return getCompiledScript(chiml);
+    }).then((compiledScript) => {
         return fs_extra_1.writeFile(jsFilePath, compiledScript);
     }).then(() => {
         return fs_extra_1.copy(distSrcPath, distDstPath);

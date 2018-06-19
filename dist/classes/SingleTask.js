@@ -43,7 +43,6 @@ class SingleTask {
                 handler(...inputs).then(resolve).catch(reject);
             }
             catch (error) {
-                console.log(utilities);
                 reject(error);
             }
         });

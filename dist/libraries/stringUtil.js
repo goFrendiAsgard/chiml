@@ -5,7 +5,7 @@ const js_yaml_1 = require("js-yaml");
 const SEQUENCE_ITEM_PATTERN = /^(\s*)-(\s+)(>|\|)(.+)$/gm;
 const MAP_ITEM_PATTERN = /^(\s*)([-\s\w]+:)(\s+)(>|\|)(.+)$/gm;
 const STRING_PATTERN = /^(>|\|)(.+)$/gm;
-const IS_CHIML_FILE = /^.+\.chiml$/gmi;
+const CHIML_FILE_NAME = /^.+\.chiml$/gmi;
 function chimlToYaml(chiml) {
     let result = chiml;
     // sequence item where it's value preceeded by '|' or '>'
@@ -24,13 +24,17 @@ function chimlToYaml(chiml) {
 }
 exports.chimlToYaml = chimlToYaml;
 function chimlToConfig(chiml, firstTime = true) {
-    if (firstTime && IS_CHIML_FILE.test(chiml)) {
+    if (firstTime && chiml.match(CHIML_FILE_NAME)) {
         return new Promise((resolve, reject) => {
             fs_1.readFile(chiml, (error, content) => {
                 if (error) {
-                    return chimlToConfig(chiml, false).then(resolve).catch(reject);
+                    return chimlToConfig(chiml, false).then((result) => {
+                        resolve(result);
+                    }).catch(reject);
                 }
-                return chimlToConfig(String(content), false).then(resolve).catch(reject);
+                return chimlToConfig(String(content), false).then((result) => {
+                    resolve(result);
+                }).catch(reject);
             });
         });
     }
@@ -45,7 +49,7 @@ function chimlToConfig(chiml, firstTime = true) {
             return Promise.resolve(obj);
         }
         catch (error) {
-            return Promise.resolve(error);
+            return Promise.reject(error);
         }
     }
 }

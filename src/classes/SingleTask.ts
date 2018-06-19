@@ -62,7 +62,6 @@ export class SingleTask implements ISingleTask {
         const handler = sandbox.__main_0;
         handler(...inputs).then(resolve).catch(reject);
       } catch (error) {
-        console.log(utilities);
         reject(error);
       }
     });
