@@ -14,7 +14,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/goFrendiAsgard/chimera-framework.git"
+    "url": "git+https://github.com/goFrendiAsgard/chiml.git"
   },
   "jest": {
     "transform": {
