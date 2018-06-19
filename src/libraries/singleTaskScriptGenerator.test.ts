@@ -32,7 +32,7 @@ it("render template correctly", (done) => {
 
 function createScriptAndHandler(config): Promise<any> {
   const script = createHandlerScript(new SingleTask(config));
-  const sandbox = {__cmd: cmdComposedCommand, __main_0: null};
+  const sandbox: {[key: string]: any} = {__cmd: cmdComposedCommand};
   runInNewContext(script, sandbox);
   const handler = sandbox.__main_0;
   return Promise.resolve({script, handler});

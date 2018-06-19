@@ -14,25 +14,28 @@ export function renderTemplate(template: string, config: {[key: string]: any}, s
 
 function wrapJsSyncFunction(task: ISingleTask, spaceCount: number): string {
   const ins = task.ins.join(", ");
-  const template = "const __promise<%- task.id %> = " +
-    "Promise.resolve((<%- task.command %>)(<%- ins %>)).then(\n" +
-    "  (__result) => <%- task.out %> = __result\n" +
-    ");";
+  const template = [
+    "const __promise<%- task.id %> = Promise.resolve((<%- task.command %>)(<%- ins %>)).then(",
+    "  (__result) => <%- task.out %> = __result",
+    ");",
+  ].join("\n");
   return renderTemplate(template, {task, ins}, spaceCount);
 }
 
 function wrapJsAsyncFunction(task: ISingleTask, spaceCount: number): string {
   const ins = task.ins.join(", ");
-  const template = "const __promise<%- task.id %> = " +
-    "new Promise((__resolve, __reject) => {\n" +
-    "  (<%- task.command %>)(<%- ins %>, (__error, __result) => {\n" +
-    "    if (__error) {\n" +
-    "      return __reject(__error);\n" +
-    "    }\n" +
-    "    <%- task.out %> = __result;\n" +
-    "    return __resolve(true);\n" +
-    "  });\n" +
-    "});";
+  const template = [
+    "const __promise<%- task.id %> = " +
+    "new Promise((__resolve, __reject) => {",
+    "  (<%- task.command %>)(<%- ins %>, (__error, __result) => {",
+    "    if (__error) {",
+    "      return __reject(__error);",
+    "    }",
+    "    <%- task.out %> = __result;",
+    "    return __resolve(true);",
+    "  });",
+    "});",
+  ].join("\n");
   return renderTemplate(template, {task, ins}, spaceCount);
 }
 
@@ -101,7 +104,12 @@ function getVariableDeclaration(variables, task: ISingleTask, spaceCount): strin
 }
 
 function getNonFunctionalTemplate(task: ISingleTask, unitTemplate: string): string {
-  return `${unitTemplate}\n__main<%- task.id %> = __unit<%- task.id %>;`;
+  return [
+    unitTemplate,
+    "function __main<%- task.id %>(...__ins) {",
+    "  return __unit<%- task.id %>(...__ins);",
+    "}",
+  ].join("\n");
 }
 
 function getFunctionalUnitTemplate(task: ISingleTask, unitTemplate: string): string {
@@ -115,49 +123,55 @@ function getFunctionalUnitTemplate(task: ISingleTask, unitTemplate: string): str
 
 function getMapTemplate(task: ISingleTask, unitTemplate: string): string {
   const functionalUnitTemplate = getFunctionalUnitTemplate(task, unitTemplate);
-  return "function __main<%- task.id %>(__src = <%- task.src %>) {\n" +
-    functionalUnitTemplate + "\n" +
-    "  const __promises = __src.map((__element) => __unit<%- task.id %>(__element));\n" +
-    "  return Promise.all(__promises).then((__result) => {\n" +
-    "    <%- task.dst %> = __result;\n" +
-    "  }).then(() => Promise.resolve(<%- task.dst %>));\n" +
-    "}";
+  return [
+    "function __main<%- task.id %>(__src = <%- task.src %>) {",
+    functionalUnitTemplate,
+    "  const __promises = __src.map((__element) => __unit<%- task.id %>(__element));",
+    "  return Promise.all(__promises).then((__result) => {",
+    "    <%- task.dst %> = __result;",
+    "  }).then(() => Promise.resolve(<%- task.dst %>));",
+    "}",
+  ].join("\n");
 }
 
 function getFilterTemplate(task: ISingleTask, unitTemplate: string): string {
   const functionalUnitTemplate = getFunctionalUnitTemplate(task, unitTemplate);
-  return "function __main<%- task.id %>(__src = <%- task.src %>) {\n" +
-    functionalUnitTemplate + "\n" +
-    "  const __promises = __src.map((__element) => __unit<%- task.id %>(__element));\n" +
-    "  return Promise.all(__promises).then((__result) => {\n" +
-    "    __filtered = [];\n" +
-    "    for (let __i = 0; __i < __src.length; __i++){\n" +
-    "      if (__result[__i]) {\n" +
-    "        __filtered.push(__src[__i]);\n" +
-    "      }\n" +
-    "    }\n" +
-    "    <%- task.dst %> = __filtered;\n" +
-    "  }).then(() => Promise.resolve(<%- task.dst %>));\n" +
-    "}";
+  return [
+    "function __main<%- task.id %>(__src = <%- task.src %>) {",
+    functionalUnitTemplate,
+    "  const __promises = __src.map((__element) => __unit<%- task.id %>(__element));",
+    "  return Promise.all(__promises).then((__result) => {",
+    "    __filtered = [];",
+    "    for (let __i = 0; __i < __src.length; __i++){",
+    "      if (__result[__i]) {",
+    "        __filtered.push(__src[__i]);",
+    "      }",
+    "    }",
+    "    <%- task.dst %> = __filtered;",
+    "  }).then(() => Promise.resolve(<%- task.dst %>));",
+    "}",
+  ].join("\n");
 }
 
 function getReduceTemplate(task: ISingleTask, unitTemplate: string): string {
   const functionalUnitTemplate = getFunctionalUnitTemplate(task, unitTemplate);
-  return "function __main<%- task.id %>(__src = <%- task.src %>) {\n" +
-    "  let __accumulator = <%- task.accumulator %>;\n" +
-    functionalUnitTemplate + "\n" +
-    "  let __promise = Promise.resolve(true);\n" +
-    "  for (let __i = 0; __i < __src.length; __i++){\n" +
-    "    __promise = __promise.then(\n" +
-    "      () => __unit<%- task.id %>(__src[__i], __accumulator)\n" +
-    "    ).then((__result) => {\n" +
-    "      __accumulator = __result;\n" +
-    "    });\n" +
-    "  }\n" +
-    "  return __promise.then(() => {\n" +
-    "    <%- task.dst %> = __accumulator;\n" +
-    "  }).then(() => Promise.resolve(<%- task.dst %>));\n" +
-    "}";
+  return [
+    "function __main<%- task.id %>(__src = <%- task.src %>) {",
+    "  let __accumulator = <%- task.accumulator %>;",
+    functionalUnitTemplate,
+    "  let __promise = Promise.resolve(true);",
+    "  for (let __i = 0; __i < __src.length; __i++){",
+    "    __promise = __promise.then(",
+    "      () => __unit<%- task.id %>(__src[__i], __accumulator)",
+    "    ).then((__result) => {",
+    "      __accumulator = __result;",
+    "    });",
+    "  }",
+    "  return __promise.then(() => {",
+    "    <%- task.dst %> = __accumulator;",
+    "  }).then(() => Promise.resolve(<%- task.dst %>));",
+    "}",
+  ].join("\n");
 }
 
 function getTemplate(task: ISingleTask): string {
@@ -165,19 +179,21 @@ function getTemplate(task: ISingleTask): string {
   const wrapper = getWrapper(task);
   const promiseScript = wrapper(task, 6);
   const variableDeclaration = getVariableDeclaration(variables, task, 2);
-  const unitTemplate = "function __unit<%- task.id %>(<%- ins %>) {\n" +
-    (variableDeclaration ? variableDeclaration + "\n" : "") +
-    "  let <%- firstFlag %> = true;\n" +
-    "  function __fn<%- task.id %>() {\n" +
-    "    if ((<%- firstFlag %> && (<%- branch %>)) || (!<%- firstFlag %> && <%- loop %>)) {\n" +
-    promiseScript + "\n" +
-    "      __first<%- task.id %> = false;\n" +
-    "      return __promise<%- task.id %>.then(() => __fn<%- task.id %>());\n" +
-    "    }\n" +
-    "    return Promise.resolve(<%- task.out %>);\n" +
-    "  }\n" +
-    "  return __fn<%- task.id %>();\n" +
-    "}";
+  const unitTemplate = [
+    "function __unit<%- task.id %>(<%- ins %>) {",
+    (variableDeclaration ? variableDeclaration + "\n" : ""),
+    "  let <%- firstFlag %> = true;",
+    "  function __fn<%- task.id %>() {",
+    "    if ((<%- firstFlag %> && (<%- branch %>)) || (!<%- firstFlag %> && <%- loop %>)) {",
+    promiseScript,
+    "      __first<%- task.id %> = false;",
+    "      return __promise<%- task.id %>.then(() => __fn<%- task.id %>());",
+    "    }",
+    "    return Promise.resolve(<%- task.out %>);",
+    "  }",
+    "  return __fn<%- task.id %>();",
+    "}",
+  ].join("\n");
   switch (task.functionalMode) {
     case FunctionalMode.none: return getNonFunctionalTemplate(task, unitTemplate);
     case FunctionalMode.map: return getMapTemplate(task, unitTemplate);

@@ -1,16 +1,4 @@
-import {SingleTask} from "../classes/SingleTask";
-import {chimlToConfig, parseStringArray} from "../libraries/stringUtil";
-
-export function execute(...args: any[]): Promise<any> {
-  const chiml = args[0];
-  const ins = parseStringArray(args.slice(1));
-  return new Promise((resolve, reject) => {
-    chimlToConfig(chiml).then((config) => {
-      const task = new SingleTask(config);
-      task.execute(ins).then(resolve).catch(reject);
-    });
-  });
-}
+import {execute} from "../libraries/tools";
 
 if (require.main === module) {
   const args = process.argv.slice(2);

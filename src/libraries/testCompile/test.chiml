@@ -1,0 +1,7 @@
+ins: a, b
+out: e
+do:
+  - parallel:
+    - |(a, b) -> (x, y) => x + y -> c
+    - |(a, b) -> (x, y) => x - y -> d
+  - |(c, d) -> (x, y) => x * y -> e
