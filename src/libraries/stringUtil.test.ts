@@ -1,4 +1,98 @@
-import {doubleQuote, isFlanked, removeFlank, smartSplit} from "./stringUtil";
+import {resolve as pathResolve} from "path";
+import {chimlToConfig,
+  chimlToYaml,
+  doubleQuote,
+  isFlanked,
+  parseStringArray,
+  removeFlank,
+  smartSplit} from "./stringUtil";
+
+const chimlSample1 = `
+ins: a, b
+out: f
+do:
+  - |(a, b) -> (x, y) => x + y -> c
+  - |(a, b) -> (x, y) => x - y -> d
+  - do: |(c, d) -> (x, y) => x * y -> e
+  - do: |("result: " + e) --> f
+`;
+
+const expectedYaml1 = `
+ins: a, b
+out: f
+do:
+  - "(a, b) -> (x, y) => x + y -> c"
+  - "(a, b) -> (x, y) => x - y -> d"
+  - do: "(c, d) -> (x, y) => x * y -> e"
+  - do: "(\\\"result: \\\" + e) --> f"
+`;
+
+const chimlSample2 =  `|("Hello" + name) --> output`;
+const expectedYaml2 = `"(\\\"Hello\\\" + name) --> output"`;
+
+it("able to translate chiml into yaml", (done) => {
+  expect(chimlToYaml(chimlSample1)).toBe(expectedYaml1);
+  expect(chimlToYaml(chimlSample2)).toBe(expectedYaml2);
+  done();
+});
+
+it("able to parse string array", (done) => {
+  const result = parseStringArray(["1", "abc", "false", "{\"a\": 5}"]);
+  expect(result.length).toBe(4);
+  expect(result[0]).toBe(1);
+  expect(result[1]).toBe("abc");
+  expect(result[2]).toBe(false);
+  expect(result[3]).toMatchObject({a: 5});
+  done();
+});
+
+it("able to turn chiml file and chiml script into config", (done) => {
+  let result1;
+  let result2;
+  chimlToConfig(pathResolve(__dirname, "stringUtil.test.sample.chiml")).then((result) => {
+    result1 = result;
+  }).then(() => chimlToConfig(chimlSample1)).then((result) => {
+    result2 = result;
+  }).then(() => {
+    expect(Object.keys(result1).length).toBe(3);
+    expect(result1).toMatchObject(result2);
+    done();
+  }).catch((error) => {
+    expect(error).toBeNull();
+    done();
+  });
+});
+
+it("able to turn nonexisting chiml file into config", (done) => {
+  chimlToConfig("nonexists.chiml").then((result) => {
+    expect(result).toBe("nonexists.chiml");
+    done();
+  }).catch((error) => {
+    expect(error).toBeNull();
+    done();
+  });
+});
+
+it("able to turn json-string into json", (done) => {
+  const expected = {a: 5, b: 7};
+  chimlToConfig(JSON.stringify(expected)).then((result) => {
+    expect(result).toMatchObject(expected);
+    done();
+  }).catch((error) => {
+    expect(error).toBeNull();
+    done();
+  });
+});
+
+it ("should fail to parse invalid yaml", (done) => {
+  chimlToConfig("key: val\n   misindentKey: otherVal").then((result) => {
+    expect(result).toBeUndefined();
+    done();
+  }).catch((error) => {
+    expect(error).toBeDefined();
+    done();
+  });
+});
 
 it("able to smartsplit", (done) => {
   const result1: string[] = smartSplit("'a -> b' -> \"$a->call();\" -> \"c->d\"", "->");

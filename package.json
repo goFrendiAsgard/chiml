@@ -3,6 +3,10 @@
   "version": "0.0.0",
   "description": "Better version of Chimera-Framework",
   "main": "dist/index.js",
+  "bin": {
+    "chie": "dist/tools/chie.js",
+    "chic": "dist/tools/chic.js"
+  },
   "scripts": {
     "lint": "tslint -c tslint.json 'src/**/*.{ts,tsx}'",
     "pretest": "npm run lint && tsc --sourcemap",
