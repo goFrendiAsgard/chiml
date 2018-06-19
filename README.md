@@ -30,7 +30,7 @@ You can execute any CHIML script by using `chie` command:
 
 CHIML is also compilable into JavaScript by using `chic` command:
 
-```
+```bash
 > chic myProgram.chiml
 > ls
 myProgram.chiml    myProgram.js
