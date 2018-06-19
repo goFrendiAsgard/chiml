@@ -1,4 +1,4 @@
-import {copy as fsCopy, writeFile} from "fs-extra";
+import {copy as fsCopy, readFile, writeFile} from "fs-extra";
 import {basename as pathBaseName, dirname as pathDirName, resolve as pathResolve} from "path";
 import {SingleTask} from "../classes/SingleTask";
 import {tsToJs} from "./scriptTransform";
@@ -21,7 +21,7 @@ export function getCompiledScript(chiml: any): Promise<string> {
       const task = new SingleTask(config);
       const mainScript = task.getScript();
       const script = [
-        'import {__cmd, __parseIns} from "./.chiml/libraries/utilities.js";',
+        'import {__cmd, __parseIns} from "./_chiml/libraries/utilities.js";',
         mainScript,
         "module.exports = __main_0;",
         "if (require.main === module) {",
@@ -43,9 +43,11 @@ export function compileChimlFile(chiml: any): Promise<any> {
   const chimlFileName = pathBaseName(chiml);
   const jsFileName = chimlFileName.replace(".chiml", ".js");
   const jsFilePath = pathResolve(chimlDirPath, jsFileName);
-  const distDstPath = pathResolve(pathDirName(chiml), ".chiml");
+  const distDstPath = pathResolve(pathDirName(chiml), "_chiml");
   const distSrcPath = pathResolve(pathDirName(pathDirName(__dirname)), "dist");
-  return getCompiledScript(chiml).then((compiledScript) => {
+  return readFile(chiml).then(() => {
+    return getCompiledScript(chiml);
+  }).then((compiledScript) => {
     return writeFile(jsFilePath, compiledScript);
   }).then(() => {
     return fsCopy(distSrcPath, distDstPath);
