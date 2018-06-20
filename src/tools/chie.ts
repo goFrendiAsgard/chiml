@@ -1,3 +1,4 @@
+#! /usr/bin/env node
 import {execute} from "../libraries/tools";
 
 if (require.main === module) {

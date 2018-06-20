@@ -21,7 +21,7 @@ export function getCompiledScript(chiml: any): Promise<string> {
       const task = new SingleTask(config);
       const mainScript = task.getScript();
       const script = [
-        'import {__cmd, __parseIns} from "./_chiml/libraries/utilities.js";',
+        'import {__cmd, __parseIns} from "chiml/dist/libraries/utilities.js";',
         mainScript,
         "module.exports = __main_0;",
         "if (require.main === module) {",
@@ -43,12 +43,16 @@ export function compileChimlFile(chiml: any): Promise<any> {
   const chimlFileName = pathBaseName(chiml);
   const jsFileName = chimlFileName.replace(".chiml", ".js");
   const jsFilePath = pathResolve(chimlDirPath, jsFileName);
-  const distDstPath = pathResolve(pathDirName(chiml), "_chiml");
+  const nodeModuleDstPath = pathResolve(pathDirName(chiml), "node_modules");
+  const nodeModuleSrcPath = pathResolve(pathDirName(pathDirName(__dirname)), "node_modules");
+  const distDstPath = pathResolve(pathDirName(chiml), "node_modules", "chiml", "dist");
   const distSrcPath = pathResolve(pathDirName(pathDirName(__dirname)), "dist");
   return readFile(chiml).then(() => {
     return getCompiledScript(chiml);
   }).then((compiledScript) => {
     return writeFile(jsFilePath, compiledScript);
+  }).then(() => {
+    return fsCopy(nodeModuleSrcPath, nodeModuleDstPath);
   }).then(() => {
     return fsCopy(distSrcPath, distDstPath);
   });

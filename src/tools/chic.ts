@@ -1,3 +1,4 @@
+#! /usr/bin/env node
 import {compileChimlFile} from "../libraries/tools";
 
 if (require.main === module) {

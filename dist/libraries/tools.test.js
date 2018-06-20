@@ -52,14 +52,14 @@ it("ensure chiml file is executable", (done) => {
 });
 it("compile testCompile/test.chiml", (done) => {
     const compiledFilePath = path_1.resolve(__dirname, "testCompile/test.js");
-    const libDirPath = path_1.resolve(__dirname, "testCompile/_chiml");
+    const nodeModulePath = path_1.resolve(__dirname, "testCompile/node_modules");
     tools_1.compileChimlFile(srcFilePath).then(() => {
         return cmd_1.cmdComposedCommand(`node ${compiledFilePath}`, [10, 8]);
     }).then((result) => {
         expect(result).toBe(36);
         return fs_extra_1.remove(compiledFilePath);
     }).then(() => {
-        return fs_extra_1.remove(libDirPath);
+        return fs_extra_1.remove(nodeModulePath);
     }).then(done).catch((error) => {
         console.error(error);
         expect(error).toBeUndefined();
