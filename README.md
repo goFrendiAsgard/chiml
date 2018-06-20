@@ -11,8 +11,8 @@ out: e
 do:
   # call external Python and Java program
   - parallel:
-    - |(a, b) -> python add.py -> c
-    - |(a, b) -> java minus -> d
+    - |(a, b) -> python3 lib/add.py -> c
+    - |(a, b) -> java -cp lib Minus -> d
   # compose results using JavaScript
   - |(c, d) -> (x, y) => x * y -> e
 ```
@@ -36,7 +36,7 @@ JavaScript file created:
 - /home/gofrendi/chiml/sample/program.js
 
 > ls
-node_modules  program.chiml  program.js
+libs  node_modules  program.chiml  program.js
 
 > node program.js 10 8
 36
