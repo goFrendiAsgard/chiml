@@ -70,4 +70,4 @@ it("compile testCompile/test.chiml", (done) => {
     expect(error).toBeUndefined();
     done();
   });
-});
+}, 10000);
