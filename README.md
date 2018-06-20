@@ -5,15 +5,15 @@ CHIML stands for Chimera Markup Language, `(JavaScript + YAML + GoodIntentions) 
 CHIML allows you to call pre-existing programs and compose them like this one:
 
 ```yaml
-# filename: myProgram.chiml
+# fileName: myProgram.chiml
 ins: a, b
 out: e
 do:
-  # call python and java program in parallel
+  # call external Python and Java program
   - parallel:
     - |(a, b) -> python add.py -> c
     - |(a, b) -> java minus -> d
-  # compose the result javascript arrow function
+  # compose results using JavaScript
   - |(c, d) -> (x, y) => x * y -> e
 ```
 
@@ -32,20 +32,24 @@ CHIML is also compilable into JavaScript by using `chic` command:
 
 ```bash
 > chic myProgram.chiml
+JavaScript file created:
+- /home/gofrendi/chiml/sample/myProgram.js
+
 > ls
-myProgram.chiml    myProgram.js
+node_modules  myProgram.chiml  myProgram.js
+
 > node myProgram.js 10 8
 36
 ```
 
 # Installation
 
-```
-node install --global chiml
+```bash
+> node install --global chiml
 ```
 
 # Test
 
-```
-npm test
+```bash
+> npm test
 ```
