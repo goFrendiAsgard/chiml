@@ -1,7 +1,7 @@
 import {remove as fsRemove} from "fs-extra";
 import {dirname as pathDirName, resolve as pathResolve} from "path";
 import {cmdComposedCommand} from "./cmd";
-import {compileChimlFile, execute, getCompiledScript} from "./tools";
+import {compile, execute, getCompiledScript} from "./tools";
 
 it("run correct chiml script", (done) => {
   execute("(a, b) -> (x, y) => x + y", 4, 5).then((result) => {
@@ -60,7 +60,7 @@ it("ensure chiml file is executable", (done) => {
 it("compile testCompile/test.chiml", (done) => {
   const compiledFilePath = pathResolve(testDirPath, "test.js");
   const nodeModulePath = pathResolve(testDirPath, "node_modules");
-  compileChimlFile(srcFilePath).then(() => {
+  compile([srcFilePath]).then(() => {
     return cmdComposedCommand(`node ${compiledFilePath}`, [10, 8]);
   }).then((result) => {
     expect(result).toBe(36);

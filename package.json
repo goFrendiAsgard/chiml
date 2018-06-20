@@ -30,7 +30,8 @@
     "collectCoverage": true
   },
   "keywords": [
-    "orchestration-language", "chimera-framework"
+    "orchestration-language",
+    "chimera-framework"
   ],
   "author": "goFrendi",
   "license": "ISC",

@@ -55,7 +55,7 @@ it("ensure chiml file is executable", (done) => {
 it("compile testCompile/test.chiml", (done) => {
     const compiledFilePath = path_1.resolve(testDirPath, "test.js");
     const nodeModulePath = path_1.resolve(testDirPath, "node_modules");
-    tools_1.compileChimlFile(srcFilePath).then(() => {
+    tools_1.compile([srcFilePath]).then(() => {
         return cmd_1.cmdComposedCommand(`node ${compiledFilePath}`, [10, 8]);
     }).then((result) => {
         expect(result).toBe(36);

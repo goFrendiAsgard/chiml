@@ -5,6 +5,10 @@ const path_1 = require("path");
 const SingleTask_1 = require("../classes/SingleTask");
 const scriptTransform_1 = require("./scriptTransform");
 const stringUtil_1 = require("./stringUtil");
+const rootDirPath = path_1.dirname(path_1.dirname(__dirname));
+const distPath = path_1.resolve(rootDirPath, "dist");
+const srcPath = path_1.resolve(rootDirPath, "src");
+const packageJsonPath = path_1.resolve(rootDirPath, "package.json");
 function execute(...args) {
     const chiml = args[0];
     const ins = stringUtil_1.parseStringArray(args.slice(1));
@@ -39,35 +43,48 @@ function getCompiledScript(chiml) {
     });
 }
 exports.getCompiledScript = getCompiledScript;
-function compileChimlFile(chiml) {
-    const rootDirPath = path_1.dirname(path_1.dirname(__dirname));
+function compile(chimlFiles) {
+    let jsFilePathList = [];
+    const parentDirs = chimlFiles.map((filePath) => path_1.dirname(filePath));
+    const uniqueParentDirs = [...new Set(parentDirs)];
+    const compilator = chimlFiles.map((chiml) => compileSingleFile(chiml));
+    const nodeModuleCreator = uniqueParentDirs.map((dirPath) => createSingleNodeModule(dirPath));
+    return Promise.all(compilator).then((result) => {
+        jsFilePathList = result;
+    }).then(() => {
+        return Promise.all(nodeModuleCreator);
+    }).then(() => {
+        return Promise.resolve(jsFilePathList);
+    });
+}
+exports.compile = compile;
+function createSingleNodeModule(targetDirPath) {
+    const nodeModuleDstPath = path_1.resolve(targetDirPath, "node_modules");
+    const nodeModuleSrcPath = path_1.resolve(rootDirPath, "node_modules");
+    const newDistPath = path_1.resolve(targetDirPath, "node_modules", "chiml", "dist");
+    const newSrcPath = path_1.resolve(targetDirPath, "node_modules", "chiml", "src");
+    const newPackageJsonPath = path_1.resolve(targetDirPath, "node_modules", "chiml", "package.json");
+    return fs_extra_1.copy(srcPath, newSrcPath).then(() => {
+        return Promise.all([
+            fs_extra_1.copy(distPath, newDistPath),
+            fs_extra_1.copy(nodeModuleSrcPath, nodeModuleDstPath),
+            fs_extra_1.copy(packageJsonPath, newPackageJsonPath),
+        ]);
+    }).then(() => {
+        return Promise.resolve(true);
+    });
+}
+function compileSingleFile(chiml) {
     const targetDirPath = path_1.dirname(chiml);
     const targetFileName = path_1.basename(chiml);
     const jsFileName = targetFileName.replace(/^(.*)\.chiml/gmi, "$1.js");
     const jsFilePath = path_1.resolve(targetDirPath, jsFileName);
-    const nodeModuleDstPath = path_1.resolve(targetDirPath, "node_modules");
-    const nodeModuleSrcPath = path_1.resolve(rootDirPath, "node_modules");
-    const distDstPath = path_1.resolve(targetDirPath, "node_modules", "chiml", "dist");
-    const distSrcPath = path_1.resolve(rootDirPath, "dist");
-    const srcDstPath = path_1.resolve(targetDirPath, "node_modules", "chiml", "src");
-    const srcSrcPath = path_1.resolve(rootDirPath, "src");
-    const pkgDstPath = path_1.resolve(targetDirPath, "node_modules", "chiml", "package.json");
-    const pkgSrcPath = path_1.resolve(rootDirPath, "package.json");
     return fs_extra_1.readFile(chiml).then(() => {
         return getCompiledScript(chiml);
     }).then((compiledScript) => {
         return fs_extra_1.writeFile(jsFilePath, compiledScript);
     }).then(() => {
-        return fs_extra_1.copy(srcSrcPath, srcDstPath);
-    }).then(() => {
-        return Promise.all([
-            fs_extra_1.copy(distSrcPath, distDstPath),
-            fs_extra_1.copy(nodeModuleSrcPath, nodeModuleDstPath),
-            fs_extra_1.copy(pkgSrcPath, pkgDstPath),
-        ]);
-    }).then(() => {
         return Promise.resolve(jsFilePath);
     });
 }
-exports.compileChimlFile = compileChimlFile;
 //# sourceMappingURL=tools.js.map
