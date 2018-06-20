@@ -1,7 +1,7 @@
 {
   "name": "chiml",
-  "version": "0.0.0",
-  "description": "(Javascript + YAML + Magic) --> CHIML",
+  "version": "0.0.1",
+  "description": "(JavaScript + YAML + GoodIntention) --> CHIML",
   "main": "dist/index.js",
   "bin": {
     "chie": "dist/tools/chie.js",
@@ -30,7 +30,7 @@
     "collectCoverage": true
   },
   "keywords": [
-    "Orchestration"
+    "orchestration-language", "chimera-framework"
   ],
   "author": "goFrendi",
   "license": "ISC",
