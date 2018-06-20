@@ -1,6 +1,6 @@
 # CHIML
 
-CHIML stands for Chimera Markup Language, `(JavaScript + YAML + Magic) --> CHIML`. It is an orchestration language for Chimera-Framework. (__PS:__ This one is a complete rewrite).
+CHIML stands for Chimera Markup Language, `(JavaScript + YAML + GoodIntentions) --> CHIML`. It is an orchestration language for Chimera-Framework. (__PS:__ This one is a complete rewrite).
 
 CHIML allows you to call pre-existing programs and compose them like this one:
 
