@@ -5,7 +5,7 @@ CHIML stands for Chimera Markup Language, `(JavaScript + YAML + GoodIntentions) 
 CHIML allows you to call pre-existing programs and compose them like this one:
 
 ```yaml
-# fileName: myProgram.chiml
+# fileName: program.chiml
 ins: a, b
 out: e
 do:
@@ -22,7 +22,7 @@ do:
 You can execute any CHIML script by using `chie` command:
 
 ```bash
-> chie myProgram.chiml 10 6
+> chie program.chiml 10 6
 64
 ```
 
@@ -31,14 +31,14 @@ You can execute any CHIML script by using `chie` command:
 CHIML is also compilable into JavaScript by using `chic` command:
 
 ```bash
-> chic myProgram.chiml
+> chic program.chiml
 JavaScript file created:
-- /home/gofrendi/chiml/sample/myProgram.js
+- /home/gofrendi/chiml/sample/program.js
 
 > ls
-node_modules  myProgram.chiml  myProgram.js
+node_modules  program.chiml  program.js
 
-> node myProgram.js 10 8
+> node program.js 10 8
 36
 ```
 

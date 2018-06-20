@@ -1,2 +1,5 @@
-node_modules
-coverage
+/node_modules
+/coverage
+/testcase/compile/test.js
+/testcase/compile/node_modules
+*.class
