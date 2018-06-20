@@ -20,8 +20,9 @@ it("should yield error when run `sendNukeToKrypton` (assuming that command is no
         done();
     });
 });
+const rootDirPath = path_1.dirname(path_1.dirname(__dirname));
+const scriptPath = path_1.resolve(rootDirPath, "testcase", "cmd", "add.js");
 it("should able to run `node add.js` with input redirection", (done) => {
-    const scriptPath = (path_1.resolve(__dirname, "cmd.test.add.js"));
     cmd_1.cmd(`(echo "2" && echo "3") | node ${scriptPath}`).then((stdout) => {
         expect(stdout).toBe("5\n");
         done();
@@ -31,7 +32,6 @@ it("should able to run `node add.js` with input redirection", (done) => {
     });
 });
 it("should able to compose command `node add.js` and run it", (done) => {
-    const scriptPath = (path_1.resolve(__dirname, "cmd.test.add.js"));
     const command = `node ${scriptPath}`;
     const ins = [7, 4];
     const composedCommand = cmd_1.composeCommand(command, ins);

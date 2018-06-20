@@ -33,7 +33,8 @@ function createScriptAndHandler(config) {
     return Promise.resolve({ script, handler });
 }
 it("cmd handler works `(a, b) -> node add.js`", (done) => {
-    const testProgramPath = path_1.resolve(__dirname, "cmd.test.add.js");
+    const rootDirPath = path_1.dirname(path_1.dirname(__dirname));
+    const testProgramPath = path_1.resolve(rootDirPath, "testcase", "cmd", "add.js");
     const config = `(a, b) -> node ${testProgramPath}`;
     createScriptAndHandler(config).then(({ script, handler }) => {
         handler(4, 5).then((result) => {

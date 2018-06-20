@@ -17,7 +17,7 @@ do:
   - |(c, d) -> (x, y) => x * y -> e
 ```
 
-## Execution (chie)
+## Execution
 
 You can execute any CHIML script by using `chie` command:
 
@@ -26,7 +26,7 @@ You can execute any CHIML script by using `chie` command:
 64
 ```
 
-## Compilation (chic)
+## Compilation
 
 CHIML is also compilable into JavaScript by using `chic` command:
 
@@ -36,6 +36,12 @@ CHIML is also compilable into JavaScript by using `chic` command:
 myProgram.chiml    myProgram.js
 > node myProgram.js 10 8
 36
+```
+
+# Installation
+
+```
+node install --global chiml
 ```
 
 # Test

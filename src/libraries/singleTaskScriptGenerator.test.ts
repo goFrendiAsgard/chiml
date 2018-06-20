@@ -1,4 +1,4 @@
-import {resolve} from "path";
+import {dirname as pathDirName, resolve as pathResolve} from "path";
 import {runInNewContext} from "vm";
 import {SingleTask} from "../classes/SingleTask";
 import {ISingleTask} from "../interfaces/ISingleTask";
@@ -39,7 +39,8 @@ function createScriptAndHandler(config): Promise<any> {
 }
 
 it("cmd handler works `(a, b) -> node add.js`", (done) => {
-  const testProgramPath = resolve(__dirname, "cmd.test.add.js");
+  const rootDirPath = pathDirName(pathDirName(__dirname));
+  const testProgramPath = pathResolve(rootDirPath, "testcase", "cmd", "add.js");
   const config = `(a, b) -> node ${testProgramPath}`;
   createScriptAndHandler(config).then(({script, handler}) => {
     handler(4, 5).then((result) => {

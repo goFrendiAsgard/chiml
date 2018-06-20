@@ -37,9 +37,11 @@ it("able to parse string array", (done) => {
     done();
 });
 it("able to turn chiml file and chiml script into config", (done) => {
-    const p1 = stringUtil_1.chimlToConfig(path_1.resolve(__dirname, "stringUtil.test.sample.chiml"));
+    const rootDirPath = path_1.dirname(path_1.dirname(__dirname));
+    const testDirPath = path_1.resolve(rootDirPath, "testcase");
+    const p1 = stringUtil_1.chimlToConfig(path_1.resolve(testDirPath, "stringUtil", "sample.chiml"));
     const p2 = stringUtil_1.chimlToConfig(chimlSample1);
-    const p3 = stringUtil_1.chimlToConfig(path_1.resolve(__dirname, "testCompile/test.chiml"));
+    const p3 = stringUtil_1.chimlToConfig(path_1.resolve(testDirPath, "compile/test.chiml"));
     Promise.all([p1, p2, p3]).then(([result1, result2, result3]) => {
         expect(Object.keys(result1).length).toBe(3);
         expect(result1).toMatchObject(result2);

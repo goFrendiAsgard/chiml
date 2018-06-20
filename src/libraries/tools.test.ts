@@ -1,5 +1,5 @@
 import {remove as fsRemove} from "fs-extra";
-import {resolve as pathResolve} from "path";
+import {dirname as pathDirName, resolve as pathResolve} from "path";
 import {cmdComposedCommand} from "./cmd";
 import {compileChimlFile, execute, getCompiledScript} from "./tools";
 
@@ -43,7 +43,9 @@ it("yield error when translate incorrect chiml script", (done) => {
   });
 });
 
-const srcFilePath = pathResolve(__dirname, "testCompile/test.chiml");
+const rootDirPath = pathDirName(pathDirName(__dirname));
+const testDirPath = pathResolve(rootDirPath, "testcase", "compile");
+const srcFilePath = pathResolve(testDirPath, "test.chiml");
 
 it("ensure chiml file is executable", (done) => {
   execute(srcFilePath, 5, 4).then((result) => {
@@ -56,8 +58,8 @@ it("ensure chiml file is executable", (done) => {
 });
 
 it("compile testCompile/test.chiml", (done) => {
-  const compiledFilePath = pathResolve(__dirname, "testCompile/test.js");
-  const nodeModulePath = pathResolve(__dirname, "testCompile/node_modules");
+  const compiledFilePath = pathResolve(testDirPath, "test.js");
+  const nodeModulePath = pathResolve(testDirPath, "node_modules");
   compileChimlFile(srcFilePath).then(() => {
     return cmdComposedCommand(`node ${compiledFilePath}`, [10, 8]);
   }).then((result) => {

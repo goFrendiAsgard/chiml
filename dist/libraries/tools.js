@@ -40,16 +40,17 @@ function getCompiledScript(chiml) {
 }
 exports.getCompiledScript = getCompiledScript;
 function compileChimlFile(chiml) {
-    const chimlDirPath = path_1.dirname(chiml);
-    const chimlFileName = path_1.basename(chiml);
-    const jsFileName = chimlFileName.replace(/^(.*)\.chiml/gmi, "$1.js");
-    const jsFilePath = path_1.resolve(chimlDirPath, jsFileName);
-    const nodeModuleDstPath = path_1.resolve(path_1.dirname(chiml), "node_modules");
-    const nodeModuleSrcPath = path_1.resolve(path_1.dirname(path_1.dirname(__dirname)), "node_modules");
-    const distDstPath = path_1.resolve(path_1.dirname(chiml), "node_modules", "chiml", "dist");
-    const distSrcPath = path_1.resolve(path_1.dirname(path_1.dirname(__dirname)), "dist");
-    const pkgDstPath = path_1.resolve(path_1.dirname(chiml), "node_modules", "chiml", "package.json");
-    const pkgSrcPath = path_1.resolve(path_1.dirname(path_1.dirname(__dirname)), "package.json");
+    const rootDirPath = path_1.dirname(path_1.dirname(__dirname));
+    const targetDirPath = path_1.dirname(chiml);
+    const targetFileName = path_1.basename(chiml);
+    const jsFileName = targetFileName.replace(/^(.*)\.chiml/gmi, "$1.js");
+    const jsFilePath = path_1.resolve(targetDirPath, jsFileName);
+    const nodeModuleDstPath = path_1.resolve(targetDirPath, "node_modules");
+    const nodeModuleSrcPath = path_1.resolve(rootDirPath, "node_modules");
+    const distDstPath = path_1.resolve(targetDirPath, "node_modules", "chiml", "dist");
+    const distSrcPath = path_1.resolve(rootDirPath, "dist");
+    const pkgDstPath = path_1.resolve(targetDirPath, "node_modules", "chiml", "package.json");
+    const pkgSrcPath = path_1.resolve(rootDirPath, "package.json");
     return fs_extra_1.readFile(chiml).then(() => {
         return getCompiledScript(chiml);
     }).then((compiledScript) => {

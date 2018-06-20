@@ -1,4 +1,4 @@
-import {resolve} from "path";
+import {dirname as pathDirName, resolve as pathResolve} from "path";
 import {cmd, cmdComposedCommand, composeCommand} from "./cmd";
 
 it("should able to run `node -e \"console.log('hello');\"`", (done) => {
@@ -21,8 +21,10 @@ it("should yield error when run `sendNukeToKrypton` (assuming that command is no
   });
 });
 
+const rootDirPath = pathDirName(pathDirName(__dirname));
+const scriptPath = pathResolve(rootDirPath, "testcase", "cmd", "add.js");
+
 it("should able to run `node add.js` with input redirection", (done) => {
-  const scriptPath = (resolve(__dirname, "cmd.test.add.js"));
   cmd(`(echo "2" && echo "3") | node ${scriptPath}`).then((stdout) => {
     expect(stdout).toBe("5\n");
     done();
@@ -33,7 +35,6 @@ it("should able to run `node add.js` with input redirection", (done) => {
 });
 
 it("should able to compose command `node add.js` and run it", (done) => {
-  const scriptPath = (resolve(__dirname, "cmd.test.add.js"));
   const command = `node ${scriptPath}`;
   const ins = [7, 4];
   const composedCommand = composeCommand(command, ins);

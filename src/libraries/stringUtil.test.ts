@@ -1,4 +1,4 @@
-import {resolve as pathResolve} from "path";
+import {dirname as pathDirName, resolve as pathResolve} from "path";
 import {chimlToConfig,
   chimlToYaml,
   doubleQuote,
@@ -47,9 +47,11 @@ it("able to parse string array", (done) => {
 });
 
 it("able to turn chiml file and chiml script into config", (done) => {
-  const p1 = chimlToConfig(pathResolve(__dirname, "stringUtil.test.sample.chiml"));
+  const rootDirPath = pathDirName(pathDirName(__dirname));
+  const testDirPath = pathResolve(rootDirPath, "testcase");
+  const p1 = chimlToConfig(pathResolve(testDirPath, "stringUtil", "sample.chiml"));
   const p2 = chimlToConfig(chimlSample1);
-  const p3 = chimlToConfig(pathResolve(__dirname, "testCompile/test.chiml"));
+  const p3 = chimlToConfig(pathResolve(testDirPath, "compile/test.chiml"));
   Promise.all([p1, p2, p3]).then(([result1, result2, result3]) => {
     expect(Object.keys(result1).length).toBe(3);
     expect(result1).toMatchObject(result2);
