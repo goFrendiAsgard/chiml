@@ -76,7 +76,7 @@ it("compile test.chiml", (done) => {
     expect(error).toBeUndefined();
     done();
   });
-}, 10000);
+}, 20000);
 
 it("not compile test.js", (done) => {
   compile(["whatever.js"]).then((result) => {
@@ -87,7 +87,7 @@ it("not compile test.js", (done) => {
     expect(error.message).toBe("whatever.js should has chiml extension");
     done();
   });
-}, 10000);
+}, 20000);
 
 it("read file recursively", (done) => {
   getFiles(pathResolve(rootDirPath, "testcase")).then((result) => {
@@ -99,4 +99,14 @@ it("read file recursively", (done) => {
     expect(error).toBeUndefined();
     done();
   });
-}, 10000);
+}, 20000);
+
+it("throws error when read file recursively from nonexistent directory", (done) => {
+  getFiles("/dev/null/oraono").then((result) => {
+    expect(result).toBeUndefined();
+    done();
+  }).catch((error) => {
+    expect(error).toBeDefined();
+    done();
+  });
+}, 20000);

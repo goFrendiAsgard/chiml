@@ -21,9 +21,10 @@ it("should yield error when run `sendNukeToKrypton` (assuming that command is no
     });
 });
 const rootDirPath = path_1.dirname(path_1.dirname(__dirname));
-const scriptPath = path_1.resolve(rootDirPath, "testcase", "cmd", "add.js");
+const testPath = path_1.resolve(rootDirPath, "testcase", "cmd");
+const addJsPath = path_1.resolve(testPath, "add.js");
 it("should able to run `node add.js` with input redirection", (done) => {
-    cmd_1.cmd(`(echo "2" && echo "3") | node ${scriptPath}`).then((stdout) => {
+    cmd_1.cmd(`(echo "2" && echo "3") | node ${addJsPath}`).then((stdout) => {
         expect(stdout).toBe("5\n");
         done();
     }).catch((error) => {
@@ -32,7 +33,7 @@ it("should able to run `node add.js` with input redirection", (done) => {
     });
 });
 it("should able to compose command `node add.js` and run it", (done) => {
-    const command = `node ${scriptPath}`;
+    const command = `node ${addJsPath}`;
     const ins = [7, 4];
     const composedCommand = cmd_1.composeCommand(command, ins);
     expect(composedCommand).toBe(`(echo "7" && echo "4") | ${command} "7" "4"`);
@@ -66,6 +67,32 @@ it("should able to compose command `echo abc` and run it", (done) => {
         expect(stdout).toBe("abc");
         done();
     }).catch((error) => {
+        expect(error).toBeNull();
+        done(error);
+    });
+});
+it("should able to run composed command `chie uncompiled.chiml`", (done) => {
+    const chimlPath = path_1.resolve(testPath, "uncompiled.chiml");
+    const command = `chie ${chimlPath}`;
+    const ins = ["hello"];
+    cmd_1.cmdComposedCommand(command, ins).then((stdout) => {
+        expect(stdout).toBe("uncompiled hello");
+        done();
+    }).catch((error) => {
+        console.error(error);
+        expect(error).toBeNull();
+        done(error);
+    });
+});
+it("should able to run composed command `chie compiled.chiml`", (done) => {
+    const chimlPath = path_1.resolve(testPath, "compiled.chiml");
+    const command = `chie ${chimlPath}`;
+    const ins = ["hello"];
+    cmd_1.cmdComposedCommand(command, ins, {}, true).then((stdout) => {
+        expect(stdout).toBe("compiled hello");
+        done();
+    }).catch((error) => {
+        console.error(error);
         expect(error).toBeNull();
         done(error);
     });

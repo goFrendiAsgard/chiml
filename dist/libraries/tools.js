@@ -17,6 +17,7 @@ const rootDirPath = path_1.dirname(path_1.dirname(__dirname));
 const distPath = path_1.resolve(rootDirPath, "dist");
 const srcPath = path_1.resolve(rootDirPath, "src");
 const packageJsonPath = path_1.resolve(rootDirPath, "package.json");
+const nodeModulePath = path_1.resolve(rootDirPath, "node_modules");
 function execute(...args) {
     const chiml = args[0];
     const ins = stringUtil_1.parseStringArray(args.slice(1));
@@ -83,15 +84,17 @@ function getFiles(dir) {
 }
 exports.getFiles = getFiles;
 function createSingleNodeModule(targetDirPath) {
-    const nodeModuleDstPath = path_1.resolve(targetDirPath, "node_modules");
-    const nodeModuleSrcPath = path_1.resolve(rootDirPath, "node_modules");
+    const newNodeModulePath = path_1.resolve(targetDirPath, "node_modules");
     const newDistPath = path_1.resolve(targetDirPath, "node_modules", "chiml", "dist");
     const newSrcPath = path_1.resolve(targetDirPath, "node_modules", "chiml", "src");
     const newPackageJsonPath = path_1.resolve(targetDirPath, "node_modules", "chiml", "package.json");
+    if (newNodeModulePath === nodeModulePath) {
+        return Promise.resolve(false);
+    }
     return fs_extra_1.copy(srcPath, newSrcPath).then(() => {
         return Promise.all([
             fs_extra_1.copy(distPath, newDistPath),
-            fs_extra_1.copy(nodeModuleSrcPath, nodeModuleDstPath),
+            fs_extra_1.copy(nodeModulePath, newNodeModulePath),
             fs_extra_1.copy(packageJsonPath, newPackageJsonPath),
         ]);
     }).then(() => {

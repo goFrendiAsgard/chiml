@@ -8,6 +8,7 @@ const rootDirPath = pathDirName(pathDirName(__dirname));
 const distPath = pathResolve(rootDirPath, "dist");
 const srcPath = pathResolve(rootDirPath, "src");
 const packageJsonPath = pathResolve(rootDirPath, "package.json");
+const nodeModulePath = pathResolve(rootDirPath, "node_modules");
 
 export function execute(...args: any[]): Promise<any> {
   const chiml = args[0];
@@ -72,15 +73,17 @@ export async function getFiles(dir): Promise<any> {
 }
 
 function createSingleNodeModule(targetDirPath): Promise<any> {
-  const nodeModuleDstPath = pathResolve(targetDirPath, "node_modules");
-  const nodeModuleSrcPath = pathResolve(rootDirPath, "node_modules");
+  const newNodeModulePath = pathResolve(targetDirPath, "node_modules");
   const newDistPath = pathResolve(targetDirPath, "node_modules", "chiml", "dist");
   const newSrcPath = pathResolve(targetDirPath, "node_modules", "chiml", "src");
   const newPackageJsonPath = pathResolve(targetDirPath, "node_modules", "chiml", "package.json");
+  if (newNodeModulePath === nodeModulePath) {
+    return Promise.resolve(false);
+  }
   return fsCopy(srcPath, newSrcPath).then(() => {
     return Promise.all([
       fsCopy(distPath, newDistPath),
-      fsCopy(nodeModuleSrcPath, nodeModuleDstPath),
+      fsCopy(nodeModulePath, newNodeModulePath),
       fsCopy(packageJsonPath, newPackageJsonPath),
     ]);
   }).then(() => {

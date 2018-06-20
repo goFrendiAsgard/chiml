@@ -1,22 +1,21 @@
 import {exec} from "child_process";
-import {doubleQuote} from "./stringUtil";
+import {doubleQuote, smartSplit} from "./stringUtil";
 
 export function cmd(command: string, options?: {[key: string]: any}): Promise<string> {
   return new Promise((resolve, reject) => {
     const subProcess = exec(command, options, (error, stdout, stderr) => {
       if (error) {
-        reject(error);
-      } else {
-        resolve(stdout);
+        return reject(error);
       }
+      return resolve(stdout);
     });
 
     subProcess.stdout.on("data", (chunk) => {
-      process.stderr.write(chunk);
+      process.stderr.write("\x1b[33m" + String(chunk) + "\x1b[0m");
     });
 
     subProcess.stderr.on("data", (chunk) => {
-      process.stderr.write(chunk);
+      process.stderr.write("\x1b[31m" + String(chunk) + "\x1b[0m");
     });
 
     function stdinListener(chunk) {
@@ -25,8 +24,8 @@ export function cmd(command: string, options?: {[key: string]: any}): Promise<st
 
     process.stdin.on("data", stdinListener);
     subProcess.stdin.on("end", () => {
-      process.stdin.end();
       process.stdin.removeListener("data", stdinListener);
+      process.stdin.end();
     });
 
   });
@@ -42,8 +41,29 @@ export function composeCommand(command: string, ins: any[] = []): string {
   return composedCommand;
 }
 
-export function cmdComposedCommand(command: string, ins: any[] = [], options?: {[key: string]: any}): Promise<any> {
-  return cmd(composeCommand(command, ins), options).then((result) => {
+function runCompiledChiml(scriptPath, ins: any[]): Promise<any> {
+  try {
+    const mainFunction = require(scriptPath);
+    return mainFunction(...ins);
+  } catch (error) {
+    return Promise.reject(error);
+  }
+}
+
+export function cmdComposedCommand(command: string, ins: any[] = [], opts?: {[key: string]: any},
+                                   isCompiled: boolean = false): Promise<any> {
+  if (isCompiled) {
+    const commandParts = smartSplit(command, " ").filter((part) => part !== "");
+    if (commandParts.length > 1 && commandParts[0] === "chie") {
+      const chimlPath = commandParts[1];
+      const scriptPath = chimlPath.replace(/^(.*)\.chiml/gmi, "$1.js");
+      if (chimlPath !== scriptPath) {
+        const inputs = commandParts.slice(2).concat(ins);
+        return runCompiledChiml(scriptPath, inputs);
+      }
+    }
+  }
+  return cmd(composeCommand(command, ins), opts).then((result) => {
     return new Promise((resolve, reject) => {
       try {
         resolve(JSON.parse(result.trim()));

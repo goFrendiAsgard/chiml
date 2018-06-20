@@ -45,10 +45,11 @@ function wrapJsPromise(task, spaceCount) {
 }
 function wrapCmd(task, spaceCount) {
     const ins = task.ins.join(", ");
+    const command = task.command.replace(/\"/g, '\\"');
     const template = "const __promise<%- task.id %> = " +
-        '__cmd("<%- task.command %>", [<%- ins %>])' +
+        '__cmd("<%- command %>", [<%- ins %>])' +
         ".then((__result) => {<%- task.out %> = __result;});";
-    return renderTemplate(template, { task, ins }, spaceCount);
+    return renderTemplate(template, { command, task, ins }, spaceCount);
 }
 function createSubHandlerDeclaration(task, spaceCount) {
     return task.commandList.map((subTask) => createHandlerScript(subTask, spaceCount)).join("\n");

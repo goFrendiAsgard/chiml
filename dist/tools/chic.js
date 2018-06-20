@@ -15,19 +15,5 @@ if (require.main === module) {
     }).catch((error) => {
         console.error(error);
     });
-    /*
-    if (args.length < 1) {
-      console.error("Expect single parameter: `chiml file`");
-    } else {
-      compile(args).then((jsFilePaths) => {
-        const createdFileList = jsFilePaths.map((filePath) => {
-          return "- " + filePath;
-        }).join("\n");
-        console.log(`JavaScript file created:\n${createdFileList}`);
-      }).catch((error) => {
-        console.error(error);
-      });
-    }
-     */
 }
 //# sourceMappingURL=chic.js.map

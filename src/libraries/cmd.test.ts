@@ -22,10 +22,11 @@ it("should yield error when run `sendNukeToKrypton` (assuming that command is no
 });
 
 const rootDirPath = pathDirName(pathDirName(__dirname));
-const scriptPath = pathResolve(rootDirPath, "testcase", "cmd", "add.js");
+const testPath = pathResolve(rootDirPath, "testcase", "cmd");
+const addJsPath = pathResolve(testPath, "add.js");
 
 it("should able to run `node add.js` with input redirection", (done) => {
-  cmd(`(echo "2" && echo "3") | node ${scriptPath}`).then((stdout) => {
+  cmd(`(echo "2" && echo "3") | node ${addJsPath}`).then((stdout) => {
     expect(stdout).toBe("5\n");
     done();
   }).catch((error) => {
@@ -35,7 +36,7 @@ it("should able to run `node add.js` with input redirection", (done) => {
 });
 
 it("should able to compose command `node add.js` and run it", (done) => {
-  const command = `node ${scriptPath}`;
+  const command = `node ${addJsPath}`;
   const ins = [7, 4];
   const composedCommand = composeCommand(command, ins);
   expect(composedCommand).toBe(`(echo "7" && echo "4") | ${command} "7" "4"`);
@@ -71,6 +72,34 @@ it("should able to compose command `echo abc` and run it", (done) => {
     expect(stdout).toBe("abc");
     done();
   }).catch((error) => {
+    expect(error).toBeNull();
+    done(error);
+  });
+});
+
+it("should able to run composed command `chie uncompiled.chiml`", (done) => {
+  const chimlPath = pathResolve(testPath, "uncompiled.chiml");
+  const command = `chie ${chimlPath}`;
+  const ins = ["hello"];
+  cmdComposedCommand(command, ins).then((stdout) => {
+    expect(stdout).toBe("uncompiled hello");
+    done();
+  }).catch((error) => {
+    console.error(error);
+    expect(error).toBeNull();
+    done(error);
+  });
+});
+
+it("should able to run composed command `chie compiled.chiml`", (done) => {
+  const chimlPath = pathResolve(testPath, "compiled.chiml");
+  const command = `chie ${chimlPath}`;
+  const ins = ["hello"];
+  cmdComposedCommand(command, ins, {}, true).then((stdout) => {
+    expect(stdout).toBe("compiled hello");
+    done();
+  }).catch((error) => {
+    console.error(error);
     expect(error).toBeNull();
     done(error);
   });
