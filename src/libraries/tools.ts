@@ -48,6 +48,8 @@ export function compileChimlFile(chiml: any): Promise<any> {
   const nodeModuleSrcPath = pathResolve(rootDirPath, "node_modules");
   const distDstPath = pathResolve(targetDirPath, "node_modules", "chiml", "dist");
   const distSrcPath = pathResolve(rootDirPath, "dist");
+  const srcDstPath = pathResolve(targetDirPath, "node_modules", "chiml", "src");
+  const srcSrcPath = pathResolve(rootDirPath, "src");
   const pkgDstPath = pathResolve(targetDirPath, "node_modules", "chiml", "package.json");
   const pkgSrcPath = pathResolve(rootDirPath, "package.json");
   return readFile(chiml).then(() => {
@@ -55,9 +57,10 @@ export function compileChimlFile(chiml: any): Promise<any> {
   }).then((compiledScript) => {
     return writeFile(jsFilePath, compiledScript);
   }).then(() => {
-    return fsCopy(distSrcPath, distDstPath);
+    return fsCopy(srcSrcPath, srcDstPath);
   }).then(() => {
     return Promise.all([
+      fsCopy(distSrcPath, distDstPath),
       fsCopy(nodeModuleSrcPath, nodeModuleDstPath),
       fsCopy(pkgSrcPath, pkgDstPath),
     ]);

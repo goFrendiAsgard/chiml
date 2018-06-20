@@ -49,6 +49,8 @@ function compileChimlFile(chiml) {
     const nodeModuleSrcPath = path_1.resolve(rootDirPath, "node_modules");
     const distDstPath = path_1.resolve(targetDirPath, "node_modules", "chiml", "dist");
     const distSrcPath = path_1.resolve(rootDirPath, "dist");
+    const srcDstPath = path_1.resolve(targetDirPath, "node_modules", "chiml", "src");
+    const srcSrcPath = path_1.resolve(rootDirPath, "src");
     const pkgDstPath = path_1.resolve(targetDirPath, "node_modules", "chiml", "package.json");
     const pkgSrcPath = path_1.resolve(rootDirPath, "package.json");
     return fs_extra_1.readFile(chiml).then(() => {
@@ -56,9 +58,10 @@ function compileChimlFile(chiml) {
     }).then((compiledScript) => {
         return fs_extra_1.writeFile(jsFilePath, compiledScript);
     }).then(() => {
-        return fs_extra_1.copy(distSrcPath, distDstPath);
+        return fs_extra_1.copy(srcSrcPath, srcDstPath);
     }).then(() => {
         return Promise.all([
+            fs_extra_1.copy(distSrcPath, distDstPath),
             fs_extra_1.copy(nodeModuleSrcPath, nodeModuleDstPath),
             fs_extra_1.copy(pkgSrcPath, pkgDstPath),
         ]);
