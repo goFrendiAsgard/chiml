@@ -1,4 +1,4 @@
-import {copy as fsCopy, readFile, writeFile} from "fs-extra";
+import {copy as fsCopy, readdir as readDir, readFile, stat as fsStat, writeFile} from "fs-extra";
 import {basename as pathBaseName, dirname as pathDirName, resolve as pathResolve} from "path";
 import {SingleTask} from "../classes/SingleTask";
 import {tsToJs} from "./scriptTransform";
@@ -58,6 +58,19 @@ export function compile(chimlFiles: string[]): Promise<any> {
   });
 }
 
+export async function getFiles(dir): Promise<any> {
+  try {
+    const subdirs = await readDir(dir);
+    const files = await Promise.all(subdirs.map(async (subdir) => {
+      const res = pathResolve(dir, subdir);
+      return (await fsStat(res)).isDirectory() ? getFiles(res) : res;
+    }));
+    return files.reduce((a, f) => a.concat(f), []);
+  } catch (error) {
+    return error;
+  }
+}
+
 function createSingleNodeModule(targetDirPath): Promise<any> {
   const nodeModuleDstPath = pathResolve(targetDirPath, "node_modules");
   const nodeModuleSrcPath = pathResolve(rootDirPath, "node_modules");
@@ -80,6 +93,9 @@ function compileSingleFile(chiml: string): Promise<any> {
   const targetFileName = pathBaseName(chiml);
   const jsFileName = targetFileName.replace(/^(.*)\.chiml/gmi, "$1.js");
   const jsFilePath = pathResolve(targetDirPath, jsFileName);
+  if (jsFileName === chiml) {
+    return Promise.reject(new Error(`${chiml} should has chiml extension`));
+  }
   return readFile(chiml).then(() => {
     return getCompiledScript(chiml);
   }).then((compiledScript) => {

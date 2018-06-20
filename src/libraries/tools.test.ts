@@ -1,7 +1,7 @@
 import {remove as fsRemove} from "fs-extra";
 import {dirname as pathDirName, resolve as pathResolve} from "path";
 import {cmdComposedCommand} from "./cmd";
-import {compile, execute, getCompiledScript} from "./tools";
+import {compile, execute, getCompiledScript, getFiles} from "./tools";
 
 it("run correct chiml script", (done) => {
   execute("(a, b) -> (x, y) => x + y", 4, 5).then((result) => {
@@ -57,7 +57,7 @@ it("ensure chiml file is executable", (done) => {
   });
 });
 
-it("compile testCompile/test.chiml", (done) => {
+it("compile test.chiml", (done) => {
   const compiledFilePath = pathResolve(testDirPath, "test.js");
   const nodeModulePath = pathResolve(testDirPath, "node_modules");
   compile([srcFilePath]).then(() => {
@@ -73,6 +73,29 @@ it("compile testCompile/test.chiml", (done) => {
     done();
   }).catch((error) => {
     console.error(error);
+    expect(error).toBeUndefined();
+    done();
+  });
+}, 10000);
+
+it("not compile test.js", (done) => {
+  compile(["whatever.js"]).then((result) => {
+    expect(result).toBeUndefined();
+    done();
+  }).catch((error) => {
+    expect(error).toBeDefined();
+    expect(error.message).toBe("whatever.js should has chiml extension");
+    done();
+  });
+}, 10000);
+
+it("read file recursively", (done) => {
+  getFiles(pathResolve(rootDirPath, "testcase")).then((result) => {
+    expect(result).toContain(pathResolve(rootDirPath, "testcase", "cmd", "add.js"));
+    expect(result).toContain(pathResolve(rootDirPath, "testcase", "compile", "test.chiml"));
+    expect(result).toContain(pathResolve(rootDirPath, "testcase", "stringUtil", "sample.chiml"));
+    done();
+  }).catch((error) => {
     expect(error).toBeUndefined();
     done();
   });

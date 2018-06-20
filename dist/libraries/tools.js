@@ -1,4 +1,12 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const fs_extra_1 = require("fs-extra");
 const path_1 = require("path");
@@ -58,6 +66,22 @@ function compile(chimlFiles) {
     });
 }
 exports.compile = compile;
+function getFiles(dir) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            const subdirs = yield fs_extra_1.readdir(dir);
+            const files = yield Promise.all(subdirs.map((subdir) => __awaiter(this, void 0, void 0, function* () {
+                const res = path_1.resolve(dir, subdir);
+                return (yield fs_extra_1.stat(res)).isDirectory() ? getFiles(res) : res;
+            })));
+            return files.reduce((a, f) => a.concat(f), []);
+        }
+        catch (error) {
+            return error;
+        }
+    });
+}
+exports.getFiles = getFiles;
 function createSingleNodeModule(targetDirPath) {
     const nodeModuleDstPath = path_1.resolve(targetDirPath, "node_modules");
     const nodeModuleSrcPath = path_1.resolve(rootDirPath, "node_modules");
@@ -79,6 +103,9 @@ function compileSingleFile(chiml) {
     const targetFileName = path_1.basename(chiml);
     const jsFileName = targetFileName.replace(/^(.*)\.chiml/gmi, "$1.js");
     const jsFilePath = path_1.resolve(targetDirPath, jsFileName);
+    if (jsFileName === chiml) {
+        return Promise.reject(new Error(`${chiml} should has chiml extension`));
+    }
     return fs_extra_1.readFile(chiml).then(() => {
         return getCompiledScript(chiml);
     }).then((compiledScript) => {

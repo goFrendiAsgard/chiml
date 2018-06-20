@@ -52,7 +52,7 @@ it("ensure chiml file is executable", (done) => {
         done();
     });
 });
-it("compile testCompile/test.chiml", (done) => {
+it("compile test.chiml", (done) => {
     const compiledFilePath = path_1.resolve(testDirPath, "test.js");
     const nodeModulePath = path_1.resolve(testDirPath, "node_modules");
     tools_1.compile([srcFilePath]).then(() => {
@@ -68,6 +68,27 @@ it("compile testCompile/test.chiml", (done) => {
         done();
     }).catch((error) => {
         console.error(error);
+        expect(error).toBeUndefined();
+        done();
+    });
+}, 10000);
+it("not compile test.js", (done) => {
+    tools_1.compile(["whatever.js"]).then((result) => {
+        expect(result).toBeUndefined();
+        done();
+    }).catch((error) => {
+        expect(error).toBeDefined();
+        expect(error.message).toBe("whatever.js should has chiml extension");
+        done();
+    });
+}, 10000);
+it("read file recursively", (done) => {
+    tools_1.getFiles(path_1.resolve(rootDirPath, "testcase")).then((result) => {
+        expect(result).toContain(path_1.resolve(rootDirPath, "testcase", "cmd", "add.js"));
+        expect(result).toContain(path_1.resolve(rootDirPath, "testcase", "compile", "test.chiml"));
+        expect(result).toContain(path_1.resolve(rootDirPath, "testcase", "stringUtil", "sample.chiml"));
+        done();
+    }).catch((error) => {
         expect(error).toBeUndefined();
         done();
     });
