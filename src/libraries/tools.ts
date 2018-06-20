@@ -41,19 +41,26 @@ export function getCompiledScript(chiml: any): Promise<string> {
 export function compileChimlFile(chiml: any): Promise<any> {
   const chimlDirPath = pathDirName(chiml);
   const chimlFileName = pathBaseName(chiml);
-  const jsFileName = chimlFileName.replace(".chiml", ".js");
+  const jsFileName = chimlFileName.replace(/^(.*)\.chiml/gmi, "$1.js");
   const jsFilePath = pathResolve(chimlDirPath, jsFileName);
   const nodeModuleDstPath = pathResolve(pathDirName(chiml), "node_modules");
   const nodeModuleSrcPath = pathResolve(pathDirName(pathDirName(__dirname)), "node_modules");
   const distDstPath = pathResolve(pathDirName(chiml), "node_modules", "chiml", "dist");
   const distSrcPath = pathResolve(pathDirName(pathDirName(__dirname)), "dist");
+  const pkgDstPath = pathResolve(pathDirName(chiml), "node_modules", "chiml", "package.json");
+  const pkgSrcPath = pathResolve(pathDirName(pathDirName(__dirname)), "package.json");
   return readFile(chiml).then(() => {
     return getCompiledScript(chiml);
   }).then((compiledScript) => {
     return writeFile(jsFilePath, compiledScript);
   }).then(() => {
-    return fsCopy(nodeModuleSrcPath, nodeModuleDstPath);
-  }).then(() => {
     return fsCopy(distSrcPath, distDstPath);
+  }).then(() => {
+    return Promise.all([
+      fsCopy(nodeModuleSrcPath, nodeModuleDstPath),
+      fsCopy(pkgSrcPath, pkgDstPath),
+    ]);
+  }).then(() => {
+    return Promise.resolve(jsFilePath);
   });
 }

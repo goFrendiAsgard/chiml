@@ -4,7 +4,7 @@ import {execute} from "../libraries/tools";
 if (require.main === module) {
   const args = process.argv.slice(2);
   if (args.length < 1) {
-    console.error("Expected chiml script/file as parameter");
+    console.error("Expect more than one parameter(s): `chiml script/file` and `inputs`");
   } else {
     execute(...args).then((result) => {
       console.log(result);

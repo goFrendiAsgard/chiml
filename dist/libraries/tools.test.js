@@ -45,7 +45,7 @@ it("ensure chiml file is executable", (done) => {
     tools_1.execute(srcFilePath, 5, 4).then((result) => {
         expect(result).toBe(9);
         done();
-    }).catch((error) => {
+    }).then(done).catch((error) => {
         expect(error).toBeNull();
         done();
     });
@@ -57,10 +57,14 @@ it("compile testCompile/test.chiml", (done) => {
         return cmd_1.cmdComposedCommand(`node ${compiledFilePath}`, [10, 8]);
     }).then((result) => {
         expect(result).toBe(36);
-        return fs_extra_1.remove(compiledFilePath);
     }).then(() => {
-        return fs_extra_1.remove(nodeModulePath);
-    }).then(done).catch((error) => {
+        return Promise.all([
+            fs_extra_1.remove(nodeModulePath),
+            fs_extra_1.remove(compiledFilePath),
+        ]);
+    }).then(() => {
+        done();
+    }).catch((error) => {
         console.error(error);
         expect(error).toBeUndefined();
         done();
