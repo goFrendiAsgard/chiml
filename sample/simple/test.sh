@@ -22,6 +22,6 @@ echo "Testing program.js (should yield '36')"
 time chie program.chiml 10 8
 echo ""
 
-rm -R node_modules program.js && rm lib/Minus.class
+rm -R node_modules program.js
 
 echo "All test Done"

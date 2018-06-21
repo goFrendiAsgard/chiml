@@ -36,6 +36,7 @@ function getCompiledScript(chiml) {
             const mainScript = task.getScript();
             const script = [
                 'import {__cmd, __parseIns} from "chiml/dist/libraries/utilities.js";',
+                "const __isCompiled = true;",
                 mainScript,
                 "module.exports = __main_0;",
                 "if (require.main === module) {",
@@ -53,9 +54,10 @@ function getCompiledScript(chiml) {
 }
 exports.getCompiledScript = getCompiledScript;
 function compile(chimlFiles) {
+    chimlFiles = chimlFiles.filter((fileName) => fileName.match(/^(.*)\.chiml/gmi));
     let jsFilePathList = [];
     const parentDirs = chimlFiles.map((filePath) => path_1.dirname(filePath));
-    const uniqueParentDirs = [...new Set(parentDirs)];
+    const uniqueParentDirs = [...new Set(parentDirs)].filter((dirPath) => dirPath !== rootDirPath);
     const compilator = chimlFiles.map((chiml) => compileSingleFile(chiml));
     const nodeModuleCreator = uniqueParentDirs.map((dirPath) => createSingleNodeModule(dirPath));
     return Promise.all(compilator).then((result) => {
@@ -88,15 +90,13 @@ function createSingleNodeModule(targetDirPath) {
     const newDistPath = path_1.resolve(targetDirPath, "node_modules", "chiml", "dist");
     const newSrcPath = path_1.resolve(targetDirPath, "node_modules", "chiml", "src");
     const newPackageJsonPath = path_1.resolve(targetDirPath, "node_modules", "chiml", "package.json");
-    if (newNodeModulePath === nodeModulePath) {
-        return Promise.resolve(false);
-    }
-    return fs_extra_1.copy(srcPath, newSrcPath).then(() => {
-        return Promise.all([
-            fs_extra_1.copy(distPath, newDistPath),
-            fs_extra_1.copy(nodeModulePath, newNodeModulePath),
-            fs_extra_1.copy(packageJsonPath, newPackageJsonPath),
-        ]);
+    const options = { dereference: true };
+    return fs_extra_1.copy(nodeModulePath, newNodeModulePath, options).then(() => {
+        return fs_extra_1.copy(distPath, newDistPath, options);
+    }).then(() => {
+        return fs_extra_1.copy(srcPath, newSrcPath, options);
+    }).then(() => {
+        return fs_extra_1.copy(packageJsonPath, newPackageJsonPath, options);
     }).then(() => {
         return Promise.resolve(true);
     });
@@ -106,9 +106,6 @@ function compileSingleFile(chiml) {
     const targetFileName = path_1.basename(chiml);
     const jsFileName = targetFileName.replace(/^(.*)\.chiml/gmi, "$1.js");
     const jsFilePath = path_1.resolve(targetDirPath, jsFileName);
-    if (jsFileName === chiml) {
-        return Promise.reject(new Error(`${chiml} should has chiml extension`));
-    }
     return fs_extra_1.readFile(chiml).then(() => {
         return getCompiledScript(chiml);
     }).then((compiledScript) => {

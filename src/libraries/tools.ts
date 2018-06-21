@@ -28,6 +28,7 @@ export function getCompiledScript(chiml: any): Promise<string> {
       const mainScript = task.getScript();
       const script = [
         'import {__cmd, __parseIns} from "chiml/dist/libraries/utilities.js";',
+        "const __isCompiled = true;",
         mainScript,
         "module.exports = __main_0;",
         "if (require.main === module) {",
@@ -45,9 +46,10 @@ export function getCompiledScript(chiml: any): Promise<string> {
 }
 
 export function compile(chimlFiles: string[]): Promise<any> {
+  chimlFiles = chimlFiles.filter((fileName) => fileName.match(/^(.*)\.chiml/gmi));
   let jsFilePathList = [];
   const parentDirs = chimlFiles.map((filePath) => pathDirName(filePath));
-  const uniqueParentDirs = [...new Set(parentDirs)];
+  const uniqueParentDirs = [...new Set(parentDirs)].filter((dirPath) => dirPath !== rootDirPath);
   const compilator = chimlFiles.map((chiml) => compileSingleFile(chiml));
   const nodeModuleCreator = uniqueParentDirs.map((dirPath) => createSingleNodeModule(dirPath));
   return Promise.all(compilator).then((result) => {
@@ -77,15 +79,13 @@ function createSingleNodeModule(targetDirPath): Promise<any> {
   const newDistPath = pathResolve(targetDirPath, "node_modules", "chiml", "dist");
   const newSrcPath = pathResolve(targetDirPath, "node_modules", "chiml", "src");
   const newPackageJsonPath = pathResolve(targetDirPath, "node_modules", "chiml", "package.json");
-  if (newNodeModulePath === nodeModulePath) {
-    return Promise.resolve(false);
-  }
-  return fsCopy(srcPath, newSrcPath).then(() => {
-    return Promise.all([
-      fsCopy(distPath, newDistPath),
-      fsCopy(nodeModulePath, newNodeModulePath),
-      fsCopy(packageJsonPath, newPackageJsonPath),
-    ]);
+  const options = {dereference: true};
+  return fsCopy(nodeModulePath, newNodeModulePath, options).then(() => {
+    return fsCopy(distPath, newDistPath, options);
+  }).then(() => {
+    return fsCopy(srcPath, newSrcPath, options);
+  }).then(() => {
+    return fsCopy(packageJsonPath, newPackageJsonPath, options);
   }).then(() => {
     return Promise.resolve(true);
   });
@@ -96,9 +96,6 @@ function compileSingleFile(chiml: string): Promise<any> {
   const targetFileName = pathBaseName(chiml);
   const jsFileName = targetFileName.replace(/^(.*)\.chiml/gmi, "$1.js");
   const jsFilePath = pathResolve(targetDirPath, jsFileName);
-  if (jsFileName === chiml) {
-    return Promise.reject(new Error(`${chiml} should has chiml extension`));
-  }
   return readFile(chiml).then(() => {
     return getCompiledScript(chiml);
   }).then((compiledScript) => {
