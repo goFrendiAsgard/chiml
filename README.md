@@ -51,5 +51,6 @@ libs  node_modules  program.chiml  program.js
 # Test
 
 ```bash
+> npm link --global
 > npm test
 ```

@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const child_process_1 = require("child_process");
+const path_1 = require("path");
 const stringUtil_1 = require("./stringUtil");
 function cmd(command, options) {
     return new Promise((resolve, reject) => {
@@ -53,7 +54,14 @@ function cmdComposedCommand(command, ins = [], opts, isCompiled = false) {
         const commandParts = stringUtil_1.smartSplit(command, " ").filter((part) => part !== "");
         if (commandParts.length > 1 && commandParts[0] === "chie") {
             const chimlPath = commandParts[1];
-            const scriptPath = chimlPath.replace(/^(.*)\.chiml/gmi, "$1.js");
+            // const scriptPath = chimlPath.replace(/^(.*)\.chiml$/gmi, "$1.js");
+            const scriptPath = chimlPath.replace(/^(.*)\.chiml$/gmi, (match, fileName) => {
+                if ("cwd" in opts && opts.cwd !== null && !path_1.isAbsolute(chimlPath)) {
+                    const cwd = opts.cwd;
+                    return path_1.resolve(cwd, `${fileName}.js`);
+                }
+                return `${fileName}.js`;
+            });
             if (chimlPath !== scriptPath) {
                 const inputs = commandParts.slice(2).concat(ins);
                 return runCompiledChiml(scriptPath, inputs);

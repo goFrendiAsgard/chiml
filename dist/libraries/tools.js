@@ -104,7 +104,7 @@ function createSingleNodeModule(targetDirPath) {
 function compileSingleFile(chiml) {
     const targetDirPath = path_1.dirname(chiml);
     const targetFileName = path_1.basename(chiml);
-    const jsFileName = targetFileName.replace(/^(.*)\.chiml/gmi, "$1.js");
+    const jsFileName = targetFileName.replace(/^(.*)\.chiml$/gmi, "$1.js");
     const jsFilePath = path_1.resolve(targetDirPath, jsFileName);
     return fs_extra_1.readFile(chiml).then(() => {
         return getCompiledScript(chiml);

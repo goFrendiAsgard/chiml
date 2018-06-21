@@ -46,9 +46,16 @@ function wrapJsPromise(task, spaceCount) {
 function wrapCmd(task, spaceCount) {
     const ins = task.ins.join(", ");
     const command = task.command.replace(/\"/g, '\\"');
-    const template = "const __promise<%- task.id %> = " +
-        '__cmd("<%- command %>", [<%- ins %>])' +
-        ".then((__result) => {<%- task.out %> = __result;});";
+    const constants = [
+        'const __opts<%- task.id %> = typeof __dirname === "undefined" ? {} : {cwd: __dirname};',
+        'const __isCompiled<%- task.id %> = typeof __isCompiled !== "undefined";',
+    ].join("\n");
+    const promise = [
+        "const __promise<%- task.id %> = ",
+        '__cmd("<%- command %>", [<%- ins %>], __opts<%- task.id %>, __isCompiled<%- task.id %>)',
+        ".then((__result) => {<%- task.out %> = __result;});",
+    ].join("");
+    const template = [constants, promise].join("\n");
     return renderTemplate(template, { command, task, ins }, spaceCount);
 }
 function createSubHandlerDeclaration(task, spaceCount) {

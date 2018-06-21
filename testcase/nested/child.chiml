@@ -1,0 +1,11 @@
+ins: a, b
+out: c
+do:
+
+  # if compiled add, otherwise minus
+
+  - if: typeof(__isCompiled) !== "undefined"
+    do: (a, b) -> (x, y) => x + y -> c
+
+  - if: typeof(__isCompiled) === "undefined"
+    do: (a, b) -> (x, y) => x - y -> c

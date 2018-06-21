@@ -1,7 +1,9 @@
 /node_modules
 /coverage
 /testcase/compile/test.js
-/testcase/compile/node_modules
+/testcase/*/node_modules
+/testcase/compile/parent.js
+/testcase/compile/child.js
 /sample/*/node_modules
 /sample/*/*.js
 *.class
