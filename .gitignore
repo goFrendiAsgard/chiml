@@ -2,4 +2,6 @@
 /coverage
 /testcase/compile/test.js
 /testcase/compile/node_modules
+/sample/*/node_modules
+/sample/*/*.js
 *.class
