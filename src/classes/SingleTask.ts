@@ -1,4 +1,4 @@
-import {runInNewContext} from "vm";
+import {createContext, runInNewContext} from "vm";
 import {CommandType, FunctionalMode, Mode} from "../enums/singleTaskProperty";
 import {ISingleTask} from "../interfaces/ISingleTask";
 import {cmdComposedCommand} from "../libraries/cmd";
@@ -55,8 +55,11 @@ export class SingleTask implements ISingleTask {
   public execute(...inputs): Promise<any> {
     return new Promise((resolve, reject) => {
       try {
-        const sandbox = Object.assign(utilities);
-        sandbox.require = require;
+        const sandbox: {[key: string]: any} = Object.assign({
+          __dirname: process.cwd(),
+          __isCompiled: false,
+          require,
+        }, utilities);
         const script = this.getScript();
         runInNewContext(script, sandbox);
         const handler = sandbox.__main_0;

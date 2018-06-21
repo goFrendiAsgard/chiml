@@ -59,7 +59,6 @@ export function cmdComposedCommand(command: string, ins: any[] = [], opts?: {[ke
     const commandParts = smartSplit(command, " ").filter((part) => part !== "");
     if (commandParts.length > 1 && commandParts[0] === "chie") {
       const chimlPath = commandParts[1];
-      // const scriptPath = chimlPath.replace(/^(.*)\.chiml$/gmi, "$1.js");
       const scriptPath = chimlPath.replace(/^(.*)\.chiml$/gmi, (match, fileName) => {
         if ("cwd" in opts && opts.cwd !== null && !isAbsolutePath(chimlPath)) {
           const cwd = opts.cwd;

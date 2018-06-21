@@ -35,8 +35,11 @@ class SingleTask {
     execute(...inputs) {
         return new Promise((resolve, reject) => {
             try {
-                const sandbox = Object.assign(utilities);
-                sandbox.require = require;
+                const sandbox = Object.assign({
+                    __dirname: process.cwd(),
+                    __isCompiled: false,
+                    require,
+                }, utilities);
                 const script = this.getScript();
                 vm_1.runInNewContext(script, sandbox);
                 const handler = sandbox.__main_0;
