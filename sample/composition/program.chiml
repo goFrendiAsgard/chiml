@@ -6,9 +6,9 @@ do:
   - (require(__dirname + "/lib/lib.js")) --> lib
   # adding `a` and `b` using different methods
   - parallel:
-    # call other CHIML
+    # call external CHIML script
     - (a, b) -> chie lib/add.chiml -> c
-    # call Python program
+    # call external Python program
     - (a, b) -> python3 lib/add.py -> d
     # call JavaScript synchronous function
     - (a, b) -> {lib.syncAdd} -> e
@@ -18,5 +18,7 @@ do:
     - do:
       - (a, b) -> {lib.promiseAddMaker} -> promise
       - <promise> -> g
-  - result <-- ({c, d, e, f, g})
+    # define and call Javascript arrow function
+    - (a, b) -> (x, y) => x + y -> h
+  - result <-- ({c, d, e, f, g, h})
 
