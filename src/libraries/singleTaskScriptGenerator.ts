@@ -15,9 +15,14 @@ export function renderTemplate(template: string, config: {[key: string]: any}, s
 function wrapJsSyncFunction(task: ISingleTask, spaceCount: number): string {
   const ins = task.ins.join(", ");
   const template = [
-    "const __promise<%- task.id %> = Promise.resolve((<%- task.command %>)(<%- ins %>)).then(",
-    "  (__result) => <%- task.out %> = __result",
-    ");",
+    "const __promise<%- task.id %> = new Promise((__resolve, __reject) => {",
+    "  try {",
+    "    <%- task.out %> = (<%- task.command %>)(<%- ins %>);",
+    "    __resolve(true);",
+    "  } catch (__error) {",
+    "    __reject(__error);",
+    "  }",
+    "})",
   ].join("\n");
   return renderTemplate(template, {task, ins}, spaceCount);
 }
@@ -25,8 +30,7 @@ function wrapJsSyncFunction(task: ISingleTask, spaceCount: number): string {
 function wrapJsAsyncFunction(task: ISingleTask, spaceCount: number): string {
   const ins = task.ins.join(", ");
   const template = [
-    "const __promise<%- task.id %> = " +
-    "new Promise((__resolve, __reject) => {",
+    "const __promise<%- task.id %> = new Promise((__resolve, __reject) => {",
     "  (<%- task.command %>)(<%- ins %>, (__error, __result) => {",
     "    if (__error) {",
     "      return __reject(__error);",

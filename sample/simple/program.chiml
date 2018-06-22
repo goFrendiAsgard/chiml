@@ -4,7 +4,7 @@ out: e
 do:
   # call external Python and Java program
   - parallel:
-    - |(a, b) -> python3 lib/add.py -> c
-    - |(a, b) -> java -cp lib Minus -> d
+    - (a, b) -> python3 lib/add.py -> c
+    - (a, b) -> java -cp lib Minus -> d
   # compose results using JavaScript
-  - |(c, d) -> (x, y) => x * y -> e
+  - (c, d) -> (x, y) => x * y -> e

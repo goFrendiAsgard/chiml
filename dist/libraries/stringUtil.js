@@ -2,25 +2,22 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const fs_1 = require("fs");
 const js_yaml_1 = require("js-yaml");
-const SEQUENCE_ITEM_PATTERN = /^(\s*)-(\s+)(>|\|)(.+)$/gm;
-const MAP_ITEM_PATTERN = /^(\s*)([-\s\w]+:)(\s+)(>|\|)(.+)$/gm;
-const STRING_PATTERN = /^(>|\|)(.+)$/gm;
+const BLOCKED_SEQUENCE_ITEM = /^(\s*)-(\s+)(>|\|)(.+)$/gm;
+const BLOCKED_MAP_ITEM = /^(\s*)([-\s\w]+:)(\s+)(>|\|)(.+)$/gm;
+const BLOCKED_STRING = /^(>|\|)(.+)$/gm;
+const CHIML_MAP_ITEM_LINE = /^(\s*)(-?)(\s*)([a-z0-9_]+)\s*:\s*(.*)\s*$/gi;
+const CHIML_SEQUENCE_ITEM_LINE = /^(\s*)-\s*(.*)\s*$/gi;
 const CHIML_FILE_NAME = /^.+\.chiml$/gmi;
 function chimlToYaml(chiml) {
-    let result = chiml;
-    // sequence item where it's value preceeded by '|' or '>'
-    result = result.replace(SEQUENCE_ITEM_PATTERN, (whole, spaces1, spaces2, blockDelimiter, str) => {
-        return spaces1 + "-" + spaces2 + doubleQuote(str);
-    });
-    // map item and map in sequence item where it's value preceeded by '|' or '>'
-    result = result.replace(MAP_ITEM_PATTERN, (whole, spaces1, key, spaces2, blockDelimiter, str) => {
-        return spaces1 + key + spaces2 + doubleQuote(str);
-    });
-    // string preceeded by '| or '>'
-    result = result.replace(STRING_PATTERN, (whole, blockDelimiter, str) => {
-        return doubleQuote(str);
-    });
-    return result;
+    const normalizedInlineBlock = normalizeInlineBlockDelimiter(chiml).trim();
+    const lines = normalizedInlineBlock.split("\n");
+    if (lines.length === 1) {
+        const line = lines[0];
+        if (!isFlanked(line, '"', '"') && !line.match(CHIML_MAP_ITEM_LINE) && !line.match(CHIML_SEQUENCE_ITEM_LINE)) {
+            return doubleQuote(line);
+        }
+    }
+    return normalizeChimlLines(lines).join("\n");
 }
 exports.chimlToYaml = chimlToYaml;
 function chimlToConfig(chiml, firstTime = true) {
@@ -114,4 +111,87 @@ function smartSplit(str, delimiter) {
     return data;
 }
 exports.smartSplit = smartSplit;
+function normalizeInlineBlockDelimiter(chiml) {
+    let result = chiml;
+    // sequence item where it's value preceeded by '|' or '>'
+    result = result.replace(BLOCKED_SEQUENCE_ITEM, (whole, spaces1, spaces2, blockDelimiter, str) => {
+        return spaces1 + "-" + spaces2 + doubleQuote(str);
+    });
+    // map item and map in sequence item where it's value preceeded by '|' or '>'
+    result = result.replace(BLOCKED_MAP_ITEM, (whole, spaces1, key, spaces2, blockDelimiter, str) => {
+        return spaces1 + key + spaces2 + doubleQuote(str);
+    });
+    // string preceeded by '| or '>'
+    result = result.replace(BLOCKED_STRING, (whole, blockDelimiter, str) => {
+        return doubleQuote(str);
+    });
+    return result;
+}
+function getChimlLineState(line) {
+    const mapMatches = new RegExp(CHIML_MAP_ITEM_LINE).exec(line);
+    let spaces1 = "";
+    let spaces2 = "";
+    let isMap = false;
+    let isSequence = false;
+    let key = "";
+    let val = "";
+    if (mapMatches) {
+        spaces1 = mapMatches[1];
+        isSequence = mapMatches[2] === "-";
+        spaces2 = mapMatches[3];
+        key = mapMatches[4];
+        val = mapMatches[5];
+        isMap = true;
+    }
+    else {
+        const sequenceMatches = new RegExp(CHIML_SEQUENCE_ITEM_LINE).exec(line);
+        if (sequenceMatches) {
+            spaces1 = sequenceMatches[1];
+            val = sequenceMatches[2];
+            isSequence = true;
+        }
+    }
+    return { spaces1, spaces2, isMap, isSequence, key, val };
+}
+function normalizeChimlLines(lines) {
+    const keywords = ["if", "while", "do", "parallel"];
+    const newLines = [];
+    const previousSpaceCount = [-1];
+    const previousKeyList = ["root"];
+    for (const line of lines) {
+        const lineState = getChimlLineState(line);
+        const { spaces1, spaces2, isMap, isSequence, key, val } = lineState;
+        if (isMap || isSequence) {
+            const newSpaceCount = spaces1.length + spaces2.length + (isSequence ? 1 : 0);
+            let lastSpaceCount = previousSpaceCount[previousSpaceCount.length - 1];
+            let lastKey = previousKeyList[previousKeyList.length - 1];
+            while (lastSpaceCount >= newSpaceCount) {
+                previousSpaceCount.pop();
+                previousKeyList.pop();
+                lastSpaceCount = previousSpaceCount[previousSpaceCount.length - 1];
+                lastKey = previousKeyList[previousKeyList.length - 1];
+            }
+            const insertedKey = isMap ? key : previousKeyList[previousKeyList.length - 1];
+            previousKeyList.push(insertedKey);
+            previousSpaceCount.push(newSpaceCount);
+            lastSpaceCount = newSpaceCount;
+            lastKey = insertedKey;
+            if (keywords.indexOf(lastKey) > -1 && val.trim() !== "" && !isFlanked(val, '"', '"')) {
+                newLines.push([
+                    spaces1,
+                    isSequence ? "-" : "",
+                    isMap ? `${spaces2}${key}: ` : " ",
+                    doubleQuote(val),
+                ].join(""));
+            }
+            else {
+                newLines.push(line);
+            }
+        }
+        else {
+            newLines.push(line);
+        }
+    }
+    return newLines;
+}
 //# sourceMappingURL=stringUtil.js.map

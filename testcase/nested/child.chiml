@@ -4,8 +4,8 @@ do:
 
   # if compiled add, otherwise minus
 
-  - if: |__isCompiled
-    do: |(a, b) -> (x, y) => x + y -> c
+  - if: __isCompiled
+    do: (a, b) -> (x, y) => x + y -> c
 
-  - if: |!__isCompiled
-    do: |(a, b) -> (x, y) => x - y -> c
+  - if: !__isCompiled
+    do: (a, b) -> (x, y) => x - y -> c

@@ -11,6 +11,15 @@ do:
   - do: |(c, d) -> (x, y) => x * y -> e
   - do: |("result: " + e) --> f
 `;
+const chimlSample1Unblocked = `
+ins: a, b
+out: f
+do:
+  - (a, b) -> (x, y) => x + y -> c
+  - (a, b) -> (x, y) => x - y -> d
+  - do: (c, d) -> (x, y) => x * y -> e
+  - do: ("result: " + e) --> f
+`;
 const expectedYaml1 = `
 ins: a, b
 out: f
@@ -19,12 +28,64 @@ do:
   - "(a, b) -> (x, y) => x - y -> d"
   - do: "(c, d) -> (x, y) => x * y -> e"
   - do: "(\\\"result: \\\" + e) --> f"
+`.trim();
+const chimlSample2 = `
+ins: a, b
+out: f
+do:
+  - parallel:
+    - |(a, b) -> (x, y) => x + y -> c
+    - |(a, b) -> (x, y) => x - y -> d
+  - ins:
+      - c
+      - d
+    out: e
+    do: (x, y) => x * y
+  - do: |("result: " + e) --> f
 `;
-const chimlSample2 = `|("Hello" + name) --> output`;
-const expectedYaml2 = `"(\\\"Hello\\\" + name) --> output"`;
+const chimlSample2Unblocked = `
+ins: a, b
+out: f
+do:
+  - parallel:
+    - (a, b) -> (x, y) => x + y -> c
+    - (a, b) -> (x, y) => x - y -> d
+  - ins:
+      - c
+      - d
+    out: e
+    do: (x, y) => x * y
+  - do: ("result: " + e) --> f
+`;
+const expectedYaml2 = `
+ins: a, b
+out: f
+do:
+  - parallel:
+    - "(a, b) -> (x, y) => x + y -> c"
+    - "(a, b) -> (x, y) => x - y -> d"
+  - ins:
+      - c
+      - d
+    out: e
+    do: "(x, y) => x * y"
+  - do: "(\\\"result: \\\" + e) --> f"
+`.trim();
+const chimlSample3 = `|("Hello" + name) --> output`;
+const chimlSample3Unblocked = `("Hello" + name) --> output`;
+const expectedYaml3 = `"(\\\"Hello\\\" + name) --> output"`;
+const chimlSample4 = `do: |("Hello" + name) --> output`;
+const chimlSample4Unblocked = `do: ("Hello" + name) --> output`;
+const expectedYaml4 = `do: "(\\\"Hello\\\" + name) --> output"`;
 it("able to translate chiml into yaml", (done) => {
     expect(stringUtil_1.chimlToYaml(chimlSample1)).toBe(expectedYaml1);
+    expect(stringUtil_1.chimlToYaml(chimlSample1Unblocked)).toBe(expectedYaml1);
     expect(stringUtil_1.chimlToYaml(chimlSample2)).toBe(expectedYaml2);
+    expect(stringUtil_1.chimlToYaml(chimlSample2Unblocked)).toBe(expectedYaml2);
+    expect(stringUtil_1.chimlToYaml(chimlSample3)).toBe(expectedYaml3);
+    expect(stringUtil_1.chimlToYaml(chimlSample3Unblocked)).toBe(expectedYaml3);
+    expect(stringUtil_1.chimlToYaml(chimlSample4)).toBe(expectedYaml4);
+    expect(stringUtil_1.chimlToYaml(chimlSample4Unblocked)).toBe(expectedYaml4);
     done();
 });
 it("able to parse string array", (done) => {

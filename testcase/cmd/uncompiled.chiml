@@ -1,2 +1,2 @@
 ins: message
-do: |(message) -> echo "uncompiled"
+do: (message) -> echo "uncompiled"
