@@ -17,6 +17,7 @@ export declare class SingleTask implements ISingleTask {
     commandType: CommandType;
     functionalMode: FunctionalMode;
     accumulator: string;
+    chimlPath: string;
     expectLocalScope: boolean;
     hasParent: boolean;
     constructor(config: any, parentId?: string, id?: number);

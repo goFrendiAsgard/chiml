@@ -2,9 +2,9 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const vm_1 = require("vm");
 const singleTaskProperty_1 = require("../enums/singleTaskProperty");
+const sandbox_1 = require("../libraries/sandbox");
 const singleTaskConfigProcessor_1 = require("../libraries/singleTaskConfigProcessor");
 const singleTaskScriptGenerator_1 = require("../libraries/singleTaskScriptGenerator");
-const utilities = require("../libraries/utilities");
 class SingleTask {
     constructor(config, parentId = "", id = 0) {
         const normalizedConfig = typeof config === "string" ?
@@ -22,6 +22,7 @@ class SingleTask {
         this.dst = normalizedConfig.dst;
         this.accumulator = normalizedConfig.accumulator;
         this.functionalMode = normalizedConfig.functionalMode;
+        this.chimlPath = normalizedConfig.chimlPath;
         this.id = parentId + "_" + id;
         this.hasParent = parentId !== "";
         this.expectLocalScope = parentId === "" || this.functionalMode !== singleTaskProperty_1.FunctionalMode.none;
@@ -35,11 +36,7 @@ class SingleTask {
     execute(...inputs) {
         return new Promise((resolve, reject) => {
             try {
-                const sandbox = Object.assign({
-                    __dirname: process.cwd(),
-                    __isCompiled: false,
-                    require,
-                }, utilities);
+                const sandbox = sandbox_1.createSandbox(this.chimlPath);
                 const script = this.getScript();
                 vm_1.runInNewContext(script, sandbox);
                 const handler = sandbox.__main_0;

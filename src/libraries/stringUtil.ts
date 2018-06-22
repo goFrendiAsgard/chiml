@@ -1,5 +1,6 @@
 import {readFile} from "fs";
 import {safeLoad} from "js-yaml";
+import {normalizeRawConfig, strToNormalizedConfig} from "./singleTaskConfigProcessor";
 
 const BLOCKED_SEQUENCE_ITEM = /^(\s*)-(\s+)(>|\|)(.+)$/gm;
 const BLOCKED_MAP_ITEM = /^(\s*)([-\s\w]+:)(\s+)(>|\|)(.+)$/gm;
@@ -35,23 +36,26 @@ export function chimlToConfig(chiml: string, firstTime: boolean = true): Promise
       readFile(chiml, (error, content) => {
         if (error) {
           return chimlToConfig(chiml, false).then((result) => {
+            const config = strToNormalizedConfig(chiml);
             resolve(result);
           }).catch(reject);
         }
-        return chimlToConfig(String(content), false).then((result) => {
-          resolve(result);
+        return chimlToConfig(String(content), false).then((config) => {
+          resolve(config);
         }).catch(reject);
       });
     });
   }
   try {
     const obj = JSON.parse(chiml);
-    return Promise.resolve(obj);
+    const config = normalizeRawConfig(obj);
+    return Promise.resolve(config);
   } catch (error) {
     try {
       const yaml = chimlToYaml(chiml);
       const obj = safeLoad(yaml);
-      return Promise.resolve(obj);
+      const config = typeof obj === "string" ? strToNormalizedConfig(obj) : normalizeRawConfig(obj);
+      return Promise.resolve(config);
     } catch (error) {
       return Promise.reject(error);
     }
@@ -160,6 +164,7 @@ function getChimlLineState(line: string): ILineState {
 
 function normalizeChimlLines(lines: string[]): string[] {
   const keywords: string[] = ["if", "while", "do", "parallel"];
+  const escapedVal: string[] = ["", "|", ">"];
   const newLines: string[] = [];
   const previousSpaceCount: number[] = [-1];
   const previousKeyList: string[] = ["root"];
@@ -181,7 +186,7 @@ function normalizeChimlLines(lines: string[]): string[] {
       previousSpaceCount.push(newSpaceCount);
       lastSpaceCount = newSpaceCount;
       lastKey = insertedKey;
-      if (keywords.indexOf(lastKey) > -1 && val.trim() !== "" && !isFlanked(val, '"', '"')) {
+      if (keywords.indexOf(lastKey) > -1 && escapedVal.indexOf(val.trim()) === -1 && !isFlanked(val, '"', '"')) {
         newLines.push([
           spaces1,
           isSequence ? "-" : "",

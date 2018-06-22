@@ -2,7 +2,7 @@ import {dirname as pathDirName, resolve as pathResolve} from "path";
 import {runInNewContext} from "vm";
 import {SingleTask} from "../classes/SingleTask";
 import {ISingleTask} from "../interfaces/ISingleTask";
-import * as utilities from "../libraries/utilities";
+import {createSandbox} from "../libraries/sandbox";
 import {cmdComposedCommand} from "./cmd";
 import {createHandlerScript, renderTemplate} from "./singleTaskScriptGenerator";
 import {doubleQuote} from "./stringUtil";
@@ -31,13 +31,9 @@ it("render template correctly", (done) => {
   done();
 });
 
-function createScriptAndHandler(config): Promise<any> {
+function createScriptAndHandler(config: any): Promise<any> {
   const script = createHandlerScript(new SingleTask(config));
-  const sandbox: {[key: string]: any} = Object.assign({
-    __dirname: process.cwd(),
-    __isCompiled: false,
-    require,
-  }, utilities);
+  const sandbox: {[key: string]: any} = createSandbox(config);
   runInNewContext(script, sandbox);
   const handler = sandbox.__main_0;
   return Promise.resolve({script, handler});

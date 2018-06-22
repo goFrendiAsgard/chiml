@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const fs_1 = require("fs");
 const js_yaml_1 = require("js-yaml");
+const singleTaskConfigProcessor_1 = require("./singleTaskConfigProcessor");
 const BLOCKED_SEQUENCE_ITEM = /^(\s*)-(\s+)(>|\|)(.+)$/gm;
 const BLOCKED_MAP_ITEM = /^(\s*)([-\s\w]+:)(\s+)(>|\|)(.+)$/gm;
 const BLOCKED_STRING = /^(>|\|)(.+)$/gm;
@@ -26,24 +27,27 @@ function chimlToConfig(chiml, firstTime = true) {
             fs_1.readFile(chiml, (error, content) => {
                 if (error) {
                     return chimlToConfig(chiml, false).then((result) => {
+                        const config = singleTaskConfigProcessor_1.strToNormalizedConfig(chiml);
                         resolve(result);
                     }).catch(reject);
                 }
-                return chimlToConfig(String(content), false).then((result) => {
-                    resolve(result);
+                return chimlToConfig(String(content), false).then((config) => {
+                    resolve(config);
                 }).catch(reject);
             });
         });
     }
     try {
         const obj = JSON.parse(chiml);
-        return Promise.resolve(obj);
+        const config = singleTaskConfigProcessor_1.normalizeRawConfig(obj);
+        return Promise.resolve(config);
     }
     catch (error) {
         try {
             const yaml = chimlToYaml(chiml);
             const obj = js_yaml_1.safeLoad(yaml);
-            return Promise.resolve(obj);
+            const config = typeof obj === "string" ? singleTaskConfigProcessor_1.strToNormalizedConfig(obj) : singleTaskConfigProcessor_1.normalizeRawConfig(obj);
+            return Promise.resolve(config);
         }
         catch (error) {
             return Promise.reject(error);
@@ -155,6 +159,7 @@ function getChimlLineState(line) {
 }
 function normalizeChimlLines(lines) {
     const keywords = ["if", "while", "do", "parallel"];
+    const escapedVal = ["", "|", ">"];
     const newLines = [];
     const previousSpaceCount = [-1];
     const previousKeyList = ["root"];
@@ -176,7 +181,7 @@ function normalizeChimlLines(lines) {
             previousSpaceCount.push(newSpaceCount);
             lastSpaceCount = newSpaceCount;
             lastKey = insertedKey;
-            if (keywords.indexOf(lastKey) > -1 && val.trim() !== "" && !isFlanked(val, '"', '"')) {
+            if (keywords.indexOf(lastKey) > -1 && escapedVal.indexOf(val.trim()) === -1 && !isFlanked(val, '"', '"')) {
                 newLines.push([
                     spaces1,
                     isSequence ? "-" : "",

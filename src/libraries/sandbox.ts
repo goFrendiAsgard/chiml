@@ -1,9 +1,9 @@
 import {dirname as pathDirName, resolve as pathResolve} from "path";
 import * as utilities from "../libraries/utilities";
 
-export function createSandbox(chimlPath): {[key: string]: any} {
-  const validChimlPath = chimlPath.match(/^(.*)\.chiml/gmi);
-  const fileName = validChimlPath ? chimlPath : pathResolve(process.cwd(), "virtual");
+export function createSandbox(chimlPath: string): {[key: string]: any} {
+  const validChimlPath = String(chimlPath).match(/^(.*)\.chiml/gmi);
+  const fileName = validChimlPath ? pathResolve(chimlPath) : pathResolve(process.cwd(), "virtual");
   const dirName = pathDirName(fileName);
   const sandbox: {[key: string]: any} = Object.assign({
     __dirname: dirName,

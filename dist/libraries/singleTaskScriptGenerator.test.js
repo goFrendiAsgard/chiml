@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const path_1 = require("path");
 const vm_1 = require("vm");
 const SingleTask_1 = require("../classes/SingleTask");
-const utilities = require("../libraries/utilities");
+const sandbox_1 = require("../libraries/sandbox");
 const singleTaskScriptGenerator_1 = require("./singleTaskScriptGenerator");
 it("render template correctly", (done) => {
     const template = "function <%= functionName %> (<%= inputs.join(', ') %>){\n" +
@@ -27,11 +27,7 @@ it("render template correctly", (done) => {
 });
 function createScriptAndHandler(config) {
     const script = singleTaskScriptGenerator_1.createHandlerScript(new SingleTask_1.SingleTask(config));
-    const sandbox = Object.assign({
-        __dirname: process.cwd(),
-        __isCompiled: false,
-        require,
-    }, utilities);
+    const sandbox = sandbox_1.createSandbox(config);
     vm_1.runInNewContext(script, sandbox);
     const handler = sandbox.__main_0;
     return Promise.resolve({ script, handler });

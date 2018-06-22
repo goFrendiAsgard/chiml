@@ -2,7 +2,8 @@ import {createContext, runInNewContext} from "vm";
 import {CommandType, FunctionalMode, Mode} from "../enums/singleTaskProperty";
 import {ISingleTask} from "../interfaces/ISingleTask";
 import {cmdComposedCommand} from "../libraries/cmd";
-import {normalizeRawConfig, strToNormalizedConfig} from "../libraries/singleTaskConfigProcessor";
+import {createSandbox} from "../libraries/sandbox";
+import {IRawConfig, normalizeRawConfig, strToNormalizedConfig} from "../libraries/singleTaskConfigProcessor";
 import {createHandlerScript} from "../libraries/singleTaskScriptGenerator";
 import * as utilities from "../libraries/utilities";
 
@@ -21,11 +22,12 @@ export class SingleTask implements ISingleTask {
   public commandType: CommandType;
   public functionalMode: FunctionalMode;
   public accumulator: string;
+  public chimlPath: string;
   public expectLocalScope: boolean;
   public hasParent: boolean;
 
   constructor(config: any, parentId: string = "", id: number = 0) {
-    const normalizedConfig: {[key: string]: any} = typeof config === "string" ?
+    const normalizedConfig: IRawConfig = typeof config === "string" ?
       strToNormalizedConfig(config) : normalizeRawConfig(config);
     this.ins = normalizedConfig.ins;
     this.out = normalizedConfig.out;
@@ -40,6 +42,7 @@ export class SingleTask implements ISingleTask {
     this.dst = normalizedConfig.dst;
     this.accumulator = normalizedConfig.accumulator;
     this.functionalMode = normalizedConfig.functionalMode;
+    this.chimlPath = normalizedConfig.chimlPath;
     this.id = parentId + "_" + id;
     this.hasParent = parentId !== "";
     this.expectLocalScope = parentId === "" || this.functionalMode !== FunctionalMode.none;
@@ -55,11 +58,7 @@ export class SingleTask implements ISingleTask {
   public execute(...inputs): Promise<any> {
     return new Promise((resolve, reject) => {
       try {
-        const sandbox: {[key: string]: any} = Object.assign({
-          __dirname: process.cwd(),
-          __isCompiled: false,
-          require,
-        }, utilities);
+        const sandbox = createSandbox(this.chimlPath);
         const script = this.getScript();
         runInNewContext(script, sandbox);
         const handler = sandbox.__main_0;

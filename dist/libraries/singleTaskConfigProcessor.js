@@ -9,10 +9,15 @@ function strToNormalizedConfig(str) {
 }
 exports.strToNormalizedConfig = strToNormalizedConfig;
 function normalizeRawConfig(rawConfig) {
+    if ("__isNormal" in rawConfig) {
+        return rawConfig;
+    }
     const config = preprocessRawConfigShorthand(rawConfig);
     let normalizedConfig = {
+        __isNormal: true,
         accumulator: "accumulator" in config ? config.accumulator : "0",
         branchCondition: "if" in config ? config.if : "true",
+        chimlPath: "",
         command: null,
         commandList: [],
         commandType: singleTaskProperty_1.CommandType.cmd,

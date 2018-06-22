@@ -1,0 +1,22 @@
+# fileName: program.chiml
+ins: a, b
+out: result
+do: 
+  # load JavaScript library
+  - (require(__dirname + "/lib/lib.js")) --> lib
+  # adding `a` and `b` using different methods
+  - parallel:
+    # call other CHIML
+    - (a, b) -> chie lib/add.chiml -> c
+    # call Python program
+    - (a, b) -> python3 lib/add.py -> d
+    # call JavaScript synchronous function
+    - (a, b) -> {lib.syncAdd} -> e
+    # call JavaScript asynchronous function
+    - (a, b) -> [lib.asyncAdd] -> f
+    # use JavaScript promise
+    - do:
+      - (a, b) -> {lib.promiseAddMaker} -> promise
+      - <promise> -> g
+  - result <-- ({c, d, e, f, g})
+

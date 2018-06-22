@@ -18,4 +18,5 @@ export interface ISingleTask {
     accumulator: string;
     expectLocalScope: boolean;
     hasParent: boolean;
+    chimlPath: string;
 }

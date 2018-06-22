@@ -8,31 +8,37 @@ import {chimlToConfig,
   smartSplit} from "./stringUtil";
 
 const chimlSample1 = `
+# comment
 ins: a, b
 out: f
 do:
   - |(a, b) -> (x, y) => x + y -> c
   - |(a, b) -> (x, y) => x - y -> d
+  # comment
   - do: |(c, d) -> (x, y) => x * y -> e
   - do: |("result: " + e) --> f
 `;
 
 const chimlSample1Unblocked = `
+# comment
 ins: a, b
 out: f
 do:
   - (a, b) -> (x, y) => x + y -> c
   - (a, b) -> (x, y) => x - y -> d
+  # comment
   - do: (c, d) -> (x, y) => x * y -> e
   - do: ("result: " + e) --> f
 `;
 
 const expectedYaml1 = `
+# comment
 ins: a, b
 out: f
 do:
   - "(a, b) -> (x, y) => x + y -> c"
   - "(a, b) -> (x, y) => x - y -> d"
+  # comment
   - do: "(c, d) -> (x, y) => x * y -> e"
   - do: "(\\\"result: \\\" + e) --> f"
 `.trim();
@@ -49,6 +55,10 @@ do:
       - d
     out: e
     do: (x, y) => x * y
+  - do: |
+      () => {
+        return "smile";
+      }
   - do: |("result: " + e) --> f
 `;
 
@@ -64,6 +74,10 @@ do:
       - d
     out: e
     do: (x, y) => x * y
+  - do: |
+      () => {
+        return "smile";
+      }
   - do: ("result: " + e) --> f
 `;
 
@@ -79,6 +93,10 @@ do:
       - d
     out: e
     do: "(x, y) => x * y"
+  - do: |
+      () => {
+        return "smile";
+      }
   - do: "(\\\"result: \\\" + e) --> f"
 `.trim();
 
@@ -119,10 +137,11 @@ it("able to turn chiml file and chiml script into config", (done) => {
   const p2 = chimlToConfig(chimlSample1);
   const p3 = chimlToConfig(pathResolve(testDirPath, "stringUtil", "test.chiml"));
   Promise.all([p1, p2, p3]).then(([result1, result2, result3]) => {
-    expect(Object.keys(result1).length).toBe(3);
     expect(result1).toMatchObject(result2);
-    expect(Object.keys(result3).length).toBe(3);
-    expect(result3.do.length).toBe(2);
+    expect(result3.commandList.length).toBe(2);
+    expect(result1.__isNormal).toBeTruthy();
+    expect(result2.__isNormal).toBeTruthy();
+    expect(result3.__isNormal).toBeTruthy();
     done();
   }).catch((error) => {
     expect(error).toBeNull();
@@ -132,7 +151,8 @@ it("able to turn chiml file and chiml script into config", (done) => {
 
 it("able to turn nonexisting chiml file into config", (done) => {
   chimlToConfig("nonexists.chiml").then((result) => {
-    expect(result).toBe("nonexists.chiml");
+    expect(result.__isNormal).toBeTruthy();
+    expect(result.command).toBe("nonexists.chiml");
     done();
   }).catch((error) => {
     expect(error).toBeNull();
@@ -140,10 +160,14 @@ it("able to turn nonexisting chiml file into config", (done) => {
   });
 });
 
-it("able to turn json-string into json", (done) => {
-  const expected = {a: 5, b: 7};
-  chimlToConfig(JSON.stringify(expected)).then((result) => {
-    expect(result).toMatchObject(expected);
+it("able to turn json-string into config", (done) => {
+  const json = {vars: {a: 5, b: 7}, ins: "x, y"};
+  chimlToConfig(JSON.stringify(json)).then((result) => {
+    expect(result.vars).toMatchObject(json.vars);
+    expect(result.ins.length).toBe(2);
+    expect(result.ins[0]).toBe("x");
+    expect(result.ins[1]).toBe("y");
+    expect(result.__isNormal).toBeTruthy();
     done();
   }).catch((error) => {
     expect(error).toBeNull();
