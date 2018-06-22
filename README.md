@@ -74,6 +74,7 @@ Some variables are used and generated automatically. You should stay away from t
 * `__first<%- taskId %>: boolean`: Flag to indicate if the task is executed for the first time or inside a recursive loop.
 * `__fn<%- taskId %>: Function`: Functions corresponded to tasks. Returning and wrap a `promise`.
 * `__main<%- taskId %>: Function`: Functions corresponded to tasks. Wrap `__unit<%- taskId %>`.
+* `__parseIns: Function`: Function to parse inputs.
 * `__promise<%- taskId %>: Promise`: Promise corressponded to tasks. Wrapped inside `__fn<%- taskId %>`.
 * `__promises: Array<Promise>`: Array of promises, used for parallel execution.
 * `__reject: Function`: Promise reject function
