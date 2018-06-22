@@ -23,6 +23,7 @@ function wrapJsSyncFunction(task: ISingleTask, spaceCount: number): string {
     "    __reject(__error);",
     "  }",
     "})",
+
   ].join("\n");
   return renderTemplate(template, {task, ins}, spaceCount);
 }
@@ -103,7 +104,9 @@ function getWrapper(task: ISingleTask): (task: ISingleTask, spaceCount: number) 
 
 function getVariableDeclaration(variables, task: ISingleTask, spaceCount): string {
   const template = "let <%- variableName %> = <%- value %>;";
-  const variableDeclaration = variables.map((variableName) => {
+  const variableDeclaration = variables.filter((variableName) => {
+    return task.ins.indexOf(variableName) === -1;
+  }).map((variableName) => {
     const value = variableName in task.vars ? JSON.stringify(task.vars[variableName]) : "null";
     return renderTemplate(template, {variableName, value}, spaceCount);
   }).join("\n");
@@ -210,12 +213,22 @@ function getTemplate(task: ISingleTask): string {
 }
 
 export function createHandlerScript(task: ISingleTask, spaceCount: number = 0): string {
-  const ins = task.expectLocalScope ? task.ins.join(", ") : "";
+  const ins = task.expectLocalScope ? getInputDeclaration(task) : "";
   const firstFlag = `__first${task.id}`;
   const branch = task.branchCondition;
   const loop = task.loopCondition;
   const template = getTemplate(task);
   return renderTemplate(template, {task, ins, firstFlag, branch, loop}, spaceCount);
+}
+
+function getInputDeclaration(task: ISingleTask): string {
+  return task.ins.map((inputName) => {
+    if (inputName in task.vars) {
+      const val = JSON.stringify(task.vars[inputName]);
+      return `${inputName} = ${val}`;
+    }
+    return inputName;
+  }).join(", ");
 }
 
 function getVariableName(variableName: string): string {

@@ -76,13 +76,13 @@ it("compile test.chiml", (done) => {
     expect(error).toBeUndefined();
     done();
   });
-}, 20000);
+}, 60000);
 
 it("read file recursively", (done) => {
-  getFiles(pathResolve(rootDirPath, "testcase")).then((result) => {
-    expect(result).toContain(pathResolve(rootDirPath, "testcase", "cmd", "add.js"));
-    expect(result).toContain(pathResolve(rootDirPath, "testcase", "compile", "test.chiml"));
-    expect(result).toContain(pathResolve(rootDirPath, "testcase", "stringUtil", "sample.chiml"));
+  getFiles(pathResolve(rootDirPath, "src")).then((result) => {
+    expect(result).toContain(pathResolve(rootDirPath, "src", "tools", "chic.ts"));
+    expect(result).toContain(pathResolve(rootDirPath, "src", "libraries", "cmd.ts"));
+    expect(result).toContain(pathResolve(rootDirPath, "src", "classes", "SingleTask.ts"));
     done();
   }).catch((error) => {
     expect(error).toBeUndefined();

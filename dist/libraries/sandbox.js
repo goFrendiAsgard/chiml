@@ -8,7 +8,7 @@ function createSandbox(chimlPath) {
     const dirName = path_1.dirname(fileName);
     const sandbox = Object.assign({
         __dirname: dirName,
-        __fileName: fileName,
+        __filename: fileName,
         __isCompiled: false,
         console,
         require,

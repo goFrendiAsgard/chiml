@@ -272,3 +272,28 @@ it("complex handler works", (done) => {
     done();
   });
 });
+
+it("default variable works", (done) => {
+  const config = {
+    do: "(a) -> (x) => x + 1",
+    ins: ["a"],
+    vars: {a: 1},
+  };
+  let programHandler = null;
+  createScriptAndHandler(config).then(({script, handler}) => {
+    programHandler = handler;
+  }).then(() => {
+    return programHandler(5);
+  }).then((result) => {
+    expect(result).toBe(6);
+  }).then(() => {
+    return programHandler();
+  }).then((result) => {
+    expect(result).toBe(2);
+    done();
+  }).catch((error) => {
+    console.error(error);
+    expect(error).toBeUndefined();
+    done();
+  });
+});

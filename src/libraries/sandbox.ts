@@ -7,7 +7,7 @@ export function createSandbox(chimlPath: string): {[key: string]: any} {
   const dirName = pathDirName(fileName);
   const sandbox: {[key: string]: any} = Object.assign({
     __dirname: dirName,
-    __fileName: fileName,
+    __filename: fileName,
     __isCompiled: false,
     console,
     require,

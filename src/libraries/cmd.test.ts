@@ -114,7 +114,17 @@ it("compile test.chiml", (done) => {
   const childJsPath = pathResolve(nestedTestPath, "child.js");
   const parentJsPath = pathResolve(nestedTestPath, "parent.js");
   const nodeModulePath = pathResolve(nestedTestPath, "node_modules");
-  cmdComposedCommand("chic", [childChimlPath, parentChimlPath]).then(() => {
+  new Promise((resolve, reject) => {
+    cmdComposedCommand("chie parent.chiml", [10, 8], {cwd: nestedTestPath}, true).then((result) => {
+      expect(result).toBeUndefined();
+      resolve(true);
+    }).catch((error) => {
+      expect(error).toBeDefined();
+      resolve(true);
+    });
+  }).then(() => {
+    return cmdComposedCommand("chic", [childChimlPath, parentChimlPath]);
+  }).then(() => {
     return cmdComposedCommand("node", [parentJsPath, 10, 8]);
   }).then((result) => {
     expect(result).toBe(18);
@@ -135,4 +145,4 @@ it("compile test.chiml", (done) => {
     expect(error).toBeUndefined();
     done();
   });
-}, 20000);
+}, 60000);
