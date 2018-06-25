@@ -27,10 +27,7 @@ it("able to add middleware (chiml file)", (done) => {
 });
 
 it("able to add middleware (chiml script)", (done) => {
-  app.addMiddleware(async (ctx, next) => {
-    await next();
-    ctx.body += footer;
-  });
+  app.addMiddleware('(ctx, next) -> (ctx, next) => {return next().then(()=>{ctx.body += "<footer>Footer</footer>"});}');
   done();
 });
 
@@ -42,19 +39,12 @@ it("able to add route (function)", (done) => {
 });
 
 it("able to add route (chiml file)", (done) => {
-  /*
-  app.addRoute("get", "/hi/:name", (ctx, name) => {
-    ctx.body += `Hi ${name}`;
-  });
-  */
   app.addRoute("get", "/hi/:name", pathResolve(testcaseDirPath, "route.chiml"));
   done();
 });
 
 it("able to add route (chiml script)", (done) => {
-  app.addRoute("get", "/bonjour/:name", (ctx, name) => {
-    ctx.body += `Bonjour ${name}`;
-  });
+  app.addRoute("get", "/bonjour/:name", "(ctx, name) -> (ctx, name) => ctx.body += `Bonjour ${name}`");
   done();
 });
 

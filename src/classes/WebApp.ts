@@ -22,7 +22,6 @@ export class WebApp extends Koa {
     if (typeof config === "string") {
       return (...ins: any[]) => {
         const promise = execute(config, ...ins);
-        console.log([config, promise]);
         return promise;
       };
     }

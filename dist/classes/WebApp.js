@@ -19,7 +19,6 @@ class WebApp extends Koa {
         if (typeof config === "string") {
             return (...ins) => {
                 const promise = tools_1.execute(config, ...ins);
-                console.log([config, promise]);
                 return promise;
             };
         }

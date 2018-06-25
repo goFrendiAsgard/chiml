@@ -1,6 +1,1 @@
-ins: ctx, next
-out: promise
-do: |
-  (ctx, next) => {
-    return next.then(() => ctx.body += "&copy; goFrendi);
-  }
+(ctx, next) -> (ctx, next) => {return next().then(()=>{ctx.body += "&copy; goFrendi"});}
