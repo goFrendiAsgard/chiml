@@ -1,3 +1,7 @@
+import { WebApp } from "../classes/WebApp";
 import { cmdComposedCommand as __cmd } from "./cmd";
 import { parseStringArray as __parseIns } from "./stringUtil";
-export { __cmd, __parseIns };
+declare const sys: {
+    WebApp: typeof WebApp;
+};
+export { __cmd, __parseIns, sys };
