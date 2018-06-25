@@ -10,6 +10,9 @@ vars:
     readableAll: false
     writableAll: false
 
+  middlewares:
+    - middlewares/log.chiml
+
   routes:
     - method: get
       url: /hello/:name
@@ -20,13 +23,17 @@ do:
   # initialization
   - (new sys.WebApp()) --> app
 
+  # middlewares
+  - map: middlewares
+    do: (middleware) -> {app.addMiddleware}
+
   # route
   - map: routes
     ins: route
     do:
       - (route.method, route.url, route.controller) -> {app.addRoute}
 
-  # Run the server
+  # run the server
   - (app.createServer()) --> server
   - (serverConfig) -> [server.listen]
   - (`Run server on port ${serverConfig.port}. Press ctrl + c to stop`) --> output

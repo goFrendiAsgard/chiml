@@ -1,0 +1,8 @@
+ins: ctx, next
+do: |
+  () => {
+    console.log("Before Request");
+    return next().then(() => {
+      console.log("After Request");
+    });
+  }
