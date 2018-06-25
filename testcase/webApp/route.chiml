@@ -1,0 +1,6 @@
+ins: ctx, name
+do: |
+  (ctx, name) => {
+    ctx.body = `Hi ${name}`;
+    return Promise.resolve(true);
+  }

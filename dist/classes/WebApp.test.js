@@ -8,8 +8,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const path_1 = require("path");
 const httpRequest = require("request");
 const WebApp_1 = require("./WebApp");
+const testcaseDirPath = path_1.resolve(path_1.dirname(path_1.dirname(__dirname)), "testcase", "webApp");
 const header = "<h1>Header</h1>";
 const footer = "<footer>Footer</footer>";
 const copyRight = "&copy; goFrendi";
@@ -27,10 +29,7 @@ it("able to add middleware (function)", (done) => {
     done();
 });
 it("able to add middleware (chiml file)", (done) => {
-    app.addMiddleware((ctx, next) => __awaiter(this, void 0, void 0, function* () {
-        yield next();
-        ctx.body += copyRight;
-    }));
+    app.addMiddleware(path_1.resolve(testcaseDirPath, "middleware.chiml"));
     done();
 });
 it("able to add middleware (chiml script)", (done) => {
@@ -47,9 +46,12 @@ it("able to add route (function)", (done) => {
     done();
 });
 it("able to add route (chiml file)", (done) => {
+    /*
     app.addRoute("get", "/hi/:name", (ctx, name) => {
-        ctx.body += `Hi ${name}`;
+      ctx.body += `Hi ${name}`;
     });
+    */
+    app.addRoute("get", "/hi/:name", path_1.resolve(testcaseDirPath, "route.chiml"));
     done();
 });
 it("able to add route (chiml script)", (done) => {

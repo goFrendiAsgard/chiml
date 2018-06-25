@@ -13,14 +13,18 @@ export class WebApp extends Koa {
     this.use(this.createMiddleware(config));
   }
 
-  public addRoute(method: string, route: string, config: any): void {
+  public addRoute(method: string, url: string, config: any): void {
     const middleware = this.createMiddleware(config);
-    this.use(koaRoute[method](route, middleware));
+    this.use(koaRoute[method](url, middleware));
   }
 
   protected createMiddleware(config: any): (...ins: any[]) => any {
     if (typeof config === "string") {
-      return (...ins: any[]) => execute(config, ...ins);
+      return (...ins: any[]) => {
+        const promise = execute(config, ...ins);
+        console.log([config, promise]);
+        return promise;
+      };
     }
     return config;
   }

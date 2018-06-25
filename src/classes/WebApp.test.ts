@@ -1,6 +1,8 @@
+import {dirname as pathDirName, resolve as pathResolve} from "path";
 import * as httpRequest from "request";
 import {WebApp} from "./WebApp";
 
+const testcaseDirPath = pathResolve(pathDirName(pathDirName(__dirname)), "testcase", "webApp");
 const header = "<h1>Header</h1>";
 const footer = "<footer>Footer</footer>";
 const copyRight = "&copy; goFrendi";
@@ -20,10 +22,7 @@ it("able to add middleware (function)", (done) => {
 });
 
 it("able to add middleware (chiml file)", (done) => {
-  app.addMiddleware(async (ctx, next) => {
-    await next();
-    ctx.body += copyRight;
-  });
+  app.addMiddleware(pathResolve(testcaseDirPath, "middleware.chiml"));
   done();
 });
 
@@ -43,9 +42,12 @@ it("able to add route (function)", (done) => {
 });
 
 it("able to add route (chiml file)", (done) => {
+  /*
   app.addRoute("get", "/hi/:name", (ctx, name) => {
     ctx.body += `Hi ${name}`;
   });
+  */
+  app.addRoute("get", "/hi/:name", pathResolve(testcaseDirPath, "route.chiml"));
   done();
 });
 

@@ -4,6 +4,6 @@ import * as Koa from "koa";
 export declare class WebApp extends Koa {
     createServer(): httpServer;
     addMiddleware(config: any): void;
-    addRoute(method: string, route: string, config: any): void;
+    addRoute(method: string, url: string, config: any): void;
     protected createMiddleware(config: any): (...ins: any[]) => any;
 }

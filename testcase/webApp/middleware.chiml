@@ -1,0 +1,6 @@
+ins: ctx, next
+out: promise
+do: |
+  (ctx, next) => {
+    return next.then(() => ctx.body += "&copy; goFrendi);
+  }
