@@ -1,0 +1,3 @@
+ins: ctx, name
+do:
+  - (`Hello ${name}`) --> ctx.body

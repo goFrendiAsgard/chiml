@@ -1,0 +1,32 @@
+out: output
+vars:
+
+  serverConfig:
+    port: 3000
+    host: ""
+    path: ""
+    backlog: 0
+    exclusive: false
+    readableAll: false
+    writableAll: false
+
+  routes:
+    - method: get
+      url: /hello/:name
+      controller: controllers/hello.chiml
+
+do:
+
+  # initialization
+  - (new sys.WebApp()) --> app
+
+  # route
+  - map: routes
+    ins: route
+    do:
+      - (route.method, route.url, route.controller) -> {app.addRoute}
+
+  # Run the server
+  - (app.createServer()) --> server
+  - (serverConfig) -> [server.listen]
+  - (`Run server on port ${serverConfig.port}. Press ctrl + c to stop`) --> output
