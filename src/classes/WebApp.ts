@@ -14,6 +14,10 @@ export class WebApp extends Koa {
     this.use(this.createMiddleware(config));
   }
 
+  public addJsonRpcPage(url: string, configs: any[]): void {
+    // write logics here
+  }
+
   public addRoute(method: string, url: string, config: any): void {
     const middleware = this.createMiddleware(config);
     this.use(koaRoute[method](url, middleware));
