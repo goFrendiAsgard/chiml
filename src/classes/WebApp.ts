@@ -30,25 +30,9 @@ export class WebApp extends Koa {
   protected createPageMiddleware(
     config: any, outProcessor: (ctx: {[key: string]: any}, out: any) => any,
   ): (...ins: any[]) => any {
-    if (typeof config === "string") {
-      const scriptPath = getScriptPath(config);
-      if (scriptPath !== config && fsExistsSync(scriptPath)) {
-        // compiled chiml
-        return (ctx: {[key: string]: any}, ...ins: any[]) => {
-          const fn = require(scriptPath);
-          const normalIns = getNormalizedIns(ins);
-          return fn(...normalIns).then((out) => outProcessor(ctx, out));
-        };
-      }
-      // uncompiled chiml
-      return (ctx: {[key: string]: any}, ...ins: any[]) => {
-        return execute(config, ...ins).then((out) => outProcessor(ctx, out));
-      };
-    }
-    // function
-    return (ctx, ...ins: any[]) => {
-      const out = config(...ins);
-      outProcessor(ctx, out);
+    const middleware = this.createMiddleware(config);
+    return (ctx: {[key: string]: any}, ...ins: any[]) => {
+      return middleware(...ins).then((out) => outProcessor(ctx, out));
     };
   }
 
@@ -64,12 +48,10 @@ export class WebApp extends Koa {
         };
       }
       // uncompiled chiml
-      return (...ins: any[]) => {
-        return execute(config, ...ins);
-      };
+      return (...ins: any[]) => execute(config, ...ins);
     }
     // function
-    return config;
+    return (...ins: any[]) => Promise.resolve(config(...ins));
   }
 
 }
