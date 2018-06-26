@@ -13,7 +13,7 @@ vars:
   middlewares:
     - middlewares/log.chiml
 
-  routes:
+  pages:
     - method: get
       url: /hello/:name
       controller: controllers/hello.chiml
@@ -27,11 +27,11 @@ do:
   - map: middlewares
     do: (middleware) -> {app.addMiddleware}
 
-  # route
-  - map: routes
-    ins: route
+  # page
+  - map: pages
+    ins: page
     do:
-      - (route.method, route.url, route.controller) -> {app.addRoute}
+      - (page.method, page.url, page.controller) -> {app.addPage}
 
   # run the server
   - (app.createServer()) --> server
