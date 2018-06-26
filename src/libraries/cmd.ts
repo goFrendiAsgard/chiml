@@ -53,8 +53,8 @@ function runCompiledChiml(scriptPath, ins: any[]): Promise<any> {
   }
 }
 
-export function cmdComposedCommand(command: string, ins: any[] = [], opts?: {[key: string]: any},
-                                   isCompiled: boolean = false): Promise<any> {
+export function cmdComposedCommand(
+  command: string, ins: any[] = [], opts?: {[key: string]: any}, isCompiled: boolean = false): Promise<any> {
   if (isCompiled) {
     const commandParts = smartSplit(command, " ").filter((part) => part !== "");
     if (commandParts.length > 1 && commandParts[0] === "chie") {

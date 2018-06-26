@@ -20,12 +20,20 @@ const port = 3010;
 const url = `http://localhost:${port}`;
 const app = new WebApp_1.WebApp();
 let server;
-it("able to add page (function) with custom outProcessor", (done) => {
+it("able to add page (function) before middleware", (done) => {
     app.addPage("get", "/first", () => "Roses are red");
     done();
 });
-it("able to add page (function) with custom outProcessor", (done) => {
+it("able to add page (function) with custom outProcessor, before middleware", (done) => {
     app.addPage("get", "/second", () => "blue", (ctx, out) => ctx.body = `Violet is ${out}`);
+    done();
+});
+it("able to add compiled page", (done) => {
+    app.addPage("get", "/add/:n1/:n2", path_1.resolve(testcaseDirPath, "compiled-page.chiml"));
+    done();
+});
+it("able to add compiled route", (done) => {
+    app.addRoute("get", "/minus/:n1/:n2", path_1.resolve(testcaseDirPath, "compiled-route.chiml"));
     done();
 });
 it("able to add middleware (function)", (done) => {
@@ -74,17 +82,31 @@ it("able to create server and run it", (done) => {
     expect(server.listening).toBeTruthy();
     done();
 });
-it("able to send request to defined page (function)", (done) => {
+it("able to send request to /first", (done) => {
     httpRequest(`${url}/first`, (error, response, body) => {
         expect(error).toBeNull();
         expect(body).toBe("Roses are red");
         done();
     });
 });
-it("able to send request to defined page (function)", (done) => {
+it("able to send request to /second", (done) => {
     httpRequest(`${url}/second`, (error, response, body) => {
         expect(error).toBeNull();
         expect(body).toBe("Violet is blue");
+        done();
+    });
+});
+it("able to send request to /add/5/3", (done) => {
+    httpRequest(`${url}/add/5/3`, (error, response, body) => {
+        expect(error).toBeNull();
+        expect(body).toBe("8");
+        done();
+    });
+});
+it("able to send request to /minus/5/3", (done) => {
+    httpRequest(`${url}/minus/5/3`, (error, response, body) => {
+        expect(error).toBeNull();
+        expect(body).toBe("2");
         done();
     });
 });
@@ -95,42 +117,42 @@ it("able to send request to undefined route", (done) => {
         done();
     });
 });
-it("able to send request to defined route (function)", (done) => {
+it("able to send request to /hello/Frodo", (done) => {
     httpRequest(`${url}/hello/Frodo`, (error, response, body) => {
         expect(error).toBeNull();
         expect(body).toBe(`${header}Hello Frodo${footer}${copyRight}${year}`);
         done();
     });
 });
-it("able to send request to defined route (chiml file)", (done) => {
+it("able to send request to /hi/Luke", (done) => {
     httpRequest(`${url}/hi/Luke`, (error, response, body) => {
         expect(error).toBeNull();
         expect(body).toBe(`${header}Hi Luke${footer}${copyRight}${year}`);
         done();
     });
 });
-it("able to send request to defined route (chiml script)", (done) => {
+it("able to send request to /bonjour/Kirk", (done) => {
     httpRequest(`${url}/bonjour/Kirk`, (error, response, body) => {
         expect(error).toBeNull();
         expect(body).toBe(`${header}Bonjour Kirk${footer}${copyRight}${year}`);
         done();
     });
 });
-it("able to send request to defined page (function)", (done) => {
+it("able to send request to /page-hello/Frodo", (done) => {
     httpRequest(`${url}/page-hello/Frodo`, (error, response, body) => {
         expect(error).toBeNull();
         expect(body).toBe(`${header}Hello Frodo${footer}${copyRight}${year}`);
         done();
     });
 });
-it("able to send request to defined page (chiml file)", (done) => {
+it("able to send request to /page-hi/Luke", (done) => {
     httpRequest(`${url}/page-hi/Luke`, (error, response, body) => {
         expect(error).toBeNull();
         expect(body).toBe(`${header}Hi Luke${footer}${copyRight}${year}`);
         done();
     });
 });
-it("able to send request to defined page (chiml script)", (done) => {
+it("able to send request to /page-bonjour/Kirk", (done) => {
     httpRequest(`${url}/page-bonjour/Kirk`, (error, response, body) => {
         expect(error).toBeNull();
         expect(body).toBe(`${header}Bonjour Kirk${footer}${copyRight}${year}`);

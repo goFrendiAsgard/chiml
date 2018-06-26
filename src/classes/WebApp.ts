@@ -1,11 +1,8 @@
+import {existsSync as fsExistsSync} from "fs";
 import {createServer as httpCreateServer, Server as httpServer} from "http";
 import * as Koa from "koa";
 import * as koaRoute from "koa-route";
 import {execute} from "../libraries/tools";
-
-function defaultOutProcessor(ctx: {[key: string]: any}, out: any): any {
-  ctx.body = (ctx.body || "") + String(out);
-}
 
 export class WebApp extends Koa {
 
@@ -34,12 +31,21 @@ export class WebApp extends Koa {
     config: any, outProcessor: (ctx: {[key: string]: any}, out: any) => any,
   ): (...ins: any[]) => any {
     if (typeof config === "string") {
+      const scriptPath = getScriptPath(config);
+      if (scriptPath !== config && fsExistsSync(scriptPath)) {
+        // compiled chiml
+        return (ctx: {[key: string]: any}, ...ins: any[]) => {
+          const fn = require(scriptPath);
+          const normalIns = getNormalizedIns(ins);
+          return fn(...normalIns).then((out) => outProcessor(ctx, out));
+        };
+      }
+      // uncompiled chiml
       return (ctx: {[key: string]: any}, ...ins: any[]) => {
-        return execute(config, ...ins).then((out) => {
-          outProcessor(ctx, out);
-        });
+        return execute(config, ...ins).then((out) => outProcessor(ctx, out));
       };
     }
+    // function
     return (ctx, ...ins: any[]) => {
       const out = config(...ins);
       outProcessor(ctx, out);
@@ -48,11 +54,40 @@ export class WebApp extends Koa {
 
   protected createMiddleware(config: any): (...ins: any[]) => any {
     if (typeof config === "string") {
+      const scriptPath = getScriptPath(config);
+      if (scriptPath !== config && fsExistsSync(scriptPath)) {
+        // compiled chiml
+        return (...ins: any[]) => {
+          const fn = require(scriptPath);
+          const normalIns = getNormalizedIns(ins);
+          return fn(...normalIns);
+        };
+      }
+      // uncompiled chiml
       return (...ins: any[]) => {
         return execute(config, ...ins);
       };
     }
+    // function
     return config;
   }
 
+}
+
+function defaultOutProcessor(ctx: {[key: string]: any}, out: any): any {
+  ctx.body = (ctx.body || "") + String(out);
+}
+
+function getScriptPath(str) {
+  return str.replace(/^(.*)\.chiml$/gmi, "$1.js");
+}
+
+function getNormalizedIns(ins: any[]) {
+  return ins.map((element) => {
+    try {
+      return JSON.parse(element);
+    } catch (error) {
+      return element;
+    }
+  });
 }
