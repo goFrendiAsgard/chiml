@@ -1,3 +1,4 @@
+import * as cacheRequirePaths from "cache-require-paths";
 import {readFile} from "fs";
 import {safeLoad} from "js-yaml";
 import {normalizeRawConfig, strToNormalizedConfig} from "./singleTaskConfigProcessor";

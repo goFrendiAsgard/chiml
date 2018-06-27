@@ -1,4 +1,5 @@
 #! /usr/bin/env node
+import * as cacheRequirePaths from "cache-require-paths";
 import {execute} from "../libraries/tools";
 
 if (require.main === module) {

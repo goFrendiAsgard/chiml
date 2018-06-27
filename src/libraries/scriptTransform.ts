@@ -1,3 +1,4 @@
+import * as cacheRequirePaths from "cache-require-paths";
 import * as ts from "typescript";
 
 export function tsToJs(source: string) {

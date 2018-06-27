@@ -1,3 +1,4 @@
+import * as cacheRequirePaths from "cache-require-paths";
 import {createContext, runInNewContext} from "vm";
 import {CommandType, FunctionalMode, Mode} from "../enums/singleTaskProperty";
 import {ISingleTask} from "../interfaces/ISingleTask";

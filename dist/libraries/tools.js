@@ -35,6 +35,7 @@ function getCompiledScript(chiml) {
             const task = new SingleTask_1.SingleTask(config);
             const mainScript = task.getScript();
             const script = [
+                'import * as cacheRequirePaths from "cache-require-paths";',
                 'import {__cmd, __parseIns} from "chiml/dist/libraries/utilities.js";',
                 "const __isCompiled = true;",
                 mainScript,

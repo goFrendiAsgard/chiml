@@ -1,3 +1,4 @@
+import * as cacheRequirePaths from "cache-require-paths";
 import {tsToJs} from "./scriptTransform";
 
 it("transform ts to js", (done) => {

@@ -9,7 +9,7 @@
   },
   "scripts": {
     "lint": "tslint -c tslint.json 'src/**/*.{ts,tsx}'",
-    "pretest": "npm run lint && tsc --sourcemap",
+    "pretest": "npm run lint && tsc --sourcemap && chmod 755 ./dist -R",
     "test": "jest"
   },
   "repository": {
@@ -48,6 +48,7 @@
     "@types/koa-route": "^3.2.3",
     "@types/node": "^10.3.2",
     "@types/request": "^2.47.0",
+    "cache-require-paths": "^0.3.0",
     "ejs": "^2.6.1",
     "express": "^4.16.3",
     "fs-extra": "^6.0.1",

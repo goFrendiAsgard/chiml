@@ -13,9 +13,14 @@ vars:
   middlewares:
     - middlewares/log.chiml
 
-  pages:
+  routes:
     - method: get
       url: /hello/:name
+      controller: controllers/hello.chiml
+
+  rpcUrl: /rpc
+  rpcSettings:
+    - method: hello
       controller: controllers/hello.chiml
 
 do:
@@ -24,16 +29,24 @@ do:
   - (new sys.WebApp()) --> app
 
   # middlewares
-  - map: middlewares
-    do: (middleware) -> {app.addMiddleware}
+  - (middlewares) -> {app.addMiddlewares}
 
-  # page
-  - map: pages
-    ins: page
-    do:
-      - (page.method, page.url, page.controller) -> {app.addPage}
+  # routes
+  - (routes) -> {app.addRoutes}
+
+  # jsonRpc
+  - (rpcUrl, rpcSettings) -> {app.addJsonRpcMiddleware}
 
   # run the server
   - (app.createServer()) --> server
   - (serverConfig) -> [server.listen]
   - (`Run server on port ${serverConfig.port}. Press ctrl + c to stop`) --> output
+
+  # test request
+  - ("http://localhost:3000/hello/Einstein") -> [sys.httpRequest] -> response1
+  - (response1) -> {console.log}
+
+  # test rpc
+  - ("http://localhost:3000/rpc", "hello", "Newton") -> [sys.jsonRpcRequest] -> response2
+  - (response2) -> {console.log}
+

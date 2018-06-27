@@ -1,3 +1,4 @@
+import * as cacheRequirePaths from "cache-require-paths";
 import {CommandType, FunctionalMode, Mode} from "../enums/singleTaskProperty";
 import {isFlanked, removeFlank, smartSplit} from "./stringUtil";
 

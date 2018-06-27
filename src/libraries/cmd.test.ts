@@ -1,3 +1,4 @@
+import * as cacheRequirePaths from "cache-require-paths";
 import {remove as fsRemove} from "fs-extra";
 import {dirname as pathDirName, resolve as pathResolve} from "path";
 import {cmd, cmdComposedCommand, composeCommand} from "./cmd";

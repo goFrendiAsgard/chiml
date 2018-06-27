@@ -1,3 +1,4 @@
+import * as cacheRequirePaths from "cache-require-paths";
 import {copy as fsCopy, readdir as readDir, readFile, stat as fsStat, writeFile} from "fs-extra";
 import {basename as pathBaseName, dirname as pathDirName, resolve as pathResolve} from "path";
 import {SingleTask} from "../classes/SingleTask";
@@ -27,6 +28,7 @@ export function getCompiledScript(chiml: any): Promise<string> {
       const task = new SingleTask(config);
       const mainScript = task.getScript();
       const script = [
+        'import * as cacheRequirePaths from "cache-require-paths";',
         'import {__cmd, __parseIns} from "chiml/dist/libraries/utilities.js";',
         "const __isCompiled = true;",
         mainScript,

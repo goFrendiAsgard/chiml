@@ -1,3 +1,4 @@
+import * as cacheRequirePaths from "cache-require-paths";
 import {dirname as pathDirName, resolve as pathResolve} from "path";
 import {runInNewContext} from "vm";
 import {SingleTask} from "../classes/SingleTask";

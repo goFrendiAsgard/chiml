@@ -1,3 +1,5 @@
+package-lock.json
+.cache-require-paths.json
 /node_modules
 /coverage
 /testcase/compile/test.js
