@@ -16,6 +16,7 @@ do:
   # compose results using JavaScript
   - (c, d) -> (x, y) => x * y -> e
   # or even calling json rpc
+  #- ("http://server.com", "multi", c, d) -> [sys.jsonRpcRequest] -> e
 ```
 
 ## Execution
