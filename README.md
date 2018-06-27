@@ -13,10 +13,29 @@ do:
   - parallel:
     - (a, b) -> python3 lib/add.py -> c
     - (a, b) -> java -cp lib Minus -> d
-  # compose results using JavaScript
+
+  # compose results using JavaScript Synchronous Function
   - (c, d) -> (x, y) => x * y -> e
-  # or even calling json rpc
+
+  # or using JSON RPC
   #- ("http://server.com", "multi", c, d) -> [sys.jsonRpcRequest] -> e
+
+  # or using [JavaScript Asynchronous] Function
+  #- (c, d) -> [(x, y, cb) => cb(null, x + y)] -> e
+
+  # or using <JavaScript Promise>
+  #- (c, d) -> (x, y) => Promise.resolve(x, y)) -> promise
+  #- <promise> -> e
+
+  # or using {JavaScript Synchronous Function} again
+  #- (c, d) -> {(x, y) => x * y} -> e
+
+  # or using {JavaScript Synchronous Function} again, without fat arrow
+  #- (c, d) -> {function (x, y) {return x * y;}} -> e
+
+  # or using External JavaScript Library
+  #- (require("./myLib.js")) --> lib
+  #- (c, d) -> {lib.add} -> e
 ```
 
 ## Execution
