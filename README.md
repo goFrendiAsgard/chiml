@@ -15,6 +15,7 @@ do:
     - (a, b) -> java -cp lib Minus -> d
   # compose results using JavaScript
   - (c, d) -> (x, y) => x * y -> e
+  # or even calling json rpc
 ```
 
 ## Execution
@@ -55,7 +56,11 @@ libs  node_modules  program.chiml  program.js
 > npm test
 ```
 
-# More Examples
+# Examples
+
+* [Simple](./sample/simple): Call external Python and Java Program
+* [Composition](./sample/composition): Call other CHIML script, Use JavaScript functions and Promise
+* [Web](./sample/web): Make a web server that has a single page and a JSON-RPC endpoint.
 
 [Click here](./sample)
 

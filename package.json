@@ -1,6 +1,6 @@
 {
   "name": "chiml",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "(JavaScript + YAML + GoodIntention) --> CHIML",
   "main": "dist/index.js",
   "bin": {
