@@ -62,8 +62,6 @@ libs  node_modules  program.chiml  program.js
 * [Composition](./sample/composition): Call other CHIML script, Use JavaScript functions and Promise
 * [Web](./sample/web): Make a web server that has a single page and a JSON-RPC endpoint.
 
-[Click here](./sample)
-
 # Reserved Variables
 
 Some variables are used and generated automatically. You should stay away from these variables unless you have a very good reason. Below is the list of reserved variables:
