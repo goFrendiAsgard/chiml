@@ -82,9 +82,9 @@ libs  node_modules  program.chiml  program.js
 * [Composition](./examples/composition): Call other CHIML script, Use JavaScript functions and Promise.
 * [Branch](./examples/branch): Use branch control to determine whether a student `pass` or `fail`.
 * [Loop](./examples/loop): Use loop control to calculate factorial of a number.
-* [Map](./examples/map): Functional map to get square of numbers (`do-while`)
-* [Filter](./examples/filter): Functional filter to get even numbers (`do-while`)
-* [Reduce](./examples/reduce): Functional map to get sum of numbers (`do-while`)
+* [Map](./examples/map): Functional map to get square of numbers.
+* [Filter](./examples/filter): Functional filter to get even numbers.
+* [Reduce](./examples/reduce): Functional map to get sum of numbers.
 * [Web](./examples/web): Make a web server that has a single page and a JSON-RPC endpoint.
 
 # Reserved Variables
