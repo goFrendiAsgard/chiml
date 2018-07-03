@@ -87,127 +87,30 @@ libs  node_modules  program.chiml  program.js
 * [Reduce](./examples/reduce): Functional reduce to get sum of numbers.
 * [Web](./examples/web): Make a web server that has a single page and a JSON-RPC endpoint.
 
-# Grammar
-```
-<program> ::= <completeVars>
-              <command>
+# Technical Specification
 
-<command> ::= <completeCommand>
-            | <shortCommand>
+## Program Structure
 
-<completeCommand> ::= <completeIns>
-                      <completeOut>
-                      <completeIf>
-                      "do: "<singleCommand><newLine>
-                      <completeWhile>
+```typescript
+Interface Program{
+  "ins" : <inputList>,
+  "out": <varName>,
+  "vars": <object>, // optional
+  "if": <condition>, // optional
 
-                    | <completeIns>
-                      <completeOut>
-                      <completeIf>
-                      "parallel: "<singleCommand><newLine>
-                      <completeWhile>
+  "map": <varName>,       // "map", "filter", and "reduce" are mutually exclussive
+  "filter": <varName>,    // "map", "filter", and "reduce" are mutually exclussive
+  "reduce": <varName>,    // "map", "filter", and "reduce" are mutually exclussive
+  "accumulator": <value>, // ignored unless "reduce" is presence
 
-                    | <completeIns>
-                      <completeOut>
-                      <completeIf>
-                      "do: "<commandList>
-                      <completeWhile>
+  "do": <command | commandList>, // "do" and "parallel" are mutually exclusive
+  "parallel": <commandList>,     // "do" and "parallel" are mutually exclusive
 
-                    | <completeIns>
-                      <completeOut>
-                      <completeIf>
-                      "parallel: "<commandList>
-                      <completeWhile>
-
-                    | "map: "<variableName>
-                      "into: "<variableName>
-                      <completeCommand>
-
-                    | "filter: "<variableName>
-                      "into: "<variableName>
-                      <completeCommand>
-
-<shortCommand> ::= "("<ins>") -> " <singleCommand> " -> " <out><newLine>
-                 | "("<ins>") -> " <singleCommand> "<newLine>
-                 | <singleCommand> " -> " <out><newLine>
-                 | "("<ins>") --> " <out><newLine>
-                 | ""<out> " <-- ("<ins>")"<newLine>
-
-<commandList>  ::= "- "<command>
-                 | <commandList><commandList>
-
-<completeVars>  ::= ""
-                  | "vars: "<variableList><newLine>
-
-<completeIns>   ::= ""
-                  | "ins: "<ins><newLine>
-
-<completeOut>   ::= ""
-                  | "out: "<out><newLine>
-
-<completeIf>    ::= ""
-                  | "if: "<condition><newLine>
-
-<completeWhile> ::= ""
-                  | "while: "<condition><newLine>
-
-<ins> ::= <variableList>
-
-<out> ::= <variableName>
-
-<singleCommand> ::= <cliCommand>
-                  | <jsAnonymousFunction>
-                  | "{"<jsSyncFunction>"}"
-                  | "["<jsAsyncFunction>"]"
-                  | "<"<jsPromise>">"
-
-<variableName> ::= <alpha>
-                 | <alpha><alphaNumeric>
-
-<variableList> ::= <variableName>
-                 | <variableName>","<variableList>
-
-<condition> ::= "true"
-              | "false"
-              | Any JavaScript statement evaluated to either "true" or "false"
-
-<string> ::= <string><string>
-           | <alphanumeric>
-           | <space>
-           | <symbol>
-
-<alphanumeric> ::= <alphanumeric><alphanumeric>
-                 | <alpha>
-                 | <integer>
-
-<alpha> ::= <letter><alpha>
-
-<letter> ::= "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h" | "i" | "j" | "k" | "l" | "m"
-           | "n" | "o" | "p" | "q" | "r" | "s" | "t" | "u" | "v" | "w" | "x" | "y" | "z"
-           | "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J" | "K" | "L" | "M"
-           | "N" | "O" | "P" | "Q" | "R" | "S" | "T" | "U" | "V" | "W" | "X" | "Y" | "Z"
-
-<space> ::= " "
-
-<newLine> ::= "\n"
-
-<symbol> ::= "|" | " " | "!" | "#" | "$" | "%" | "&" | "(" | ")" | "*" | "+" | "," | "-"
-           | "." | "/" | ":" | ";" | ">" | "=" | "<" | "?" | "@" | "[" | "\" | "]" | "^"
-           | "_" | "`" | "{" | "}" | "~"
-
-<integer> ::= <digit>
-            | <digit><integer>
-
-<digit> ::= "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
-
-<cliCommand> ::= CLI Command
-<jsAnonymousFunction> ::= JavaScript Anonymous Function
-<jsSyncFunction> ::= JavaScript Function (i.e: one that return value)
-<jsAsyncFunction> ::= JavaScript Asynhronous Function (i.e: one with callback)
-<jsPromise> ::= JavaScript Promise
+  "while": <command>, // optional
+};
 ```
 
-# Reserved Variables
+## Reserved Variables
 
 Some variables are used and generated automatically. You should stay away from these variables unless you have a very good reason. Below is the list of reserved variables:
 
