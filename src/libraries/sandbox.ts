@@ -10,8 +10,14 @@ export function createSandbox(chimlPath: string): {[key: string]: any} {
     __dirname: dirName,
     __filename: fileName,
     __isCompiled: false,
+    clearImmediate,
+    clearInterval,
+    clearTimeout,
     console,
     require,
+    setImmediate,
+    setInterval,
+    setTimeout,
   }, utilities);
   return sandbox;
 }

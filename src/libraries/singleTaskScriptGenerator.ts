@@ -30,14 +30,20 @@ function wrapJsSyncFunction(task: ISingleTask, spaceCount: number): string {
 }
 
 function wrapJsAsyncFunction(task: ISingleTask, spaceCount: number): string {
-  const ins = task.ins.join(", ");
+  const ins = task.ins.length === 0 ? "" : task.ins.join(", ") + ", ";
   const template = [
     "const __promise<%- task.id %> = new Promise((__resolve, __reject) => {",
-    "  (<%- task.command %>)(<%- ins %>, (__error, __result) => {",
+    "  (<%- task.command %>)(<%- ins %> (__error, ...__result) => {",
     "    if (__error) {",
     "      return __reject(__error);",
     "    }",
-    "    <%- task.out %> = __result;",
+    "    if (__result.length === 0) {",
+    "      <%- task.out %> = undefined;",
+    "    } else if (__result.length === 1) {",
+    "      <%- task.out %> = __result[0];",
+    "    } else {",
+    "      <%- task.out %> = __result;",
+    "    }",
     "    return __resolve(true);",
     "  });",
     "});",

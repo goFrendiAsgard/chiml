@@ -2,7 +2,7 @@ import * as cacheRequirePaths from "cache-require-paths";
 import {CommandType, FunctionalMode, Mode} from "../enums/singleTaskProperty";
 import {isFlanked, removeFlank, smartSplit} from "./stringUtil";
 
-const jsArrowFunctionPattern = /^\(.*\)\s*=>.+/g;
+const jsArrowFunctionPattern = /^.*\s*=>.+/g;
 const jsFunctionPattern = /^function\s*\(.*\)\s*{.+}$/g;
 
 export interface IRawConfig {
@@ -149,6 +149,9 @@ function getNormalIns(ins: any): string[] {
     }
     return newIns;
   } else if (ins === null || ins === undefined) {
+    return [];
+  }
+  if (ins.length === 1 && ins[0] === "") {
     return [];
   }
   return ins;

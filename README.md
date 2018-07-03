@@ -24,8 +24,8 @@ do:
   #- (c, d) -> [(x, y, cb) => cb(null, x + y)] -> e
 
   # or using <JavaScript Promise>
-  #- (c, d) -> (x, y) => Promise.resolve(x, y)) -> promise
-  #- <promise> -> e
+  #- (c, d) -> (x, y) => Promise.resolve(x, y)) -> myPromise
+  #- <myPromise> -> e
 
   # or using {JavaScript Synchronous Function} again
   #- (c, d) -> {(x, y) => x * y} -> e
@@ -54,7 +54,7 @@ CHIML is also compilable into JavaScript by using `chic` command:
 ```bash
 > chic program.chiml
 JavaScript file created:
-- /home/gofrendi/chiml/sample/program.js
+- /home/gofrendi/chiml/examples/program.js
 
 > ls
 libs  node_modules  program.chiml  program.js
@@ -78,9 +78,9 @@ libs  node_modules  program.chiml  program.js
 
 # Examples
 
-* [Simple](./sample/simple): Call external Python and Java Program
-* [Composition](./sample/composition): Call other CHIML script, Use JavaScript functions and Promise
-* [Web](./sample/web): Make a web server that has a single page and a JSON-RPC endpoint.
+* [Simple](./examples/simple): Call external Python and Java Program
+* [Composition](./examples/composition): Call other CHIML script, Use JavaScript functions and Promise
+* [Web](./examples/web): Make a web server that has a single page and a JSON-RPC endpoint.
 
 # Reserved Variables
 

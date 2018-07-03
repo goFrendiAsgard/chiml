@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const singleTaskProperty_1 = require("../enums/singleTaskProperty");
 const stringUtil_1 = require("./stringUtil");
-const jsArrowFunctionPattern = /^\(.*\)\s*=>.+/g;
+const jsArrowFunctionPattern = /^.*\s*=>.+/g;
 const jsFunctionPattern = /^function\s*\(.*\)\s*{.+}$/g;
 function strToNormalizedConfig(str) {
     return normalizeRawConfig(strToRawConfig(str));
@@ -128,6 +128,9 @@ function getNormalIns(ins) {
         return newIns;
     }
     else if (ins === null || ins === undefined) {
+        return [];
+    }
+    if (ins.length === 1 && ins[0] === "") {
         return [];
     }
     return ins;

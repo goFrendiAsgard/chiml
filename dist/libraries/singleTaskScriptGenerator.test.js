@@ -58,6 +58,32 @@ it("jsAsync handler works `(a,b) -> [(x, y, callback) => callback(null, x + y)]`
         done();
     });
 });
+it("jsAsync handler works `() -> [(callback) => callback(null, 5)]`", (done) => {
+    const config = "() -> [(callback) => callback(null, 5)]";
+    createScriptAndHandler(config).then(({ script, handler }) => {
+        handler().then((result) => {
+            expect(result).toBe(5);
+            done();
+        });
+    }).catch((error) => {
+        expect(error).toBeNull();
+        done();
+    });
+});
+it("jsAsync handler works `() -> [(callback) => callback(null, 1, 2)]`", (done) => {
+    const config = "() -> [(callback) => callback(null, 1, 2)]";
+    createScriptAndHandler(config).then(({ script, handler }) => {
+        handler().then((result) => {
+            expect(result).toHaveLength(2);
+            expect(result[0]).toBe(1);
+            expect(result[1]).toBe(2);
+            done();
+        });
+    }).catch((error) => {
+        expect(error).toBeNull();
+        done();
+    });
+});
 it("jsSync handler works `(a,b) -> (x, y) => x + y`", (done) => {
     const config = "(a,b) -> (x, y) => x + y";
     createScriptAndHandler(config).then(({ script, handler }) => {

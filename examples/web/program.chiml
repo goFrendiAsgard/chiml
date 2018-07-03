@@ -11,7 +11,7 @@ vars:
     writableAll: false
 
   middlewares:
-    - middlewares/log.chiml
+    - middlewares/logger.chiml
 
   routes:
     - method: get
@@ -41,12 +41,3 @@ do:
   - (app.createServer()) --> server
   - (serverConfig) -> [server.listen]
   - (`Run server on port ${serverConfig.port}. Press ctrl + c to stop`) --> output
-
-  # test request
-  - ("http://localhost:3000/hello/Einstein") -> [sys.httpRequest] -> response1
-  - (response1) -> {console.log}
-
-  # test rpc
-  - ("http://localhost:3000/rpc", "hello", "Newton") -> [sys.jsonRpcRequest] -> response2
-  - (response2) -> {console.log}
-

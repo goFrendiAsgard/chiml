@@ -1,0 +1,9 @@
+ins: ctx, next
+do: |
+  (ctx, next) => {
+    const label = `${ctx.method} ${ctx.url}`;
+    console.time(label);
+    return next().then(() => {
+      console.timeEnd(label);
+    });
+  }
