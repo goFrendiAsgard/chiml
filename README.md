@@ -84,8 +84,128 @@ libs  node_modules  program.chiml  program.js
 * [Loop](./examples/loop): Use loop control to calculate factorial of a number.
 * [Map](./examples/map): Functional map to get square of numbers.
 * [Filter](./examples/filter): Functional filter to get even numbers.
-* [Reduce](./examples/reduce): Functional map to get sum of numbers.
+* [Reduce](./examples/reduce): Functional reduce to get sum of numbers.
 * [Web](./examples/web): Make a web server that has a single page and a JSON-RPC endpoint.
+
+# Grammar
+```
+<program> ::= <completeVars>
+              <command>
+
+<command> ::= <completeCommand>
+            | <shortCommand>
+
+<completeCommand> ::= <completeIns>
+                      <completeOut>
+                      <completeIf>
+                      "do: "<singleCommand><newLine>
+                      <completeWhile>
+
+                    | <completeIns>
+                      <completeOut>
+                      <completeIf>
+                      "parallel: "<singleCommand><newLine>
+                      <completeWhile>
+
+                    | <completeIns>
+                      <completeOut>
+                      <completeIf>
+                      "do: "<commandList>
+                      <completeWhile>
+
+                    | <completeIns>
+                      <completeOut>
+                      <completeIf>
+                      "parallel: "<commandList>
+                      <completeWhile>
+
+                    | "map: "<variableName>
+                      "into: "<variableName>
+                      <completeCommand>
+
+                    | "filter: "<variableName>
+                      "into: "<variableName>
+                      <completeCommand>
+
+<shortCommand> ::= "("<ins>") -> " <singleCommand> " -> " <out><newLine>
+                 | "("<ins>") -> " <singleCommand> "<newLine>
+                 | <singleCommand> " -> " <out><newLine>
+                 | "("<ins>") --> " <out><newLine>
+                 | ""<out> " <-- ("<ins>")"<newLine>
+
+<commandList>  ::= "- "<command>
+                 | <commandList><commandList>
+
+<completeVars>  ::= ""
+                  | "vars: "<variableList><newLine>
+
+<completeIns>   ::= ""
+                  | "ins: "<ins><newLine>
+
+<completeOut>   ::= ""
+                  | "out: "<out><newLine>
+
+<completeIf>    ::= ""
+                  | "if: "<condition><newLine>
+
+<completeWhile> ::= ""
+                  | "while: "<condition><newLine>
+
+<ins> ::= <variableList>
+
+<out> ::= <variableName>
+
+<singleCommand> ::= <cliCommand>
+                  | <jsAnonymousFunction>
+                  | "{"<jsSyncFunction>"}"
+                  | "["<jsAsyncFunction>"]"
+                  | "<"<jsPromise>">"
+
+<variableName> ::= <alpha>
+                 | <alpha><alphaNumeric>
+
+<variableList> ::= <variableName>
+                 | <variableName>","<variableList>
+
+<condition> ::= "true"
+              | "false"
+              | Any JavaScript statement evaluated to either "true" or "false"
+
+<string> ::= <string><string>
+           | <alphanumeric>
+           | <space>
+           | <symbol>
+
+<alphanumeric> ::= <alphanumeric><alphanumeric>
+                 | <alpha>
+                 | <integer>
+
+<alpha> ::= <letter><alpha>
+
+<letter> ::= "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h" | "i" | "j" | "k" | "l" | "m"
+           | "n" | "o" | "p" | "q" | "r" | "s" | "t" | "u" | "v" | "w" | "x" | "y" | "z"
+           | "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J" | "K" | "L" | "M"
+           | "N" | "O" | "P" | "Q" | "R" | "S" | "T" | "U" | "V" | "W" | "X" | "Y" | "Z"
+
+<space> ::= " "
+
+<newLine> ::= "\n"
+
+<symbol> ::= "|" | " " | "!" | "#" | "$" | "%" | "&" | "(" | ")" | "*" | "+" | "," | "-"
+           | "." | "/" | ":" | ";" | ">" | "=" | "<" | "?" | "@" | "[" | "\" | "]" | "^"
+           | "_" | "`" | "{" | "}" | "~"
+
+<integer> ::= <digit>
+            | <digit><integer>
+
+<digit> ::= "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
+
+<cliCommand> ::= CLI Command
+<jsAnonymousFunction> ::= JavaScript Anonymous Function
+<jsSyncFunction> ::= JavaScript Function (i.e: one that return value)
+<jsAsyncFunction> ::= JavaScript Asynhronous Function (i.e: one with callback)
+<jsPromise> ::= JavaScript Promise
+```
 
 # Reserved Variables
 
