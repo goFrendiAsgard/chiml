@@ -1,0 +1,10 @@
+ins: n
+out: factorial
+vars:
+  factorial: 1
+do:
+  - i <-- 1
+  - do:
+    - factorial * i --> factorial
+    - i + 1 --> i
+    while: i <= n

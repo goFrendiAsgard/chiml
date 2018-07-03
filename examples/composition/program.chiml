@@ -16,8 +16,8 @@ do:
     - (a, b) -> [lib.asyncAdd] -> f
     # use JavaScript promise
     - do:
-      - (a, b) -> {lib.promiseAddMaker} -> promise
-      - <promise> -> g
+      - (a, b) -> {lib.promiseAddMaker} -> myPromise
+      - <myPromise> -> g
     # define and call Javascript arrow function
     - (a, b) -> (x, y) => x + y -> h
   - result <-- ({c, d, e, f, g, h})

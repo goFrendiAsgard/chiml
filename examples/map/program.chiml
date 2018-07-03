@@ -1,0 +1,6 @@
+ins: numbers
+out: squares
+do:
+  - map: numbers
+    into: squares
+    do: (num) -> x => x * x
