@@ -92,22 +92,26 @@ libs  node_modules  program.chiml  program.js
 ## Program Structure
 
 ```typescript
-Interface Program{
-  "ins" : <inputList>,
-  "out": <varName>,
-  "vars": <object>, // optional
-  "if": <condition>, // optional
+interface ChimlProgram{
+  ins : string | string[],
+  out: string,
 
-  "map": <varName>,       // "map", "filter", and "reduce" are mutually exclussive
-  "filter": <varName>,    // "map", "filter", and "reduce" are mutually exclussive
-  "reduce": <varName>,    // "map", "filter", and "reduce" are mutually exclussive
-  "accumulator": <value>, // ignored unless "reduce" is presence
+  vars: {[key: string]: any}, // optional
 
-  "do": <command | commandList>, // "do" and "parallel" are mutually exclusive
-  "parallel": <commandList>,     // "do" and "parallel" are mutually exclusive
+  if: string,                 // optional
 
-  "while": <command>, // optional
+  map: string,         // "map", "filter", and "reduce" are mutually exclussive
+  filter: string,      // "map", "filter", and "reduce" are mutually exclussive
+  reduce: string,      // "map", "filter", and "reduce" are mutually exclussive
+  accumulator: string, // ignored unless "reduce" is presence
+
+  do: chimlProgram | chimlProgram[], // "do" and "parallel" are mutually exclusive
+  parallel: chimlProgram[],          // "do" and "parallel" are mutually exclusive
+
+  while: string, // optional
 };
+
+type chimlProgram = ChimlProgram | string;
 ```
 
 ## Reserved Variables
