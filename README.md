@@ -91,28 +91,61 @@ libs  node_modules  program.chiml  program.js
 
 ## Program Structure
 
+CHIML program should contains a single `command`. Below is a typescript definition showing properties of a CHIML program.
+
 ```typescript
-interface ChimlProgram{
-  ins : string | string[],
-  out: string,
+// Structure of a `command`
+interface CommandObject{
+  ins : string | string[],    // program input, can be written as string array or comma
+                              // separated string like: "a, b, c"
 
-  vars: {[key: string]: any}, // optional
+  out: string,                // program output
 
-  if: string,                 // optional
+  vars: {[key: string]: any}, // object, initial values of variables
 
-  map: string,         // "map", "filter", and "reduce" are mutually exclussive
-  filter: string,      // "map", "filter", and "reduce" are mutually exclussive
-  reduce: string,      // "map", "filter", and "reduce" are mutually exclussive
-  accumulator: string, // ignored unless "reduce" is presence
+  if: string = "true",        // branch condition, default to be `true`
 
-  do: chimlProgram | chimlProgram[], // "do" and "parallel" are mutually exclusive
-  parallel: chimlProgram[],          // "do" and "parallel" are mutually exclusive
+                              // `map`, `filter`, and `reduce` are mutually exclussive
+  map: string,                // variable name for mapping
+  filter: string,             // variable name for filtering
+  reduce: string,             // variable name for reducing
 
-  while: string, // optional
+  into: string,               // variable name, output of `map`, `filter`, or `reduce`
+
+  accumulator: string,        // ignored unless `reduce` is presence, default to be `0`
+
+                              // `do` and `parallel` are mutually exclusive
+  do: command | command[],    // command or list of commands that should be executed in serries
+  parallel: command[],        // list of commands that should be executed in parallel
+
+  while: string = "false",    // loop condition, default to be "false"
 };
 
-type chimlProgram = ChimlProgram | string;
+// CHIML program can be written as an object or as a string
+type command = CommandObject | string; 
 ```
+
+Command can be written as string with following format:
+
+* `(ins) -> process -> out`
+* `(ins) -> process`
+* `process -> out`
+* `(ins) --> out`
+
+The `->` and `-->` can also be reversed into `<-` and `<--`, so that the following is also true:
+
+* `out <- process <- (ins)`
+* `process <- (ins)`
+* `out <- process`
+* `out <-- (ins)`
+
+Finally, a process can be a JavaScript Function, a JavaScript Promise, or any valid CLI command. In order to distinguish which is which, the following format is used:
+
+* Any `JavaScript anonymous function` or `CLI command` can be written as is.
+* Any JavaScript function that return value, should be wrapped with `{` and `}`.
+* Any JavaScript function that has error-first-callback as it's last parameter, should be wrapped with `[` and `]`.
+* Any Javascript promise should be wrapped with `<` and `>`.
+
 
 ## Reserved Variables
 
