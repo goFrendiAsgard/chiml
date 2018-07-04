@@ -14,29 +14,31 @@ do:
     - (a, b) -> python3 lib/add.py -> c
     - (a, b) -> java -cp lib Minus -> d
 
-  # compose results using JavaScript Synchronous Function
+  # compose results using JavaScript function
   - (c, d) -> (x, y) => x * y -> e
 
-  # or using JSON RPC
-  #- ("http://server.com", "multi", c, d) -> [sys.jsonRpcRequest] -> e
+  # or using {JavaScript function} again
+  #- (c, d) -> {(x, y) => x * y} -> e
 
-  # or using [JavaScript Asynchronous] Function
+  # or using {JavaScript function} again, without fat arrow
+  #- (c, d) -> {function (x, y) {return x * y;}} -> e
+
+  # or using [JavaScript function with error-first callback as last parameter]
   #- (c, d) -> [(x, y, cb) => cb(null, x + y)] -> e
 
-  # or using <JavaScript Promise>
+  # or using <JavaScript promise>
   #- (c, d) -> (x, y) => Promise.resolve(x, y)) -> myPromise
   #- <myPromise> -> e
 
-  # or using {JavaScript Synchronous Function} again
-  #- (c, d) -> {(x, y) => x * y} -> e
-
-  # or using {JavaScript Synchronous Function} again, without fat arrow
-  #- (c, d) -> {function (x, y) {return x * y;}} -> e
-
-  # or using External JavaScript Library
+  # or using external javaScript library
   #- (require("./myLib.js")) --> lib
   #- (c, d) -> {lib.add} -> e
+
+  # or call remote procedure call (JSON-RPC)
+  #- ("http://server.com", "multi", c, d) -> [sys.jsonRpcRequest] -> e
 ```
+
+Using CHIML, you can use synchonous function, invoke external command, use promise, and even call JSON-RPC in similar manners.
 
 ## Execution
 
@@ -86,12 +88,13 @@ libs  node_modules  program.chiml  program.js
 * [Filter](./examples/filter): Functional filter to get even numbers.
 * [Reduce](./examples/reduce): Functional reduce to get sum of numbers.
 * [Web](./examples/web): Make a web server that has a single page and a JSON-RPC endpoint.
+* [Interactive](./examples/interactive): Number guessing game using loop, `[sys.prompt]` and `[sys.print]`.
 
 # Technical Specification
 
 ## Program Structure
 
-CHIML program should contains a single `command`. Below is a typescript definition showing properties of a CHIML program.
+CHIML program should contains a single `command` that should be written as `string` or `Command Object` in `YAML` format. The `CommandObject` should comply the specification below:
 
 ```typescript
 // Structure of a `command`
@@ -142,10 +145,9 @@ The `->` and `-->` can also be reversed into `<-` and `<--`, so that the followi
 Finally, a process can be a JavaScript Function, a JavaScript Promise, or any valid CLI command. In order to distinguish which is which, the following format is used:
 
 * Any `JavaScript anonymous function` or `CLI command` can be written as is.
-* Any JavaScript function that return value, should be wrapped with `{` and `}`.
-* Any JavaScript function that has error-first-callback as it's last parameter, should be wrapped with `[` and `]`.
-* Any Javascript promise should be wrapped with `<` and `>`.
-
+* Any `JavaScript function that return value`, should be wrapped with `{` and `}`.
+* Any `JavaScript function that has error-first-callback as it's last parameter`, should be wrapped with `[` and `]`.
+* Any `Javascript promise` should be wrapped with `<` and `>`.
 
 ## Reserved Variables
 

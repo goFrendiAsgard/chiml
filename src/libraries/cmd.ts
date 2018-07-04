@@ -3,6 +3,10 @@ import {exec} from "child_process";
 import {isAbsolute as isAbsolutePath, resolve as pathResolve} from "path";
 import {doubleQuote, smartSplit} from "./stringUtil";
 
+function createStdInListener(subProcess) {
+  return (chunk) => subProcess.stdin.write(chunk);
+}
+
 export function cmd(command: string, options?: {[key: string]: any}): Promise<string> {
   return new Promise((resolve, reject) => {
     const subProcess = exec(command, options, (error, stdout, stderr) => {
@@ -20,9 +24,7 @@ export function cmd(command: string, options?: {[key: string]: any}): Promise<st
       process.stderr.write("\x1b[31m" + String(chunk) + "\x1b[0m");
     });
 
-    function stdinListener(chunk) {
-      subProcess.stdin.write(chunk);
-    }
+    const stdinListener = createStdInListener(subProcess);
 
     process.stdin.on("data", stdinListener);
     subProcess.stdin.on("end", () => {

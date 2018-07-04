@@ -92,15 +92,24 @@ function createSingleNodeModule(targetDirPath) {
     const newSrcPath = path_1.resolve(targetDirPath, "node_modules", "chiml", "src");
     const newPackageJsonPath = path_1.resolve(targetDirPath, "node_modules", "chiml", "package.json");
     const options = { dereference: true };
-    return fs_extra_1.copy(nodeModulePath, newNodeModulePath, options).then(() => {
-        return fs_extra_1.copy(distPath, newDistPath, options);
-    }).then(() => {
-        return fs_extra_1.copy(srcPath, newSrcPath, options);
-    }).then(() => {
-        return fs_extra_1.copy(packageJsonPath, newPackageJsonPath, options);
-    }).then(() => {
-        return Promise.resolve(true);
+    return fs_extra_1.copy(packageJsonPath, newPackageJsonPath, options).then(() => {
+        return Promise.all([
+            fs_extra_1.copy(distPath, newDistPath, options),
+            fs_extra_1.copy(srcPath, newSrcPath, options),
+            fs_extra_1.copy(nodeModulePath, newNodeModulePath, options),
+        ]).then(() => Promise.resolve(true));
     });
+    /*
+    return fsCopy(nodeModulePath, newNodeModulePath, options).then(() => {
+      return fsCopy(distPath, newDistPath, options);
+    }).then(() => {
+      return fsCopy(srcPath, newSrcPath, options);
+    }).then(() => {
+      return fsCopy(packageJsonPath, newPackageJsonPath, options);
+    }).then(() => {
+      return Promise.resolve(true);
+    });
+    */
 }
 function compileSingleFile(chiml) {
     const targetDirPath = path_1.dirname(chiml);

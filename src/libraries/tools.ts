@@ -82,6 +82,14 @@ function createSingleNodeModule(targetDirPath): Promise<any> {
   const newSrcPath = pathResolve(targetDirPath, "node_modules", "chiml", "src");
   const newPackageJsonPath = pathResolve(targetDirPath, "node_modules", "chiml", "package.json");
   const options = {dereference: true};
+  return fsCopy(packageJsonPath, newPackageJsonPath, options).then(() => {
+    return Promise.all([
+      fsCopy(distPath, newDistPath, options),
+      fsCopy(srcPath, newSrcPath, options),
+      fsCopy(nodeModulePath, newNodeModulePath, options),
+    ]).then(() => Promise.resolve(true));
+  });
+  /*
   return fsCopy(nodeModulePath, newNodeModulePath, options).then(() => {
     return fsCopy(distPath, newDistPath, options);
   }).then(() => {
@@ -91,6 +99,7 @@ function createSingleNodeModule(targetDirPath): Promise<any> {
   }).then(() => {
     return Promise.resolve(true);
   });
+  */
 }
 
 function compileSingleFile(chiml: string): Promise<any> {

@@ -6,7 +6,7 @@ const Koa = require("koa");
 const koaRoute = require("koa-route");
 const httpMethods = require("methods");
 const middlewares_1 = require("../libraries/middlewares");
-const defaultPageConfig = {
+const defaultRouteConfig = {
     controller: (...ins) => ins.slice(0, -1).join(""),
     method: "all",
     outProcessor: middlewares_1.defaultOutProcessor,
@@ -47,7 +47,7 @@ class WebApp extends Koa {
         this.use(middlewares_1.createMiddleware(config));
     }
     addRoute(config) {
-        const { method, url, controller, propagateCtx, outProcessor } = Object.assign({}, defaultPageConfig, config);
+        const { method, url, controller, propagateCtx, outProcessor } = Object.assign({}, defaultRouteConfig, config);
         const middleware = middlewares_1.createMiddleware(controller, propagateCtx, outProcessor);
         this.use(koaRoute[method](url, middleware));
     }

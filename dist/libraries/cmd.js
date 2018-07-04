@@ -3,6 +3,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const child_process_1 = require("child_process");
 const path_1 = require("path");
 const stringUtil_1 = require("./stringUtil");
+function createStdInListener(subProcess) {
+    return (chunk) => subProcess.stdin.write(chunk);
+}
 function cmd(command, options) {
     return new Promise((resolve, reject) => {
         const subProcess = child_process_1.exec(command, options, (error, stdout, stderr) => {
@@ -17,9 +20,7 @@ function cmd(command, options) {
         subProcess.stderr.on("data", (chunk) => {
             process.stderr.write("\x1b[31m" + String(chunk) + "\x1b[0m");
         });
-        function stdinListener(chunk) {
-            subProcess.stdin.write(chunk);
-        }
+        const stdinListener = createStdInListener(subProcess);
         process.stdin.on("data", stdinListener);
         subProcess.stdin.on("end", () => {
             process.stdin.removeListener("data", stdinListener);
