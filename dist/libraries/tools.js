@@ -99,17 +99,6 @@ function createSingleNodeModule(targetDirPath) {
             fs_extra_1.copy(nodeModulePath, newNodeModulePath, options),
         ]).then(() => Promise.resolve(true));
     });
-    /*
-    return fsCopy(nodeModulePath, newNodeModulePath, options).then(() => {
-      return fsCopy(distPath, newDistPath, options);
-    }).then(() => {
-      return fsCopy(srcPath, newSrcPath, options);
-    }).then(() => {
-      return fsCopy(packageJsonPath, newPackageJsonPath, options);
-    }).then(() => {
-      return Promise.resolve(true);
-    });
-    */
 }
 function compileSingleFile(chiml) {
     const targetDirPath = path_1.dirname(chiml);

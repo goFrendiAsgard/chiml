@@ -4,6 +4,7 @@ import {isFlanked, removeFlank, smartSplit} from "./stringUtil";
 
 const jsArrowFunctionPattern = /^.*\s*=>.+/g;
 const jsFunctionPattern = /^function\s*\(.*\)\s*{.+}$/g;
+const jsAsyncPattern = /^async\s*function\s*\(.*\)\s*{.+}$/g;
 
 export interface IRawConfig {
   accumulator: string;
@@ -171,7 +172,7 @@ function parseSingleCommand(normalizedConfig: IRawConfig, config: {[key: string]
       normalizedConfig.commandType = CommandType.jsAsyncFunction;
     } else {
       const command: string = normalizedConfig.command;
-      if (command.match(jsArrowFunctionPattern) || command.match(jsFunctionPattern)) {
+      if (command.match(jsArrowFunctionPattern) || command.match(jsFunctionPattern) || command.match(jsAsyncPattern)) {
         normalizedConfig.commandType = CommandType.jsSyncFunction;
       } else {
         normalizedConfig.commandType = CommandType.cmd;

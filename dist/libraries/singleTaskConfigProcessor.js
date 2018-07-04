@@ -4,6 +4,7 @@ const singleTaskProperty_1 = require("../enums/singleTaskProperty");
 const stringUtil_1 = require("./stringUtil");
 const jsArrowFunctionPattern = /^.*\s*=>.+/g;
 const jsFunctionPattern = /^function\s*\(.*\)\s*{.+}$/g;
+const jsAsyncPattern = /^async\s*function\s*\(.*\)\s*{.+}$/g;
 function strToNormalizedConfig(str) {
     return normalizeRawConfig(strToRawConfig(str));
 }
@@ -152,7 +153,7 @@ function parseSingleCommand(normalizedConfig, config) {
         }
         else {
             const command = normalizedConfig.command;
-            if (command.match(jsArrowFunctionPattern) || command.match(jsFunctionPattern)) {
+            if (command.match(jsArrowFunctionPattern) || command.match(jsFunctionPattern) || command.match(jsAsyncPattern)) {
                 normalizedConfig.commandType = singleTaskProperty_1.CommandType.jsSyncFunction;
             }
             else {

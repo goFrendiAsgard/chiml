@@ -89,17 +89,6 @@ function createSingleNodeModule(targetDirPath): Promise<any> {
       fsCopy(nodeModulePath, newNodeModulePath, options),
     ]).then(() => Promise.resolve(true));
   });
-  /*
-  return fsCopy(nodeModulePath, newNodeModulePath, options).then(() => {
-    return fsCopy(distPath, newDistPath, options);
-  }).then(() => {
-    return fsCopy(srcPath, newSrcPath, options);
-  }).then(() => {
-    return fsCopy(packageJsonPath, newPackageJsonPath, options);
-  }).then(() => {
-    return Promise.resolve(true);
-  });
-  */
 }
 
 function compileSingleFile(chiml: string): Promise<any> {
