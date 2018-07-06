@@ -23,6 +23,11 @@ var JREC;
     JREC[JREC["InvalidParams"] = -32602] = "InvalidParams";
     JREC[JREC["InternalError"] = -32603] = "InternalError";
 })(JREC || (JREC = {}));
+const defaultMiddlewareConfig = {
+    controller: (...ins) => ins.slice(0, -1).join(""),
+    outProcessor: defaultOutProcessor,
+    propagateCtx: true,
+};
 function jsonRpcErrorProcessor(ctx, errorObj) {
     const { id, code } = errorObj;
     let { data, message } = errorObj;
@@ -89,8 +94,12 @@ function createJsonRpcMiddleware(configs) {
         try {
             const matchedConfig = matchedConfigs[0];
             const { controller, propagateCtx } = matchedConfig;
-            const middleware = this.createMiddleware(controller, propagateCtx, (context, out) => {
-                context.body = JSON.stringify({ id, jsonrpc, result: out });
+            const middleware = this.createMiddleware({
+                controller,
+                outProcessor: (context, out) => {
+                    context.body = JSON.stringify({ id, jsonrpc, result: out });
+                },
+                propagateCtx,
             });
             return yield middleware(ctx, ...params);
         }
@@ -101,16 +110,21 @@ function createJsonRpcMiddleware(configs) {
     });
 }
 exports.createJsonRpcMiddleware = createJsonRpcMiddleware;
-function createMiddleware(config, propagateCtx = true, outProcessor = defaultOutProcessor) {
+function createMiddleware(config) {
+    const { controller, propagateCtx, outProcessor } = Object.assign({}, defaultMiddlewareConfig, config);
     if (!propagateCtx) {
-        const middleware = this.createMiddleware(config, true, outProcessor);
+        const middleware = this.createMiddleware({
+            controller,
+            outProcessor,
+            propagateCtx: true,
+        });
         return (ctx, ...ins) => {
             return middleware(...ins).then((out) => outProcessor(ctx, out));
         };
     }
-    if (typeof config === "string") {
-        const scriptPath = getScriptPath(config);
-        if (scriptPath !== config && fs_1.existsSync(scriptPath)) {
+    if (typeof controller === "string") {
+        const scriptPath = getScriptPath(controller);
+        if (scriptPath !== controller && fs_1.existsSync(scriptPath)) {
             // compiled chiml
             return (...ins) => {
                 const fn = require(scriptPath);
@@ -119,10 +133,10 @@ function createMiddleware(config, propagateCtx = true, outProcessor = defaultOut
             };
         }
         // uncompiled chiml
-        return (...ins) => tools_1.execute(config, ...ins);
+        return (...ins) => tools_1.execute(controller, ...ins);
     }
     // function
-    return (...ins) => Promise.resolve(config(...ins));
+    return (...ins) => Promise.resolve(controller(...ins));
 }
 exports.createMiddleware = createMiddleware;
 function getScriptPath(str) {

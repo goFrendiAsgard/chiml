@@ -14,6 +14,12 @@ enum JREC {
   InternalError  = -32603,
 }
 
+const defaultMiddlewareConfig = {
+  controller: (...ins) => ins.slice(0, -1).join(""),
+  outProcessor: defaultOutProcessor,
+  propagateCtx: true,
+};
+
 function jsonRpcErrorProcessor(ctx: {[key: string]: any}, errorObj: {[key: string]: any}): void {
   const {id, code} = errorObj;
   let {data, message} = errorObj;
@@ -71,8 +77,12 @@ export function createJsonRpcMiddleware(configs: any[]): (...ins: any[]) => any 
     try {
       const matchedConfig = matchedConfigs[0];
       const {controller, propagateCtx} = matchedConfig;
-      const middleware = this.createMiddleware(controller, propagateCtx, (context, out) => {
-        context.body = JSON.stringify({id, jsonrpc, result: out});
+      const middleware = this.createMiddleware({
+        controller,
+        outProcessor: (context, out) => {
+          context.body = JSON.stringify({id, jsonrpc, result: out});
+        },
+        propagateCtx,
       });
       return await middleware(ctx, ...params);
     } catch (error) {
@@ -82,19 +92,21 @@ export function createJsonRpcMiddleware(configs: any[]): (...ins: any[]) => any 
   };
 }
 
-export function createMiddleware(
-  config: any, propagateCtx: boolean = true,
-  outProcessor: (ctx: {[key: string]: any}, out: any) => any = defaultOutProcessor,
-): (...ins: any[]) => any {
+export function createMiddleware(config: {[key: string]: any}): (...ins: any[]) => any {
+  const {controller, propagateCtx, outProcessor} = Object.assign({}, defaultMiddlewareConfig, config);
   if (!propagateCtx) {
-    const middleware = this.createMiddleware(config, true, outProcessor);
+    const middleware = this.createMiddleware({
+      controller,
+      outProcessor,
+      propagateCtx: true,
+    });
     return (ctx: {[key: string]: any}, ...ins: any[]) => {
       return middleware(...ins).then((out) => outProcessor(ctx, out));
     };
   }
-  if (typeof config === "string") {
-    const scriptPath = getScriptPath(config);
-    if (scriptPath !== config && fsExistsSync(scriptPath)) {
+  if (typeof controller === "string") {
+    const scriptPath = getScriptPath(controller);
+    if (scriptPath !== controller && fsExistsSync(scriptPath)) {
       // compiled chiml
       return (...ins: any[]) => {
         const fn = require(scriptPath);
@@ -103,10 +115,10 @@ export function createMiddleware(
       };
     }
     // uncompiled chiml
-    return (...ins: any[]) => execute(config, ...ins);
+    return (...ins: any[]) => execute(controller, ...ins);
   }
   // function
-  return (...ins: any[]) => Promise.resolve(config(...ins));
+  return (...ins: any[]) => Promise.resolve(controller(...ins));
 }
 
 function getScriptPath(str) {

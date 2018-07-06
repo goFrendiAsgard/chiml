@@ -7,10 +7,7 @@ import * as httpMethods from "methods";
 import {createJsonRpcMiddleware, createMiddleware, defaultOutProcessor} from "../libraries/middlewares";
 
 const defaultRouteConfig = {
-  controller: (...ins) => ins.slice(0, -1).join(""),
   method: "all",
-  outProcessor: defaultOutProcessor,
-  propagateCtx: false,
   url: "/",
 };
 
@@ -48,13 +45,13 @@ export class WebApp extends Koa {
     }
   }
 
-  public addMiddleware(config: any): void {
-    this.use(createMiddleware(config));
+  public addMiddleware(controller: any): void {
+    this.use(createMiddleware({controller}));
   }
 
   public addRoute(config: {[key: string]: any}): void {
-    const {method, url, controller, propagateCtx, outProcessor} = Object.assign({}, defaultRouteConfig, config);
-    const middleware = createMiddleware(controller, propagateCtx, outProcessor);
+    const {method, url} = Object.assign({}, defaultRouteConfig, config);
+    const middleware = createMiddleware(config);
     this.use(koaRoute[method](url, middleware));
   }
 

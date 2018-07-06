@@ -13,7 +13,7 @@ export declare class WebApp extends Koa {
     addRoutes(configs: Array<{
         [key: string]: any;
     }>): void;
-    addMiddleware(config: any): void;
+    addMiddleware(controller: any): void;
     addRoute(config: {
         [key: string]: any;
     }): void;
