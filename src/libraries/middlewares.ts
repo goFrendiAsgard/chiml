@@ -1,4 +1,5 @@
 import {existsSync as fsExistsSync} from "fs";
+import * as koaRoute from "koa-route";
 import {readFromStream} from "./stream";
 import {execute} from "./tools";
 
@@ -19,6 +20,92 @@ const defaultMiddlewareConfig = {
   outProcessor: defaultOutProcessor,
   propagateCtx: true,
 };
+
+const defaultRouteConfig = {
+  method: "all",
+  propagateCtx: false,
+  url: "/",
+};
+
+export function createAuthenticationMiddleware(config: {[key: string]: any}): (...ins: any[]) => any {
+  const normalizedConfig = Object.assign({
+    outProcessor: (ctx, out) => {
+      ctx.auth = ctx.auth || out;
+    },
+    propagateCtx: true,
+  }, config);
+  return createHandler(normalizedConfig);
+}
+
+export function createAuthorizationMiddleware(config: {[key: string]: any}): (...ins: any[]) => any {
+  const normalizedConfig = Object.assign({
+    outProcessor: (ctx, out) => {
+      let roles: string[] = [];
+      if (Array.isArray(out)) {
+        roles = out;
+      } else {
+        roles.push(out);
+      }
+      if (roles.length === 0) {
+        roles.push("loggedOut");
+      } else {
+        roles.push("loggedIn");
+      }
+      ctx.roles = (ctx.roles || []).concat(roles.filter((role) => ctx.roles.indexOf(role) === -1));
+    },
+    propagateCtx: true,
+  }, config);
+  return createHandler(normalizedConfig);
+}
+
+export function createJsonRpcMiddleware(url: string, configs: any[], method: string = "all"): (...ins: any[]) => any {
+  const normalizedConfigs = configs.map((config) => {
+    return Object.assign({propagateCtx: false, controller: (...ins) => ins}, config);
+  });
+  const handler = createJsonRpcHandler(normalizedConfigs);
+  return koaRoute[method](url, handler);
+}
+
+export function createRouteMiddleware(config: {[key: string]: any}): (...ins: any[]) => any {
+  const routeConfig = Object.assign({}, defaultRouteConfig, config);
+  const {method, url} = routeConfig;
+  const handler = createHandler(routeConfig);
+  return koaRoute[method](url, handler);
+}
+
+export function createMiddleware(config: {[key: string]: any}): (...ins: any[]) => any {
+  return createHandler(config);
+}
+
+function createHandler(config: {[key: string]: any}): (...ins: any[]) => any {
+  const normalizedConfig = Object.assign({}, defaultMiddlewareConfig, config);
+  const {controller, propagateCtx, outProcessor} = normalizedConfig;
+  if (!propagateCtx) {
+    const subHandler = createHandler({
+      controller,
+      outProcessor,
+      propagateCtx: true,
+    });
+    return (ctx: {[key: string]: any}, ...ins: any[]) => {
+      return subHandler(...ins).then((out) => outProcessor(ctx, out));
+    };
+  }
+  if (typeof controller === "string") {
+    const scriptPath = getScriptPath(controller);
+    if (scriptPath !== controller && fsExistsSync(scriptPath)) {
+      // compiled chiml
+      return (...ins: any[]) => {
+        const fn = require(scriptPath);
+        const normalIns = getNormalizedIns(ins);
+        return fn(...normalIns);
+      };
+    }
+    // uncompiled chiml
+    return (...ins: any[]) => execute(controller, ...ins);
+  }
+  // function
+  return (...ins: any[]) => Promise.resolve(controller(...ins));
+}
 
 function jsonRpcErrorProcessor(ctx: {[key: string]: any}, errorObj: {[key: string]: any}): void {
   const {id, code} = errorObj;
@@ -42,7 +129,7 @@ function isValidJsonRpcId(id): boolean {
       (typeof id === "number" && Number.isSafeInteger(id));
 }
 
-export function createJsonRpcMiddleware(configs: any[]): (...ins: any[]) => any {
+function createJsonRpcHandler(configs: any[]): (...ins: any[]) => any {
   return async (ctx: {[key: string]: any}, ...ins: any[]) => {
     let jsonRequest;
     try {
@@ -77,48 +164,19 @@ export function createJsonRpcMiddleware(configs: any[]): (...ins: any[]) => any 
     try {
       const matchedConfig = matchedConfigs[0];
       const {controller, propagateCtx} = matchedConfig;
-      const middleware = this.createMiddleware({
+      const handler = createHandler({
         controller,
         outProcessor: (context, out) => {
           context.body = JSON.stringify({id, jsonrpc, result: out});
         },
         propagateCtx,
       });
-      return await middleware(ctx, ...params);
+      return await handler(ctx, ...params);
     } catch (error) {
       console.log(error);
       return jsonRpcErrorProcessor(ctx, {code: JREC.InternalError});
     }
   };
-}
-
-export function createMiddleware(config: {[key: string]: any}): (...ins: any[]) => any {
-  const {controller, propagateCtx, outProcessor} = Object.assign({}, defaultMiddlewareConfig, config);
-  if (!propagateCtx) {
-    const middleware = this.createMiddleware({
-      controller,
-      outProcessor,
-      propagateCtx: true,
-    });
-    return (ctx: {[key: string]: any}, ...ins: any[]) => {
-      return middleware(...ins).then((out) => outProcessor(ctx, out));
-    };
-  }
-  if (typeof controller === "string") {
-    const scriptPath = getScriptPath(controller);
-    if (scriptPath !== controller && fsExistsSync(scriptPath)) {
-      // compiled chiml
-      return (...ins: any[]) => {
-        const fn = require(scriptPath);
-        const normalIns = getNormalizedIns(ins);
-        return fn(...normalIns);
-      };
-    }
-    // uncompiled chiml
-    return (...ins: any[]) => execute(controller, ...ins);
-  }
-  // function
-  return (...ins: any[]) => Promise.resolve(controller(...ins));
 }
 
 function getScriptPath(str) {

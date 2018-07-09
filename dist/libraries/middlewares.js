@@ -9,6 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const fs_1 = require("fs");
+const koaRoute = require("koa-route");
 const stream_1 = require("./stream");
 const tools_1 = require("./tools");
 function defaultOutProcessor(ctx, out) {
@@ -28,6 +29,92 @@ const defaultMiddlewareConfig = {
     outProcessor: defaultOutProcessor,
     propagateCtx: true,
 };
+const defaultRouteConfig = {
+    method: "all",
+    propagateCtx: false,
+    url: "/",
+};
+function createAuthenticationMiddleware(config) {
+    const normalizedConfig = Object.assign({
+        outProcessor: (ctx, out) => {
+            ctx.auth = ctx.auth || out;
+        },
+        propagateCtx: true,
+    }, config);
+    return createHandler(normalizedConfig);
+}
+exports.createAuthenticationMiddleware = createAuthenticationMiddleware;
+function createAuthorizationMiddleware(config) {
+    const normalizedConfig = Object.assign({
+        outProcessor: (ctx, out) => {
+            let roles = [];
+            if (Array.isArray(out)) {
+                roles = out;
+            }
+            else {
+                roles.push(out);
+            }
+            if (roles.length === 0) {
+                roles.push("loggedOut");
+            }
+            else {
+                roles.push("loggedIn");
+            }
+            ctx.roles = (ctx.roles || []).concat(roles.filter((role) => ctx.roles.indexOf(role) === -1));
+        },
+        propagateCtx: true,
+    }, config);
+    return createHandler(normalizedConfig);
+}
+exports.createAuthorizationMiddleware = createAuthorizationMiddleware;
+function createJsonRpcMiddleware(url, configs, method = "all") {
+    const normalizedConfigs = configs.map((config) => {
+        return Object.assign({ propagateCtx: false, controller: (...ins) => ins }, config);
+    });
+    const handler = createJsonRpcHandler(normalizedConfigs);
+    return koaRoute[method](url, handler);
+}
+exports.createJsonRpcMiddleware = createJsonRpcMiddleware;
+function createRouteMiddleware(config) {
+    const routeConfig = Object.assign({}, defaultRouteConfig, config);
+    const { method, url } = routeConfig;
+    const handler = createHandler(routeConfig);
+    return koaRoute[method](url, handler);
+}
+exports.createRouteMiddleware = createRouteMiddleware;
+function createMiddleware(config) {
+    return createHandler(config);
+}
+exports.createMiddleware = createMiddleware;
+function createHandler(config) {
+    const normalizedConfig = Object.assign({}, defaultMiddlewareConfig, config);
+    const { controller, propagateCtx, outProcessor } = normalizedConfig;
+    if (!propagateCtx) {
+        const subHandler = createHandler({
+            controller,
+            outProcessor,
+            propagateCtx: true,
+        });
+        return (ctx, ...ins) => {
+            return subHandler(...ins).then((out) => outProcessor(ctx, out));
+        };
+    }
+    if (typeof controller === "string") {
+        const scriptPath = getScriptPath(controller);
+        if (scriptPath !== controller && fs_1.existsSync(scriptPath)) {
+            // compiled chiml
+            return (...ins) => {
+                const fn = require(scriptPath);
+                const normalIns = getNormalizedIns(ins);
+                return fn(...normalIns);
+            };
+        }
+        // uncompiled chiml
+        return (...ins) => tools_1.execute(controller, ...ins);
+    }
+    // function
+    return (...ins) => Promise.resolve(controller(...ins));
+}
 function jsonRpcErrorProcessor(ctx, errorObj) {
     const { id, code } = errorObj;
     let { data, message } = errorObj;
@@ -58,7 +145,7 @@ function isValidJsonRpcId(id) {
     return id === null || id === undefined || typeof id === "string" ||
         (typeof id === "number" && Number.isSafeInteger(id));
 }
-function createJsonRpcMiddleware(configs) {
+function createJsonRpcHandler(configs) {
     return (ctx, ...ins) => __awaiter(this, void 0, void 0, function* () {
         let jsonRequest;
         try {
@@ -94,14 +181,14 @@ function createJsonRpcMiddleware(configs) {
         try {
             const matchedConfig = matchedConfigs[0];
             const { controller, propagateCtx } = matchedConfig;
-            const middleware = this.createMiddleware({
+            const handler = createHandler({
                 controller,
                 outProcessor: (context, out) => {
                     context.body = JSON.stringify({ id, jsonrpc, result: out });
                 },
                 propagateCtx,
             });
-            return yield middleware(ctx, ...params);
+            return yield handler(ctx, ...params);
         }
         catch (error) {
             console.log(error);
@@ -109,36 +196,6 @@ function createJsonRpcMiddleware(configs) {
         }
     });
 }
-exports.createJsonRpcMiddleware = createJsonRpcMiddleware;
-function createMiddleware(config) {
-    const { controller, propagateCtx, outProcessor } = Object.assign({}, defaultMiddlewareConfig, config);
-    if (!propagateCtx) {
-        const middleware = this.createMiddleware({
-            controller,
-            outProcessor,
-            propagateCtx: true,
-        });
-        return (ctx, ...ins) => {
-            return middleware(...ins).then((out) => outProcessor(ctx, out));
-        };
-    }
-    if (typeof controller === "string") {
-        const scriptPath = getScriptPath(controller);
-        if (scriptPath !== controller && fs_1.existsSync(scriptPath)) {
-            // compiled chiml
-            return (...ins) => {
-                const fn = require(scriptPath);
-                const normalIns = getNormalizedIns(ins);
-                return fn(...normalIns);
-            };
-        }
-        // uncompiled chiml
-        return (...ins) => tools_1.execute(controller, ...ins);
-    }
-    // function
-    return (...ins) => Promise.resolve(controller(...ins));
-}
-exports.createMiddleware = createMiddleware;
 function getScriptPath(str) {
     return str.replace(/^(.*)\.chiml$/gmi, "$1.js");
 }

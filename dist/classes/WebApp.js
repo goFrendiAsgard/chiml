@@ -3,11 +3,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const http = require("http");
 const https = require("https");
 const Koa = require("koa");
-const koaRoute = require("koa-route");
-const httpMethods = require("methods");
 const middlewares_1 = require("../libraries/middlewares");
 const defaultRouteConfig = {
     method: "all",
+    propagateCtx: false,
     url: "/",
 };
 class WebApp extends Koa {
@@ -22,13 +21,16 @@ class WebApp extends Koa {
         return https.createServer(options, this.callback());
     }
     addJsonRpcMiddleware(url, configs) {
+        this.use(middlewares_1.createJsonRpcMiddleware(url, configs));
+        /*
         const normalizedConfigs = configs.map((config) => {
-            return Object.assign({ method: null, propagateCtx: false, controller: (...ins) => ins }, config);
+          return Object.assign({method: "all", propagateCtx: false, controller: (...ins) => ins}, config);
         });
-        const jsonRpcMiddleware = middlewares_1.createJsonRpcMiddleware(normalizedConfigs);
+        const jsonRpcMiddleware = createJsonRpcMiddleware(normalizedConfigs);
         for (const httpMethod of httpMethods) {
-            this.use(koaRoute[httpMethod](url, jsonRpcMiddleware));
+          this.use(koaRoute[httpMethod](url, jsonRpcMiddleware));
         }
+        */
     }
     addMiddlewares(configs) {
         for (const config of configs) {
@@ -44,9 +46,7 @@ class WebApp extends Koa {
         this.use(middlewares_1.createMiddleware({ controller }));
     }
     addRoute(config) {
-        const { method, url } = Object.assign({}, defaultRouteConfig, config);
-        const middleware = middlewares_1.createMiddleware(config);
-        this.use(koaRoute[method](url, middleware));
+        this.use(middlewares_1.createRouteMiddleware(config));
     }
 }
 exports.WebApp = WebApp;
