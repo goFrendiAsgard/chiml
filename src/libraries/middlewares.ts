@@ -32,9 +32,7 @@ export function createAuthenticationMiddleware(config: {[key: string]: any}): (.
   const handler = createHandler(normalizedConfig);
   return (ctx, ...ins) => {
     handler(ctx, ...ins).then((out) => {
-      if (!ctx.auth) {
-        ctx.auth = out;
-      }
+      ctx.auth = ctx.auth || out;
     });
   };
 }

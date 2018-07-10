@@ -5,10 +5,11 @@ import * as Koa from "koa";
 import * as koaRoute from "koa-route";
 import * as httpMethods from "methods";
 import {
+  createAuthenticationMiddleware,
+  createAuthorizationMiddleware,
   createJsonRpcMiddleware,
   createMiddleware,
-  createRouteMiddleware,
-  defaultOutProcessor} from "../libraries/middlewares";
+  createRouteMiddleware} from "../libraries/middlewares";
 
 const defaultRouteConfig = {
   method: "all",
@@ -30,15 +31,14 @@ export class WebApp extends Koa {
 
   public addJsonRpcMiddleware(url: string, configs: any[]): void {
     this.use(createJsonRpcMiddleware(url, configs));
-    /*
-    const normalizedConfigs = configs.map((config) => {
-      return Object.assign({method: "all", propagateCtx: false, controller: (...ins) => ins}, config);
-    });
-    const jsonRpcMiddleware = createJsonRpcMiddleware(normalizedConfigs);
-    for (const httpMethod of httpMethods) {
-      this.use(koaRoute[httpMethod](url, jsonRpcMiddleware));
-    }
-    */
+  }
+
+  public addAuthenticationMiddleware(config: {[key: string]: any}): void {
+    this.use(createAuthenticationMiddleware(config));
+  }
+
+  public addAuthorizationMiddleware(config: {[key: string]: any}): void {
+    this.use(createAuthorizationMiddleware(config));
   }
 
   public addMiddlewares(configs: any[]): void {

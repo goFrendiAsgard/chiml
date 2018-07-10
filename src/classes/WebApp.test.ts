@@ -49,6 +49,13 @@ it("able to add jsonRpc middleware", (done) => {
   done();
 });
 
+it("able to add authentication, authorization, and routes", (done) => {
+  // TODO: think this one better
+  app.addAuthenticationMiddleware({controller: async (ctx, next) => {
+    await next();
+  }});
+});
+
 it("able to add middlewares", (done) => {
   const configs = [
     // function
