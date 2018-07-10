@@ -28,18 +28,22 @@ const defaultRouteConfig = {
 };
 
 export function createAuthenticationMiddleware(config: {[key: string]: any}): (...ins: any[]) => any {
-  const normalizedConfig = Object.assign({
-    outProcessor: (ctx, out) => {
-      ctx.auth = ctx.auth || out;
-    },
-    propagateCtx: true,
-  }, config);
-  return createHandler(normalizedConfig);
+  const normalizedConfig = Object.assign({propagateCtx: true}, config);
+  const handler = createHandler(normalizedConfig);
+  return (ctx, ...ins) => {
+    handler(ctx, ...ins).then((out) => {
+      if (!ctx.auth) {
+        ctx.auth = out;
+      }
+    });
+  };
 }
 
 export function createAuthorizationMiddleware(config: {[key: string]: any}): (...ins: any[]) => any {
-  const normalizedConfig = Object.assign({
-    outProcessor: (ctx, out) => {
+  const normalizedConfig = Object.assign({ propagateCtx: true }, config);
+  const handler = createHandler(normalizedConfig);
+  return (ctx, ...ins) => {
+    handler(ctx, ...ins).then((out) => {
       let roles: string[] = [];
       if (Array.isArray(out)) {
         roles = out;
@@ -52,10 +56,11 @@ export function createAuthorizationMiddleware(config: {[key: string]: any}): (..
         roles.push("loggedIn");
       }
       ctx.roles = (ctx.roles || []).concat(roles.filter((role) => ctx.roles.indexOf(role) === -1));
-    },
-    propagateCtx: true,
-  }, config);
-  return createHandler(normalizedConfig);
+      if (!ctx.auth) {
+        ctx.auth = out;
+      }
+    });
+  };
 }
 
 export function createJsonRpcMiddleware(url: string, configs: any[], method: string = "all"): (...ins: any[]) => any {
