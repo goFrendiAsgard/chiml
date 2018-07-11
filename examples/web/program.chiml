@@ -31,6 +31,10 @@ do:
   # middlewares
   - (middlewares) -> {app.addMiddlewares}
 
+  # authentication & authorization
+  - "({controller:(ctx) => ctx.query.user == 'admin' && ctx.query.password == 'secret' ? 'admin' : null}) -> {app.addAuthenticationMiddleware}"
+  - "({controller:(ctx) => ctx.state.auth == 'admin' ? ['admin'] : []}) -> {app.addAuthorizationMiddleware}"
+
   # routes
   - (routes) -> {app.addRoutes}
 
