@@ -37,11 +37,11 @@ const defaultRouteConfig = {
 function createAuthenticationMiddleware(config) {
     const normalizedConfig = Object.assign({ propagateCtx: true }, config);
     const handler = createHandler(normalizedConfig);
-    return (ctx, ...ins) => {
-        handler(ctx, ...ins).then((out) => {
-            if (!ctx.auth) {
-                ctx.auth = out;
-            }
+    return (ctx, next) => {
+        return handler(ctx).then((out) => {
+            ctx.state = ctx.state || {};
+            ctx.state.user = ctx.state.user || out;
+            return next();
         });
     };
 }
@@ -49,25 +49,20 @@ exports.createAuthenticationMiddleware = createAuthenticationMiddleware;
 function createAuthorizationMiddleware(config) {
     const normalizedConfig = Object.assign({ propagateCtx: true }, config);
     const handler = createHandler(normalizedConfig);
-    return (ctx, ...ins) => {
-        handler(ctx, ...ins).then((out) => {
+    return (ctx, next) => {
+        return handler(ctx).then((out) => {
             let roles = [];
             if (Array.isArray(out)) {
                 roles = out;
             }
-            else {
+            else if (out !== null && typeof out !== "undefined") {
                 roles.push(out);
             }
-            if (roles.length === 0) {
-                roles.push("loggedOut");
-            }
-            else {
-                roles.push("loggedIn");
-            }
-            ctx.roles = (ctx.roles || []).concat(roles.filter((role) => ctx.roles.indexOf(role) === -1));
-            if (!ctx.auth) {
-                ctx.auth = out;
-            }
+            roles.push(ctx.state.auth ? "loggedIn" : "loggedOut");
+            ctx.state = ctx.state || {};
+            ctx.state.roles = ctx.state.roles || [];
+            ctx.state.roles = ctx.state.roles.concat(roles.filter((role) => ctx.state.roles.indexOf(role) === -1));
+            return next();
         });
     };
 }
@@ -214,4 +209,3 @@ function getNormalizedIns(ins) {
         }
     });
 }
-//# sourceMappingURL=middlewares.js.map

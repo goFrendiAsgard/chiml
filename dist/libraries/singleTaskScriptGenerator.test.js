@@ -305,4 +305,3 @@ it("default variable works", (done) => {
         done();
     });
 });
-//# sourceMappingURL=singleTaskScriptGenerator.test.js.map

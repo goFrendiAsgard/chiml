@@ -2,20 +2,12 @@ import * as cacheRequirePaths from "cache-require-paths";
 import * as http from "http";
 import * as https from "https";
 import * as Koa from "koa";
-import * as koaRoute from "koa-route";
-import * as httpMethods from "methods";
 import {
   createAuthenticationMiddleware,
   createAuthorizationMiddleware,
   createJsonRpcMiddleware,
   createMiddleware,
   createRouteMiddleware} from "../libraries/middlewares";
-
-const defaultRouteConfig = {
-  method: "all",
-  propagateCtx: false,
-  url: "/",
-};
 
 export class WebApp extends Koa {
 

@@ -23,4 +23,3 @@ function print(...args) {
     callback(null, console.log(...args));
 }
 exports.print = print;
-//# sourceMappingURL=inputOutput.js.map

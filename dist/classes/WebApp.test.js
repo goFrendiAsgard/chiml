@@ -21,7 +21,7 @@ const url = `http://localhost:${port}`;
 const app = new WebApp_1.WebApp();
 let server;
 it("able to add routes before middlewares", (done) => {
-    const configs = [
+    const routes = [
         // function
         { url: "/first", controller: () => "Roses are red" },
         // function with custom outProcessor
@@ -43,7 +43,7 @@ it("able to add routes before middlewares", (done) => {
             url: "/echo/:whatever",
         },
     ];
-    app.addRoutes(configs);
+    app.addRoutes(routes);
     done();
 });
 it("able to add jsonRpc middleware", (done) => {
@@ -52,6 +52,34 @@ it("able to add jsonRpc middleware", (done) => {
         { method: "invalid", controller: "invalid.chiml" },
     ];
     app.addJsonRpcMiddleware("/jsonrpc", configs);
+    done();
+});
+it("able to add authentication, authorization, and routes", (done) => {
+    // authentication
+    app.addAuthenticationMiddleware({ controller: (ctx) => {
+            return ctx.query("user");
+        } });
+    /*
+    // authorization
+    app.addAuthorizationMiddleware({controller: (ctx) => {
+      switch (ctx.state.auth) {
+        case "alice": return "admin";
+        case "bob": return ["author", "contributor"];
+        default: return null;
+      }
+    }});
+    */
+    // authorized middlewares
+    const routes = [
+        { url: "/adminDashboard", controller: () => "Admin Dashboard", roles: ["admin"] },
+        { url: "/authorDashboard", controller: () => "Author Dashboard", roles: ["author"] },
+        { url: "/contributorDashboard", controller: () => "Contributor Dashboard", roles: ["contributor"] },
+        { url: "/adminAndAuthorDashboard", controller: () => "Admin and Author Dashboard", roles: ["admin", "author"] },
+        { url: "/memberDashboard", controller: () => "Member Dashboard", roles: ["loggedIn"] },
+        { url: "/registrationForm", controller: () => "RegistrationForm", roles: ["loggedOut"] },
+        { url: "/landingPage", controller: () => "Landing Page", roles: ["loggedIn", "loggedOut"] },
+    ];
+    app.addRoutes(routes);
     done();
 });
 it("able to add middlewares", (done) => {
@@ -394,4 +422,3 @@ it("able to close server", (done) => {
     expect(server.listening).toBeFalsy();
     done();
 });
-//# sourceMappingURL=WebApp.test.js.map

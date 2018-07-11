@@ -1,3 +1,4 @@
+/// <reference types="koa" />
 /// <reference types="node" />
 import * as http from "http";
 import * as https from "https";
@@ -9,6 +10,12 @@ export declare class WebApp extends Koa {
         [key: string]: any;
     }): https.Server;
     addJsonRpcMiddleware(url: string, configs: any[]): void;
+    addAuthenticationMiddleware(config: {
+        [key: string]: any;
+    }): void;
+    addAuthorizationMiddleware(config: {
+        [key: string]: any;
+    }): void;
     addMiddlewares(configs: any[]): void;
     addRoutes(configs: Array<{
         [key: string]: any;
