@@ -137,3 +137,4 @@ it("compile test.chiml", (done) => {
         done();
     });
 }, 60000);
+//# sourceMappingURL=cmd.test.js.map

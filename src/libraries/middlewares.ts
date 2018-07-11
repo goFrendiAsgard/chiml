@@ -74,8 +74,8 @@ export function createRouteMiddleware(config: {[key: string]: any}): (...ins: an
   return koaRoute[method](url, handler);
 }
 
-export function createMiddleware(config: {[key: string]: any}): (...ins: any[]) => any {
-  return createHandler(config);
+export function createMiddleware(controller: any): (...ins: any[]) => any {
+  return createHandler({controller});
 }
 
 function createHandler(config: {[key: string]: any}): (...ins: any[]) => any {
@@ -105,7 +105,19 @@ function createHandler(config: {[key: string]: any}): (...ins: any[]) => any {
     return (...ins: any[]) => execute(controller, ...ins);
   }
   // function
-  return (...ins: any[]) => Promise.resolve(controller(...ins));
+  return (...ins: any[]) => {
+    const result: any = controller(...ins);
+    try {
+      if ("then" in result) {
+        // if the result is promise like, return it
+        return result;
+      }
+    } catch (error) {
+      // do nothing
+    }
+    // if the result is not promise like, make a promise based on it
+    return Promise.resolve(result);
+  };
 }
 
 function jsonRpcErrorProcessor(ctx: {[key: string]: any}, errorObj: {[key: string]: any}): void {

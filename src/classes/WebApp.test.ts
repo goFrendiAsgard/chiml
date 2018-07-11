@@ -52,9 +52,8 @@ it("able to add jsonRpc middleware", (done) => {
 it("able to add authentication, authorization, and routes", (done) => {
   // authentication
   app.addAuthenticationMiddleware({controller: (ctx) => {
-    return ctx.query("user");
+    return ctx.query.user;
   }});
-  /*
   // authorization
   app.addAuthorizationMiddleware({controller: (ctx) => {
     switch (ctx.state.auth) {
@@ -63,7 +62,6 @@ it("able to add authentication, authorization, and routes", (done) => {
       default: return null;
     }
   }});
-  */
   // authorized middlewares
   const routes = [
     {url: "/adminDashboard", controller: () => "Admin Dashboard", roles: ["admin"]},

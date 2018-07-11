@@ -82,8 +82,8 @@ function createRouteMiddleware(config) {
     return koaRoute[method](url, handler);
 }
 exports.createRouteMiddleware = createRouteMiddleware;
-function createMiddleware(config) {
-    return createHandler(config);
+function createMiddleware(controller) {
+    return createHandler({ controller });
 }
 exports.createMiddleware = createMiddleware;
 function createHandler(config) {
@@ -113,7 +113,20 @@ function createHandler(config) {
         return (...ins) => tools_1.execute(controller, ...ins);
     }
     // function
-    return (...ins) => Promise.resolve(controller(...ins));
+    return (...ins) => {
+        const result = controller(...ins);
+        try {
+            if ("then" in result) {
+                // if the result is promise like, return it
+                return result;
+            }
+        }
+        catch (error) {
+            // do nothing
+        }
+        // if the result is not promise like, make a promise based on it
+        return Promise.resolve(result);
+    };
 }
 function jsonRpcErrorProcessor(ctx, errorObj) {
     const { id, code } = errorObj;
@@ -209,3 +222,4 @@ function getNormalizedIns(ins) {
         }
     });
 }
+//# sourceMappingURL=middlewares.js.map

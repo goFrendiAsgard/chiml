@@ -776,3 +776,4 @@ it("constructor recognize reduce (with accumulator)", (done) => {
         done();
     });
 });
+//# sourceMappingURL=SingleTask.test.js.map

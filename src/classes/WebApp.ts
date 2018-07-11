@@ -46,7 +46,7 @@ export class WebApp extends Koa {
   }
 
   public addMiddleware(controller: any): void {
-    this.use(createMiddleware({controller}));
+    this.use(createMiddleware(controller));
   }
 
   public addRoute(config: {[key: string]: any}): void {

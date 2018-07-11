@@ -92,3 +92,4 @@ it("throws error when read file recursively from nonexistent directory", (done) 
         done();
     });
 }, 20000);
+//# sourceMappingURL=tools.test.js.map

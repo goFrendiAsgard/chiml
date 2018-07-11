@@ -16,3 +16,4 @@ if (require.main === module) {
         console.error(error);
     });
 }
+//# sourceMappingURL=chic.js.map
