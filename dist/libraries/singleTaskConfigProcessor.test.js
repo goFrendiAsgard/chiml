@@ -1,7 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const require_cache_1 = require("@speedy/require-cache");
-new require_cache_1.RequireCache({ cacheKiller: __dirname + "../package.json" }).start();
 const singleTaskProperty_1 = require("../enums/singleTaskProperty");
 const singleTaskConfigProcessor_1 = require("./singleTaskConfigProcessor");
 it("normalizeRawConfig works with complete config object", (done) => {

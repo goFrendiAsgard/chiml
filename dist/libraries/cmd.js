@@ -1,13 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const require_cache_1 = require("@speedy/require-cache");
-new require_cache_1.RequireCache({ cacheKiller: __dirname + "../package.json" }).start();
 const child_process_1 = require("child_process");
 const path_1 = require("path");
 const stringUtil_1 = require("./stringUtil");
-function createStdInListener(subProcess) {
-    return (chunk) => subProcess.stdin.write(chunk);
-}
 function cmd(command, options) {
     return new Promise((resolve, reject) => {
         const subProcess = child_process_1.exec(command, options, (error, stdout, stderr) => {
@@ -43,15 +38,6 @@ function composeCommand(command, ins = []) {
     return composedCommand;
 }
 exports.composeCommand = composeCommand;
-function runCompiledChiml(scriptPath, ins) {
-    try {
-        const mainFunction = require(scriptPath);
-        return mainFunction(...ins);
-    }
-    catch (error) {
-        return Promise.reject(error);
-    }
-}
 function cmdComposedCommand(command, ins = [], opts, isCompiled = false) {
     if (isCompiled) {
         const commandParts = stringUtil_1.smartSplit(command, " ").filter((part) => part !== "");
@@ -82,4 +68,16 @@ function cmdComposedCommand(command, ins = [], opts, isCompiled = false) {
     });
 }
 exports.cmdComposedCommand = cmdComposedCommand;
+function runCompiledChiml(scriptPath, ins) {
+    try {
+        const mainFunction = require(scriptPath);
+        return mainFunction(...ins);
+    }
+    catch (error) {
+        return Promise.reject(error);
+    }
+}
+function createStdInListener(subProcess) {
+    return (chunk) => subProcess.stdin.write(chunk);
+}
 //# sourceMappingURL=cmd.js.map

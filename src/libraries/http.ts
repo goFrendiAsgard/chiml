@@ -1,6 +1,3 @@
-import { RequireCache } from "@speedy/require-cache";
-new RequireCache({cacheKiller: __dirname + "../package.json"}).start();
-
 import * as originalHttpRequest from "request";
 
 export function httpRequest(config: any, callback: any) {

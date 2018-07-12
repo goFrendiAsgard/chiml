@@ -8,8 +8,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const require_cache_1 = require("@speedy/require-cache");
-new require_cache_1.RequireCache({ cacheKiller: __dirname + "../package.json" }).start();
 const fs_extra_1 = require("fs-extra");
 const path_1 = require("path");
 const SingleTask_1 = require("../classes/SingleTask");
@@ -37,8 +35,7 @@ function getCompiledScript(chiml) {
             const task = new SingleTask_1.SingleTask(config);
             const mainScript = task.getScript();
             const script = [
-                'import * as cacheRequirePaths from "cache-require-paths";',
-                'import {__cmd, __parseIns} from "chiml/dist/libraries/utilities.js";',
+                'import {__cmd, __parseIns, sys} from "chiml/dist/index.js";',
                 "const __isCompiled = true;",
                 mainScript,
                 "module.exports = __main_0;",

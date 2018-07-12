@@ -1,6 +1,3 @@
-import { RequireCache } from "@speedy/require-cache";
-new RequireCache({cacheKiller: __dirname + "../package.json"}).start();
-
 import { existsSync as fsExistsSync } from "fs";
 import * as koaRoute from "koa-route";
 import {readFromStream} from "./stream";

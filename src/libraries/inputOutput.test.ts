@@ -1,6 +1,3 @@
-import { RequireCache } from "@speedy/require-cache";
-new RequireCache({cacheKiller: __dirname + "../package.json"}).start();
-
 import {Readable, Writable} from "stream";
 import {createPrompt, print} from "./inputOutput";
 

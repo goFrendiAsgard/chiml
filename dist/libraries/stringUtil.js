@@ -1,7 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const require_cache_1 = require("@speedy/require-cache");
-new require_cache_1.RequireCache({ cacheKiller: __dirname + "../package.json" }).start();
 const fs_1 = require("fs");
 const js_yaml_1 = require("js-yaml");
 const singleTaskConfigProcessor_1 = require("./singleTaskConfigProcessor");

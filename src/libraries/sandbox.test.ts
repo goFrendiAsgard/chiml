@@ -1,6 +1,3 @@
-import { RequireCache } from "@speedy/require-cache";
-new RequireCache({cacheKiller: __dirname + "../package.json"}).start();
-
 import {dirname as pathDirName, resolve as pathResolve} from "path";
 import {createSandbox} from "./sandbox";
 

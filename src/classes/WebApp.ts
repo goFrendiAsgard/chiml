@@ -1,6 +1,3 @@
-import { RequireCache } from "@speedy/require-cache";
-new RequireCache({cacheKiller: __dirname + "../package.json"}).start();
-
 import * as http from "http";
 import * as https from "https";
 import * as Koa from "koa";

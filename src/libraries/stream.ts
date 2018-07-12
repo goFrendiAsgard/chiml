@@ -1,6 +1,3 @@
-import { RequireCache } from "@speedy/require-cache";
-new RequireCache({cacheKiller: __dirname + "../package.json"}).start();
-
 export function readFromStream(stream: NodeJS.ReadableStream): Promise<any> {
   return new Promise((resolve, reject) => {
     const chunks: Buffer[] = [];

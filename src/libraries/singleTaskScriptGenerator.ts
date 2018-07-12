@@ -1,6 +1,3 @@
-import { RequireCache } from "@speedy/require-cache";
-new RequireCache({cacheKiller: __dirname + "../package.json"}).start();
-
 import {render} from "ejs";
 import {CommandType, FunctionalMode, Mode} from "../enums/singleTaskProperty";
 import {ISingleTask} from "../interfaces/ISingleTask";
@@ -13,6 +10,15 @@ export function renderTemplate(template: string, config: {[key: string]: any}, s
   let lines = render(template, config).split("\n");
   lines = lines.map((line) => spaces + line);
   return lines.join("\n");
+}
+
+export function createHandlerScript(task: ISingleTask, spaceCount: number = 0): string {
+  const ins = task.expectLocalScope ? getInputDeclaration(task) : "";
+  const firstFlag = `__first${task.id}`;
+  const branch = task.branchCondition;
+  const loop = task.loopCondition;
+  const template = getTemplate(task);
+  return renderTemplate(template, {task, ins, firstFlag, branch, loop}, spaceCount);
 }
 
 function wrapJsSyncFunction(task: ISingleTask, spaceCount: number): string {
@@ -219,15 +225,6 @@ function getTemplate(task: ISingleTask): string {
     case FunctionalMode.filter: return getFilterTemplate(task, unitTemplate);
     case FunctionalMode.reduce: return getReduceTemplate(task, unitTemplate);
   }
-}
-
-export function createHandlerScript(task: ISingleTask, spaceCount: number = 0): string {
-  const ins = task.expectLocalScope ? getInputDeclaration(task) : "";
-  const firstFlag = `__first${task.id}`;
-  const branch = task.branchCondition;
-  const loop = task.loopCondition;
-  const template = getTemplate(task);
-  return renderTemplate(template, {task, ins, firstFlag, branch, loop}, spaceCount);
 }
 
 function getInputDeclaration(task: ISingleTask): string {

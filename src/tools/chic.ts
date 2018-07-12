@@ -1,8 +1,5 @@
 #! /usr/bin/env node
-import { RequireCache } from "@speedy/require-cache";
-new RequireCache({cacheKiller: __dirname + "../package.json"}).start();
-
-import {compile, getFiles} from "../libraries/tools";
+import {compile, getFiles} from "../index";
 
 if (require.main === module) {
   const args = process.argv.slice(2);

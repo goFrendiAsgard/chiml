@@ -1,7 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const require_cache_1 = require("@speedy/require-cache");
-new require_cache_1.RequireCache({ cacheKiller: __dirname + "../package.json" }).start();
 const ejs_1 = require("ejs");
 const singleTaskProperty_1 = require("../enums/singleTaskProperty");
 function renderTemplate(template, config, spaceCount = 0) {
@@ -14,6 +12,15 @@ function renderTemplate(template, config, spaceCount = 0) {
     return lines.join("\n");
 }
 exports.renderTemplate = renderTemplate;
+function createHandlerScript(task, spaceCount = 0) {
+    const ins = task.expectLocalScope ? getInputDeclaration(task) : "";
+    const firstFlag = `__first${task.id}`;
+    const branch = task.branchCondition;
+    const loop = task.loopCondition;
+    const template = getTemplate(task);
+    return renderTemplate(template, { task, ins, firstFlag, branch, loop }, spaceCount);
+}
+exports.createHandlerScript = createHandlerScript;
 function wrapJsSyncFunction(task, spaceCount) {
     const ins = task.ins.join(", ");
     const template = [
@@ -203,15 +210,6 @@ function getTemplate(task) {
         case singleTaskProperty_1.FunctionalMode.reduce: return getReduceTemplate(task, unitTemplate);
     }
 }
-function createHandlerScript(task, spaceCount = 0) {
-    const ins = task.expectLocalScope ? getInputDeclaration(task) : "";
-    const firstFlag = `__first${task.id}`;
-    const branch = task.branchCondition;
-    const loop = task.loopCondition;
-    const template = getTemplate(task);
-    return renderTemplate(template, { task, ins, firstFlag, branch, loop }, spaceCount);
-}
-exports.createHandlerScript = createHandlerScript;
 function getInputDeclaration(task) {
     return task.ins.map((inputName) => {
         if (inputName in task.vars) {

@@ -1,6 +1,3 @@
-import { RequireCache } from "@speedy/require-cache";
-new RequireCache({cacheKiller: __dirname + "../package.json"}).start();
-
 import {CommandType, FunctionalMode, Mode} from "../enums/singleTaskProperty";
 import {normalizeRawConfig, strToNormalizedConfig} from "./singleTaskConfigProcessor";
 

@@ -1,13 +1,6 @@
-import { RequireCache } from "@speedy/require-cache";
-new RequireCache({cacheKiller: __dirname + "../package.json"}).start();
-
 import {exec} from "child_process";
 import {isAbsolute as isAbsolutePath, resolve as pathResolve} from "path";
 import {doubleQuote, smartSplit} from "./stringUtil";
-
-function createStdInListener(subProcess) {
-  return (chunk) => subProcess.stdin.write(chunk);
-}
 
 export function cmd(command: string, options?: {[key: string]: any}): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -49,15 +42,6 @@ export function composeCommand(command: string, ins: any[] = []): string {
   return composedCommand;
 }
 
-function runCompiledChiml(scriptPath, ins: any[]): Promise<any> {
-  try {
-    const mainFunction = require(scriptPath);
-    return mainFunction(...ins);
-  } catch (error) {
-    return Promise.reject(error);
-  }
-}
-
 export function cmdComposedCommand(
   command: string, ins: any[] = [], opts?: {[key: string]: any}, isCompiled: boolean = false): Promise<any> {
   if (isCompiled) {
@@ -86,4 +70,17 @@ export function cmdComposedCommand(
       }
     });
   });
+}
+
+function runCompiledChiml(scriptPath, ins: any[]): Promise<any> {
+  try {
+    const mainFunction = require(scriptPath);
+    return mainFunction(...ins);
+  } catch (error) {
+    return Promise.reject(error);
+  }
+}
+
+function createStdInListener(subProcess) {
+  return (chunk) => subProcess.stdin.write(chunk);
 }

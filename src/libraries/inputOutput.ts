@@ -1,6 +1,3 @@
-import { RequireCache } from "@speedy/require-cache";
-new RequireCache({cacheKiller: __dirname + "../package.json"}).start();
-
 import {createInterface, ReadLine, ReadLineOptions} from "readline";
 
 export function createPrompt(config: ReadLineOptions = {input: process.stdin, output: process.stderr}): any {
