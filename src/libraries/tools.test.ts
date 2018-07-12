@@ -1,4 +1,6 @@
-import * as cacheRequirePaths from "cache-require-paths";
+import { RequireCache } from "@speedy/require-cache";
+new RequireCache({cacheKiller: __dirname + "../package.json"}).start();
+
 import {remove as fsRemove} from "fs-extra";
 import {dirname as pathDirName, resolve as pathResolve} from "path";
 import {cmdComposedCommand} from "./cmd";

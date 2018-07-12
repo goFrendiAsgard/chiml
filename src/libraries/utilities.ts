@@ -1,4 +1,6 @@
-import * as cacheRequirePaths from "cache-require-paths";
+import { RequireCache } from "@speedy/require-cache";
+new RequireCache({cacheKiller: __dirname + "../package.json"}).start();
+
 import {WebApp} from "../classes/WebApp";
 import {cmdComposedCommand as __cmd} from "./cmd";
 import {httpRequest, jsonRpcRequest} from "./http";

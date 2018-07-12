@@ -1,4 +1,6 @@
-import * as cacheRequirePaths from "cache-require-paths";
+import { RequireCache } from "@speedy/require-cache";
+new RequireCache({cacheKiller: __dirname + "../package.json"}).start();
+
 import {readFile} from "fs";
 import {safeLoad} from "js-yaml";
 import {normalizeRawConfig, strToNormalizedConfig} from "./singleTaskConfigProcessor";

@@ -1,5 +1,5 @@
 package-lock.json
-.cache-require-paths.json
+/.cache
 /node_modules
 /lab
 /coverage

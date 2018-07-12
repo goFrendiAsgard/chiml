@@ -1,5 +1,7 @@
 #! /usr/bin/env node
-import * as cacheRequirePaths from "cache-require-paths";
+import { RequireCache } from "@speedy/require-cache";
+new RequireCache({cacheKiller: __dirname + "../package.json"}).start();
+
 import {execute} from "../libraries/tools";
 
 if (require.main === module) {

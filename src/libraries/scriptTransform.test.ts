@@ -1,4 +1,6 @@
-import * as cacheRequirePaths from "cache-require-paths";
+import { RequireCache } from "@speedy/require-cache";
+new RequireCache({cacheKiller: __dirname + "../package.json"}).start();
+
 import {tsToJs} from "./scriptTransform";
 
 it("transform ts to js", (done) => {

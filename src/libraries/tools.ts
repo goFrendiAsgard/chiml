@@ -1,4 +1,6 @@
-import * as cacheRequirePaths from "cache-require-paths";
+import { RequireCache } from "@speedy/require-cache";
+new RequireCache({cacheKiller: __dirname + "../package.json"}).start();
+
 import {copy as fsCopy, readdir as readDir, readFile, stat as fsStat, writeFile} from "fs-extra";
 import {basename as pathBaseName, dirname as pathDirName, resolve as pathResolve} from "path";
 import {SingleTask} from "../classes/SingleTask";

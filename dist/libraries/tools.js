@@ -8,6 +8,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const require_cache_1 = require("@speedy/require-cache");
+new require_cache_1.RequireCache({ cacheKiller: __dirname + "../package.json" }).start();
 const fs_extra_1 = require("fs-extra");
 const path_1 = require("path");
 const SingleTask_1 = require("../classes/SingleTask");

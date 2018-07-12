@@ -1,5 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const require_cache_1 = require("@speedy/require-cache");
+new require_cache_1.RequireCache({ cacheKiller: __dirname + "../package.json" }).start();
 const ejs_1 = require("ejs");
 const singleTaskProperty_1 = require("../enums/singleTaskProperty");
 function renderTemplate(template, config, spaceCount = 0) {

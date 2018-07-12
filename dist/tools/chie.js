@@ -1,6 +1,8 @@
 #! /usr/bin/env node
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const require_cache_1 = require("@speedy/require-cache");
+new require_cache_1.RequireCache({ cacheKiller: __dirname + "../package.json" }).start();
 const tools_1 = require("../libraries/tools");
 if (require.main === module) {
     const args = process.argv.slice(2);

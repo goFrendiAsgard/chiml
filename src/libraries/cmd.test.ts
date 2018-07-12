@@ -1,8 +1,9 @@
-import * as cacheRequirePaths from "cache-require-paths";
+import { RequireCache } from "@speedy/require-cache";
+new RequireCache({cacheKiller: __dirname + "../package.json"}).start();
+
 import {remove as fsRemove} from "fs-extra";
 import {dirname as pathDirName, resolve as pathResolve} from "path";
 import {cmd, cmdComposedCommand, composeCommand} from "./cmd";
-import {compile, execute, getCompiledScript, getFiles} from "./tools";
 
 it("should able to run `node -e \"console.log('hello');\"`", (done) => {
   cmd("node -e \"console.log('hello');\"").then((stdout) => {

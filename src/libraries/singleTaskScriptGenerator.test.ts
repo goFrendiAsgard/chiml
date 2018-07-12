@@ -1,12 +1,11 @@
-import * as cacheRequirePaths from "cache-require-paths";
+import { RequireCache } from "@speedy/require-cache";
+new RequireCache({cacheKiller: __dirname + "../package.json"}).start();
+
 import {dirname as pathDirName, resolve as pathResolve} from "path";
 import {runInNewContext} from "vm";
 import {SingleTask} from "../classes/SingleTask";
-import {ISingleTask} from "../interfaces/ISingleTask";
 import {createSandbox} from "../libraries/sandbox";
-import {cmdComposedCommand} from "./cmd";
 import {createHandlerScript, renderTemplate} from "./singleTaskScriptGenerator";
-import {doubleQuote} from "./stringUtil";
 
 it("render template correctly", (done) => {
   const template = "function <%= functionName %> (<%= inputs.join(', ') %>){\n" +

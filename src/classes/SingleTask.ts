@@ -1,12 +1,12 @@
-import * as cacheRequirePaths from "cache-require-paths";
-import {createContext, runInNewContext} from "vm";
+import { RequireCache } from "@speedy/require-cache";
+new RequireCache({cacheKiller: __dirname + "../package.json"}).start();
+
+import {runInNewContext} from "vm";
 import {CommandType, FunctionalMode, Mode} from "../enums/singleTaskProperty";
 import {ISingleTask} from "../interfaces/ISingleTask";
-import {cmdComposedCommand} from "../libraries/cmd";
 import {createSandbox} from "../libraries/sandbox";
 import {IRawConfig, normalizeRawConfig, strToNormalizedConfig} from "../libraries/singleTaskConfigProcessor";
 import {createHandlerScript} from "../libraries/singleTaskScriptGenerator";
-import * as utilities from "../libraries/utilities";
 
 export class SingleTask implements ISingleTask {
   public id: string;

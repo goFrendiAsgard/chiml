@@ -1,4 +1,6 @@
-import * as cacheRequirePaths from "cache-require-paths";
+import { RequireCache } from "@speedy/require-cache";
+new RequireCache({cacheKiller: __dirname + "../package.json"}).start();
+
 import {exec} from "child_process";
 import {isAbsolute as isAbsolutePath, resolve as pathResolve} from "path";
 import {doubleQuote, smartSplit} from "./stringUtil";
