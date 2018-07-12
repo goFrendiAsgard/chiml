@@ -122,7 +122,7 @@ function getVariableDeclaration(variables, task: ISingleTask, spaceCount): strin
   const variableDeclaration = variables.filter((variableName) => {
     return task.ins.indexOf(variableName) === -1;
   }).map((variableName) => {
-    const value = variableName in task.vars ? JSON.stringify(task.vars[variableName]) : "null";
+    const value = variableName in task.vars ? getVariableValue(task.vars[variableName]) : "null";
     return renderTemplate(template, {variableName, value}, spaceCount);
   }).join("\n");
   return variableDeclaration;
@@ -230,11 +230,15 @@ function getTemplate(task: ISingleTask): string {
 function getInputDeclaration(task: ISingleTask): string {
   return task.ins.map((inputName) => {
     if (inputName in task.vars) {
-      const val = JSON.stringify(task.vars[inputName]);
+      const val = getVariableValue(task.vars[inputName]);
       return `${inputName} = ${val}`;
     }
     return inputName;
   }).join(", ");
+}
+
+function getVariableValue(value) {
+  return JSON.stringify(value);
 }
 
 function getVariableName(variableName: string): string {
