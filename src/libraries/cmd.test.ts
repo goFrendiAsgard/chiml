@@ -116,6 +116,7 @@ it("compile test.chiml", (done) => {
   const childJsPath = pathResolve(nestedTestPath, "child.js");
   const parentJsPath = pathResolve(nestedTestPath, "parent.js");
   const nodeModulePath = pathResolve(nestedTestPath, "node_modules");
+  const cachePath = pathResolve(nestedTestPath, ".cache");
   new Promise((resolve, reject) => {
     cmdComposedCommand("chie parent.chiml", [10, 8], {cwd: nestedTestPath}, true).then((result) => {
       expect(result).toBeUndefined();
@@ -137,6 +138,7 @@ it("compile test.chiml", (done) => {
   }).then(() => {
     return Promise.all([
       fsRemove(nodeModulePath),
+      fsRemove(cachePath),
       fsRemove(childJsPath),
       fsRemove(parentJsPath),
     ]);
