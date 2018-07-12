@@ -24,18 +24,21 @@ var JREC;
     JREC[JREC["InvalidParams"] = -32602] = "InvalidParams";
     JREC[JREC["InternalError"] = -32603] = "InternalError";
 })(JREC || (JREC = {}));
+const defaultRoles = ["loggedIn", "loggedOut"];
 const defaultMiddlewareConfig = {
     controller: (...ins) => ins.slice(0, -1).join(""),
     outProcessor: defaultOutProcessor,
     propagateCtx: true,
+    roles: defaultRoles,
 };
 const defaultRouteConfig = {
     method: "all",
     propagateCtx: false,
+    roles: defaultRoles,
     url: "/",
 };
 function createAuthenticationMiddleware(config) {
-    const normalizedConfig = Object.assign({ propagateCtx: true }, config);
+    const normalizedConfig = Object.assign({}, { propagateCtx: true }, config);
     const handler = createHandler(normalizedConfig);
     return (ctx, next) => {
         return handler(ctx).then((out) => {
@@ -47,7 +50,7 @@ function createAuthenticationMiddleware(config) {
 }
 exports.createAuthenticationMiddleware = createAuthenticationMiddleware;
 function createAuthorizationMiddleware(config) {
-    const normalizedConfig = Object.assign({ propagateCtx: true }, config);
+    const normalizedConfig = Object.assign({}, { propagateCtx: true }, config);
     const handler = createHandler(normalizedConfig);
     return (ctx, next) => {
         return handler(ctx).then((out) => {
@@ -58,10 +61,11 @@ function createAuthorizationMiddleware(config) {
             else if (out !== null && typeof out !== "undefined") {
                 roles.push(out);
             }
-            roles.push(ctx.state.auth ? "loggedIn" : "loggedOut");
+            roles.push(ctx.state.user ? "loggedIn" : "loggedOut");
             ctx.state = ctx.state || {};
-            ctx.state.roles = ctx.state.roles || [];
-            ctx.state.roles = ctx.state.roles.concat(roles.filter((role) => ctx.state.roles.indexOf(role) === -1));
+            ctx.state.roles = (ctx.state.roles || []).concat(roles.filter((role) => ctx.state.roles.indexOf(role) === -1)).filter((role) => {
+                return (role === "loggedOut" && ctx.state.user) ? false : true;
+            });
             return next();
         });
     };
@@ -69,23 +73,42 @@ function createAuthorizationMiddleware(config) {
 exports.createAuthorizationMiddleware = createAuthorizationMiddleware;
 function createJsonRpcMiddleware(url, configs, method = "all") {
     const normalizedConfigs = configs.map((config) => {
-        return Object.assign({ propagateCtx: false, controller: (...ins) => ins }, config);
+        return Object.assign({}, { propagateCtx: false, controller: (...ins) => ins }, config);
     });
     const handler = createJsonRpcHandler(normalizedConfigs);
-    return koaRoute[method](url, handler);
+    const middleware = koaRoute[method](url, handler);
+    return middleware;
 }
 exports.createJsonRpcMiddleware = createJsonRpcMiddleware;
 function createRouteMiddleware(config) {
     const routeConfig = Object.assign({}, defaultRouteConfig, config);
     const { method, url } = routeConfig;
     const handler = createHandler(routeConfig);
-    return koaRoute[method](url, handler);
+    const middleware = koaRoute[method](url, handler);
+    return createAuthorizedMiddleware(middleware, routeConfig);
 }
 exports.createRouteMiddleware = createRouteMiddleware;
 function createMiddleware(controller) {
-    return createHandler({ controller });
+    const config = { controller };
+    const middleware = createHandler(config);
+    return createAuthorizedMiddleware(middleware, config);
 }
 exports.createMiddleware = createMiddleware;
+function createAuthorizedMiddleware(middleware, config) {
+    return (ctx, next) => {
+        if (isAuthorized(ctx, config)) {
+            return middleware(ctx, next);
+        }
+        ctx.status = 401;
+        return next();
+    };
+}
+function isAuthorized(ctx, config) {
+    const normalizedConfig = Object.assign({}, { roles: defaultRoles }, config);
+    ctx.state = ctx.state || {};
+    ctx.state.roles = ctx.state.roles || (ctx.state.user ? ["loggedIn"] : ["loggedOut"]);
+    return ctx.state.roles.filter((role) => normalizedConfig.roles.indexOf(role) > -1).length > 0;
+}
 function createHandler(config) {
     const normalizedConfig = Object.assign({}, defaultMiddlewareConfig, config);
     const { controller, propagateCtx, outProcessor } = normalizedConfig;
@@ -193,6 +216,10 @@ function createJsonRpcHandler(configs) {
         }
         try {
             const matchedConfig = matchedConfigs[0];
+            if (!isAuthorized(ctx, matchedConfig)) {
+                return jsonRpcErrorProcessor(ctx, { code: JREC.MethodNotFound,
+                    message: "unauthorized access" });
+            }
             const { controller, propagateCtx } = matchedConfig;
             const handler = createHandler({
                 controller,

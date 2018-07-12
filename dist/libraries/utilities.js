@@ -12,7 +12,7 @@ const sys = {
     httpRequest: http_1.httpRequest,
     jsonRpcRequest: http_1.jsonRpcRequest,
     print: inputOutput_1.print,
-    prompt: inputOutput_1.prompt,
+    prompt: inputOutput_1.createPrompt(),
 };
 exports.sys = sys;
 //# sourceMappingURL=utilities.js.map

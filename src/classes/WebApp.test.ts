@@ -40,23 +40,14 @@ it("able to add routes before middlewares", (done) => {
   done();
 });
 
-it("able to add jsonRpc middleware", (done) => {
-  const configs = [
-    {method: "add", controller: pathResolve(testcaseDirPath, "compiled-page.chiml")},
-    {method: "invalid", controller: "invalid.chiml"},
-  ];
-  app.addJsonRpcMiddleware("/jsonrpc", configs);
-  done();
-});
-
-it("able to add authentication, authorization, and routes", (done) => {
+it("able to add authentication, authorization, and authorized routes", (done) => {
   // authentication
-  app.addAuthenticationMiddleware({controller: (ctx) => {
+  app.addAuthentication({controller: (ctx) => {
     return ctx.query.user;
   }});
   // authorization
-  app.addAuthorizationMiddleware({controller: (ctx) => {
-    switch (ctx.state.auth) {
+  app.addAuthorization({controller: (ctx) => {
+    switch (ctx.state.user) {
       case "alice": return "admin";
       case "bob": return ["author", "contributor"];
       default: return null;
@@ -64,15 +55,25 @@ it("able to add authentication, authorization, and routes", (done) => {
   }});
   // authorized middlewares
   const routes = [
-    {url: "/adminDashboard", controller: () => "Admin Dashboard", roles: ["admin"]},
-    {url: "/authorDashboard", controller: () => "Author Dashboard", roles: ["author"]},
-    {url: "/contributorDashboard", controller: () => "Contributor Dashboard", roles: ["contributor"]},
-    {url: "/adminAndAuthorDashboard", controller: () => "Admin and Author Dashboard", roles: ["admin", "author"]},
-    {url: "/memberDashboard", controller: () => "Member Dashboard", roles: ["loggedIn"]},
-    {url: "/registrationForm", controller: () => "RegistrationForm", roles: ["loggedOut"]},
+    {url: "/adminDashboard", controller: () => "Admin Dashboard Page", roles: ["admin"]},
+    {url: "/authorDashboard", controller: () => "Author Dashboard Page", roles: ["author"]},
+    {url: "/contributorDashboard", controller: () => "Contributor Dashboard Page", roles: ["contributor"]},
+    {url: "/adminAndAuthorDashboard", controller: () => "Admin and Author Dashboard Page", roles: ["admin", "author"]},
+    {url: "/memberDashboard", controller: () => "Member Dashboard Page", roles: ["loggedIn"]},
+    {url: "/registrationForm", controller: () => "Registration Form Page", roles: ["loggedOut"]},
     {url: "/landingPage", controller: () => "Landing Page", roles: ["loggedIn", "loggedOut"]},
   ];
   app.addRoutes(routes);
+  done();
+});
+
+it("able to add jsonRpc middleware", (done) => {
+  const configs = [
+    {method: "add", controller: pathResolve(testcaseDirPath, "compiled-page.chiml")},
+    {method: "plus", controller: pathResolve(testcaseDirPath, "compiled-page.chiml"), roles: ["admin"]},
+    {method: "invalid", controller: "invalid.chiml"},
+  ];
+  app.addJsonRpc("/jsonrpc", configs);
   done();
 });
 
@@ -125,6 +126,80 @@ it("able to create https server", (done) => {
   expect(httpsServer).toBeDefined();
   done();
 });
+
+const unauthorizedTest = {
+  adminAndAuthorDashboard: false,
+  adminDashboard: false,
+  authorDashboard: false,
+  contributorDashboard: false,
+  landingPage: true,
+  memberDashboard: false,
+  registrationForm: true,
+};
+
+for (const subUrl in unauthorizedTest) {
+  if (subUrl in unauthorizedTest) {
+    it(`able to reply unauthorized request to /${subUrl}`, (done) => {
+      httpRequest(`${url}/${subUrl}`, (error, body) => {
+        if (unauthorizedTest[subUrl]) {
+          expect(body).toMatch(/^.+\sPage$/g);
+        } else {
+          expect(body.match(/^.+\sPage$/g)).toBeFalsy();
+        }
+        done();
+      });
+    });
+  }
+}
+
+const authorizedTest = {
+  alice: {
+    adminAndAuthorDashboard: true,
+    adminDashboard: true,
+    authorDashboard: false,
+    contributorDashboard: false,
+    landingPage: true,
+    memberDashboard: true,
+    registrationForm: false,
+  },
+  bob: {
+    adminAndAuthorDashboard: true,
+    adminDashboard: false,
+    authorDashboard: true,
+    contributorDashboard: true,
+    landingPage: true,
+    memberDashboard: true,
+    registrationForm: false,
+  },
+  charlie: {
+    adminAndAuthorDashboard: false,
+    adminDashboard: false,
+    authorDashboard: false,
+    contributorDashboard: false,
+    landingPage: true,
+    memberDashboard: true,
+    registrationForm: false,
+  },
+};
+
+for (const user in authorizedTest) {
+  if (user in authorizedTest) {
+    for (const subUrl in authorizedTest[user]) {
+      if (subUrl in authorizedTest[user]) {
+        it(`able to reply authorized request to /${subUrl}?user=${user}`, (done) => {
+          httpRequest(`${url}/${subUrl}?user=${user}`, (error, body) => {
+            if (authorizedTest[user][subUrl]) {
+              expect(body).toMatch(/^.+\sPage$/g);
+            } else {
+              expect(body.match(/^.+\sPage$/g)).toBeFalsy();
+            }
+            done();
+          });
+        });
+      }
+    }
+  }
+}
 
 it("able to reply request to /first", (done) => {
   httpRequest(`${url}/first`, (error, body) => {
@@ -414,6 +489,21 @@ it("able to reply request to /jsonrpc (using jsonRpcRequest)", (done) => {
   jsonRpcRequest(`${url}/jsonrpc`, "add", 4, 5, (error, result) => {
     expect(error).toBeNull();
     expect(result).toBe(9);
+    done();
+  });
+});
+
+it("able to reply authorized request to /jsonrpc (using jsonRpcRequest)", (done) => {
+  jsonRpcRequest(`${url}/jsonrpc?user=alice`, "plus", 4, 5, (error, result) => {
+    expect(error).toBeNull();
+    expect(result).toBe(9);
+    done();
+  });
+});
+
+it("able to reject unauthorized request to /jsonrpc (using jsonRpcRequest)", (done) => {
+  jsonRpcRequest(`${url}/jsonrpc?user=bob`, "plus", 4, 5, (error, result) => {
+    expect(error).toBeDefined();
     done();
   });
 });

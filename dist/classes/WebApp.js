@@ -15,18 +15,18 @@ class WebApp extends Koa {
     createHttpsServer(options = {}) {
         return https.createServer(options, this.callback());
     }
-    addJsonRpcMiddleware(url, configs) {
+    addJsonRpc(url, configs) {
         this.use(middlewares_1.createJsonRpcMiddleware(url, configs));
     }
-    addAuthenticationMiddleware(config) {
+    addAuthentication(config) {
         this.use(middlewares_1.createAuthenticationMiddleware(config));
     }
-    addAuthorizationMiddleware(config) {
+    addAuthorization(config) {
         this.use(middlewares_1.createAuthorizationMiddleware(config));
     }
-    addMiddlewares(configs) {
-        for (const config of configs) {
-            this.addMiddleware(config);
+    addMiddlewares(controllers) {
+        for (const controller of controllers) {
+            this.addMiddleware(controller);
         }
     }
     addRoutes(configs) {

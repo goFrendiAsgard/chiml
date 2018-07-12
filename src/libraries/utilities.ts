@@ -2,7 +2,7 @@ import * as cacheRequirePaths from "cache-require-paths";
 import {WebApp} from "../classes/WebApp";
 import {cmdComposedCommand as __cmd} from "./cmd";
 import {httpRequest, jsonRpcRequest} from "./http";
-import {print, prompt} from "./inputOutput";
+import {createPrompt, print} from "./inputOutput";
 import {parseStringArray as __parseIns} from "./stringUtil";
 
 const sys = {
@@ -10,7 +10,7 @@ const sys = {
   httpRequest,
   jsonRpcRequest,
   print,
-  prompt,
+  prompt: createPrompt(),
 };
 
 export {__cmd, __parseIns, sys};

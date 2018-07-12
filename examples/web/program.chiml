@@ -17,11 +17,18 @@ vars:
     - method: get
       url: /hello/:name
       controller: controllers/hello.chiml
+    - method: get
+      url: /hi/:name
+      controller: controllers/hello.chiml
+      roles: ["admin"]
 
   rpcUrl: /rpc
   rpcSettings:
     - method: hello
       controller: controllers/hello.chiml
+    - method: hi
+      controller: controllers/hello.chiml
+      roles: ["admin"]
 
 do:
 
@@ -32,14 +39,14 @@ do:
   - (middlewares) -> {app.addMiddlewares}
 
   # authentication & authorization
-  - "({controller:(ctx) => ctx.query.user == 'admin' && ctx.query.password == 'secret' ? 'admin' : null}) -> {app.addAuthenticationMiddleware}"
-  - "({controller:(ctx) => ctx.state.auth == 'admin' ? ['admin'] : []}) -> {app.addAuthorizationMiddleware}"
+  - "({controller:(ctx) => ctx.query.user == 'admin' && ctx.query.password == 'secret' ? 'admin' : null}) -> {app.addAuthentication}"
+  - "({controller:(ctx) => ctx.state.user == 'admin' ? ['admin'] : []}) -> {app.addAuthorization}"
 
   # routes
   - (routes) -> {app.addRoutes}
 
   # jsonRpc
-  - (rpcUrl, rpcSettings) -> {app.addJsonRpcMiddleware}
+  - (rpcUrl, rpcSettings) -> {app.addJsonRpc}
 
   # run the server
   - (app.createServer()) --> server

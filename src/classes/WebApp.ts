@@ -21,21 +21,21 @@ export class WebApp extends Koa {
     return https.createServer(options, this.callback());
   }
 
-  public addJsonRpcMiddleware(url: string, configs: any[]): void {
+  public addJsonRpc(url: string, configs: any[]): void {
     this.use(createJsonRpcMiddleware(url, configs));
   }
 
-  public addAuthenticationMiddleware(config: {[key: string]: any}): void {
+  public addAuthentication(config: {[key: string]: any}): void {
     this.use(createAuthenticationMiddleware(config));
   }
 
-  public addAuthorizationMiddleware(config: {[key: string]: any}): void {
+  public addAuthorization(config: {[key: string]: any}): void {
     this.use(createAuthorizationMiddleware(config));
   }
 
-  public addMiddlewares(configs: any[]): void {
-    for (const config of configs) {
-      this.addMiddleware(config);
+  public addMiddlewares(controllers: any[]): void {
+    for (const controller of controllers) {
+      this.addMiddleware(controller);
     }
   }
 
