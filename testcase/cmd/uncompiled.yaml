@@ -1,0 +1,2 @@
+ins: message
+do: (message) -> echo "uncompiled"

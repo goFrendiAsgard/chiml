@@ -1,11 +1,11 @@
 import { RequireCache } from "@speedy/require-cache";
-new RequireCache({cacheKiller: __dirname + "package.json"}).start();
+new RequireCache({cacheKiller: __dirname + "/package.json"}).start();
 
 import {SingleTask} from "./classes/SingleTask";
 import {WebApp} from "./classes/WebApp";
 import {CommandType, FunctionalMode, Mode} from "./enums/singleTaskProperty";
 import {ISingleTask} from "./interfaces/ISingleTask";
-import {cmd, cmdComposedCommand, composeCommand} from "./libraries/cmd";
+import {cmd, cmdComposedCommand, composeCommand, getChimlCompiledScriptPath} from "./libraries/cmd";
 import {httpRequest, jsonRpcRequest} from "./libraries/http";
 import {createPrompt, print} from "./libraries/inputOutput";
 import {createAuthenticationMiddleware, createAuthorizationMiddleware,
@@ -49,6 +49,7 @@ export {
   defaultOutProcessor,
   doubleQuote,
   execute,
+  getChimlCompiledScriptPath,
   getCompiledScript,
   getFiles,
   httpRequest,

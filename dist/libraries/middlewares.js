@@ -10,6 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const fs_1 = require("fs");
 const koaRoute = require("koa-route");
+const cmd_1 = require("./cmd");
 const stream_1 = require("./stream");
 const tools_1 = require("./tools");
 function defaultOutProcessor(ctx, out) {
@@ -42,8 +43,8 @@ function createAuthenticationMiddleware(config) {
     const handler = createHandler(normalizedConfig);
     return (ctx, next) => {
         return handler(ctx).then((out) => {
-            ctx.state = ctx.state || {};
-            ctx.state.user = ctx.state.user || out;
+            ctx.state = defineIfNotSet(ctx.state, {});
+            ctx.state.user = defineIfNotSet(ctx.state.user, out);
             return next();
         });
     };
@@ -62,8 +63,8 @@ function createAuthorizationMiddleware(config) {
                 roles.push(out);
             }
             roles.push(ctx.state.user ? "loggedIn" : "loggedOut");
-            ctx.state = ctx.state || {};
-            ctx.state.roles = (ctx.state.roles || []).concat(roles.filter((role) => ctx.state.roles.indexOf(role) === -1)).filter((role) => {
+            ctx.state = defineIfNotSet(ctx.state, {});
+            ctx.state.roles = (defineIfNotSet(ctx.state.roles, [])).concat(roles.filter((role) => ctx.state.roles.indexOf(role) === -1)).filter((role) => {
                 return (role === "loggedOut" && ctx.state.user) ? false : true;
             });
             return next();
@@ -94,6 +95,9 @@ function createMiddleware(controller) {
     return createAuthorizedMiddleware(middleware, config);
 }
 exports.createMiddleware = createMiddleware;
+function defineIfNotSet(obj, val) {
+    return obj || val;
+}
 function createAuthorizedMiddleware(middleware, config) {
     return (ctx, next) => {
         if (isAuthorized(ctx, config)) {
@@ -105,8 +109,8 @@ function createAuthorizedMiddleware(middleware, config) {
 }
 function isAuthorized(ctx, config) {
     const normalizedConfig = Object.assign({}, { roles: defaultRoles }, config);
-    ctx.state = ctx.state || {};
-    ctx.state.roles = ctx.state.roles || (ctx.state.user ? ["loggedIn"] : ["loggedOut"]);
+    ctx.state = defineIfNotSet(ctx.state, {});
+    ctx.state.roles = defineIfNotSet(ctx.state.roles, (ctx.state.user ? ["loggedIn"] : ["loggedOut"]));
     return ctx.state.roles.filter((role) => normalizedConfig.roles.indexOf(role) > -1).length > 0;
 }
 function createHandler(config) {
@@ -123,7 +127,7 @@ function createHandler(config) {
         };
     }
     if (typeof controller === "string") {
-        const scriptPath = getScriptPath(controller);
+        const scriptPath = cmd_1.getChimlCompiledScriptPath(controller, process.cwd());
         if (scriptPath !== controller && fs_1.existsSync(scriptPath)) {
             // compiled chiml
             return (...ins) => {
@@ -235,9 +239,6 @@ function createJsonRpcHandler(configs) {
             return jsonRpcErrorProcessor(ctx, { code: JREC.InternalError });
         }
     });
-}
-function getScriptPath(str) {
-    return str.replace(/^(.*)\.chiml$/gmi, "$1.js");
 }
 function getNormalizedIns(ins) {
     return ins.map((element) => {

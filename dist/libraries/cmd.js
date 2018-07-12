@@ -43,13 +43,7 @@ function cmdComposedCommand(command, ins = [], opts, isCompiled = false) {
         const commandParts = stringUtil_1.smartSplit(command, " ").filter((part) => part !== "");
         if (commandParts.length > 1 && commandParts[0] === "chie") {
             const chimlPath = commandParts[1];
-            const scriptPath = chimlPath.replace(/^(.*)\.chiml$/gmi, (match, fileName) => {
-                if ("cwd" in opts && opts.cwd !== null && !path_1.isAbsolute(chimlPath)) {
-                    const cwd = opts.cwd;
-                    return path_1.resolve(cwd, `${fileName}.js`);
-                }
-                return `${fileName}.js`;
-            });
+            const scriptPath = getChimlCompiledScriptPath(chimlPath, opts.cwd);
             if (chimlPath !== scriptPath) {
                 const inputs = commandParts.slice(2).concat(ins);
                 return runCompiledChiml(scriptPath, inputs);
@@ -68,6 +62,15 @@ function cmdComposedCommand(command, ins = [], opts, isCompiled = false) {
     });
 }
 exports.cmdComposedCommand = cmdComposedCommand;
+function getChimlCompiledScriptPath(chimlPath, cwd) {
+    return chimlPath.replace(/^(.*)\.chiml$/gmi, (match, fileName) => {
+        if (cwd && !path_1.isAbsolute(chimlPath)) {
+            return path_1.resolve(cwd, `${fileName}.js`);
+        }
+        return `${fileName}.js`;
+    });
+}
+exports.getChimlCompiledScriptPath = getChimlCompiledScriptPath;
 function runCompiledChiml(scriptPath, ins) {
     try {
         const mainFunction = require(scriptPath);

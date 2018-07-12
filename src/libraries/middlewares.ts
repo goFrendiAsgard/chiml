@@ -1,5 +1,6 @@
 import { existsSync as fsExistsSync } from "fs";
 import * as koaRoute from "koa-route";
+import {getChimlCompiledScriptPath} from "./cmd";
 import {readFromStream} from "./stream";
 import {execute} from "./tools";
 
@@ -36,8 +37,8 @@ export function createAuthenticationMiddleware(config: {[key: string]: any}): (.
   const handler = createHandler(normalizedConfig);
   return (ctx, next) => {
     return handler(ctx).then((out) => {
-      ctx.state = ctx.state || {};
-      ctx.state.user = ctx.state.user || out;
+      ctx.state = defineIfNotSet(ctx.state, {});
+      ctx.state.user = defineIfNotSet(ctx.state.user, out);
       return next();
     });
   };
@@ -55,8 +56,8 @@ export function createAuthorizationMiddleware(config: {[key: string]: any}): (..
         roles.push(out);
       }
       roles.push(ctx.state.user ? "loggedIn" : "loggedOut");
-      ctx.state = ctx.state || {};
-      ctx.state.roles = (ctx.state.roles || []).concat(
+      ctx.state = defineIfNotSet(ctx.state, {});
+      ctx.state.roles = (defineIfNotSet(ctx.state.roles, [])).concat(
         roles.filter((role) => ctx.state.roles.indexOf(role) === -1),
       ).filter((role) => {
         return (role === "loggedOut" && ctx.state.user) ? false : true;
@@ -89,6 +90,10 @@ export function createMiddleware(controller: any): (...ins: any[]) => any {
   return createAuthorizedMiddleware(middleware, config);
 }
 
+function defineIfNotSet(obj: any, val: any): any {
+  return obj || val;
+}
+
 function createAuthorizedMiddleware(
   middleware: (ctx: {[key: string]: any}, next: any) => any, config: {[key: string]: string},
 ): (ctx: any, next: any) => any {
@@ -103,8 +108,8 @@ function createAuthorizedMiddleware(
 
 function isAuthorized(ctx: {[key: string]: any}, config: {[key: string]: string}): boolean {
   const normalizedConfig = Object.assign({}, {roles: defaultRoles}, config);
-  ctx.state = ctx.state || {};
-  ctx.state.roles = ctx.state.roles || (ctx.state.user ? ["loggedIn"] : ["loggedOut"]);
+  ctx.state = defineIfNotSet(ctx.state, {});
+  ctx.state.roles = defineIfNotSet(ctx.state.roles, (ctx.state.user ? ["loggedIn"] : ["loggedOut"]));
   return ctx.state.roles.filter((role) => normalizedConfig.roles.indexOf(role) > -1).length > 0;
 }
 
@@ -122,7 +127,7 @@ function createHandler(config: {[key: string]: any}): (...ins: any[]) => any {
     };
   }
   if (typeof controller === "string") {
-    const scriptPath = getScriptPath(controller);
+    const scriptPath = getChimlCompiledScriptPath(controller, process.cwd());
     if (scriptPath !== controller && fsExistsSync(scriptPath)) {
       // compiled chiml
       return (...ins: any[]) => {
@@ -224,10 +229,6 @@ function createJsonRpcHandler(configs: any[]): (...ins: any[]) => any {
       return jsonRpcErrorProcessor(ctx, {code: JREC.InternalError});
     }
   };
-}
-
-function getScriptPath(str) {
-  return str.replace(/^(.*)\.chiml$/gmi, "$1.js");
 }
 
 function getNormalizedIns(ins: any[]) {

@@ -26,6 +26,7 @@ const rootDirPath = pathDirName(pathDirName(__dirname));
 const cmdTestPath = pathResolve(rootDirPath, "testcase", "cmd");
 const nestedTestPath = pathResolve(rootDirPath, "testcase", "nested");
 const addJsPath = pathResolve(cmdTestPath, "add.js");
+const helloJsPath = pathResolve(cmdTestPath, "hello.js");
 
 it("should able to run `node add.js` with input redirection", (done) => {
   cmd(`(echo "2" && echo "3") | node ${addJsPath}`).then((stdout) => {
@@ -44,6 +45,32 @@ it("should able to compose command `node add.js` and run it", (done) => {
   expect(composedCommand).toBe(`(echo "7" && echo "4") | ${command} "7" "4"`);
   cmdComposedCommand(command, ins).then((stdout) => {
     expect(stdout).toBe(11);
+    done();
+  }).catch((error) => {
+    expect(error).toBeNull();
+    done(error);
+  });
+});
+
+it("should able to compose command `node hello.js` and run it", (done) => {
+  const command = `node ${helloJsPath}`;
+  const composedCommand = composeCommand(command);
+  expect(composedCommand).toBe(`${command}`);
+  cmdComposedCommand(command).then((stdout) => {
+    expect(stdout).toBe("hello");
+    done();
+  }).catch((error) => {
+    expect(error).toBeNull();
+    done(error);
+  });
+});
+
+it("should able to compose command `node hello.js` and run it", (done) => {
+  const command = `node ${helloJsPath}`;
+  const composedCommand = composeCommand(command);
+  expect(composedCommand).toBe(`${command}`);
+  cmdComposedCommand(command, [], {}, true).then((stdout) => {
+    expect(stdout).toBe("hello");
     done();
   }).catch((error) => {
     expect(error).toBeNull();

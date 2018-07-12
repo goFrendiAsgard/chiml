@@ -48,13 +48,7 @@ export function cmdComposedCommand(
     const commandParts = smartSplit(command, " ").filter((part) => part !== "");
     if (commandParts.length > 1 && commandParts[0] === "chie") {
       const chimlPath = commandParts[1];
-      const scriptPath = chimlPath.replace(/^(.*)\.chiml$/gmi, (match, fileName) => {
-        if ("cwd" in opts && opts.cwd !== null && !isAbsolutePath(chimlPath)) {
-          const cwd = opts.cwd;
-          return pathResolve(cwd, `${fileName}.js`);
-        }
-        return `${fileName}.js`;
-      });
+      const scriptPath = getChimlCompiledScriptPath(chimlPath, opts.cwd);
       if (chimlPath !== scriptPath) {
         const inputs = commandParts.slice(2).concat(ins);
         return runCompiledChiml(scriptPath, inputs);
@@ -69,6 +63,15 @@ export function cmdComposedCommand(
         resolve(result.trim());
       }
     });
+  });
+}
+
+export function getChimlCompiledScriptPath(chimlPath: string, cwd: string) {
+  return chimlPath.replace(/^(.*)\.chiml$/gmi, (match, fileName) => {
+    if (cwd && !isAbsolutePath(chimlPath)) {
+      return pathResolve(cwd, `${fileName}.js`);
+    }
+    return `${fileName}.js`;
   });
 }
 

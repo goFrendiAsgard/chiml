@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const require_cache_1 = require("@speedy/require-cache");
-new require_cache_1.RequireCache({ cacheKiller: __dirname + "package.json" }).start();
+new require_cache_1.RequireCache({ cacheKiller: __dirname + "/package.json" }).start();
 const SingleTask_1 = require("./classes/SingleTask");
 exports.SingleTask = SingleTask_1.SingleTask;
 const WebApp_1 = require("./classes/WebApp");
@@ -14,6 +14,7 @@ const cmd_1 = require("./libraries/cmd");
 exports.cmd = cmd_1.cmd;
 exports.cmdComposedCommand = cmd_1.cmdComposedCommand;
 exports.composeCommand = cmd_1.composeCommand;
+exports.getChimlCompiledScriptPath = cmd_1.getChimlCompiledScriptPath;
 const http_1 = require("./libraries/http");
 exports.httpRequest = http_1.httpRequest;
 exports.jsonRpcRequest = http_1.jsonRpcRequest;
