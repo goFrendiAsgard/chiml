@@ -10,6 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const fs_1 = require("fs");
 const koaRoute = require("koa-route");
+const pathToRegexp = require("path-to-regexp");
 const cmd_1 = require("./cmd");
 const stream_1 = require("./stream");
 const tools_1 = require("./tools");
@@ -99,12 +100,34 @@ exports.createMiddleware = createMiddleware;
 function defineIfNotSet(obj, val) {
     return obj || val;
 }
+function isRouteConfig(config) {
+    return "method" in config && "url" in config;
+}
+function isRouteMethodMatch(ctx, method) {
+    const upperCasedMethod = method.toUpperCase();
+    return upperCasedMethod === "ALL" ||
+        ctx.method === upperCasedMethod ||
+        (upperCasedMethod === "GET" && ctx.method === "HEAD");
+}
+function isRouteMatch(ctx, config) {
+    if (isRouteConfig(config) && isRouteMethodMatch(ctx, config.method)) {
+        const re = pathToRegexp(config.url);
+        return re.exec(ctx.url) ? true : false;
+    }
+    return false;
+}
 function createAuthorizedMiddleware(middleware, config) {
     return (ctx, next) => {
+        const routeMatch = isRouteMatch(ctx, config);
         if (isAuthorized(ctx, config)) {
+            if (routeMatch) {
+                ctx.status = 200;
+            }
             return middleware(ctx, next);
         }
-        ctx.status = 401;
+        if (routeMatch) {
+            ctx.status = 401;
+        }
         return next();
     };
 }

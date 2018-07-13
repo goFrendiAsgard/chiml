@@ -1,5 +1,6 @@
 import { existsSync as fsExistsSync } from "fs";
 import * as koaRoute from "koa-route";
+import * as pathToRegexp from "path-to-regexp";
 import {getChimlCompiledScriptPath} from "./cmd";
 import {readFromStream} from "./stream";
 import {execute} from "./tools";
@@ -95,14 +96,40 @@ function defineIfNotSet(obj: any, val: any): any {
   return obj || val;
 }
 
+function isRouteConfig(config: {[key: string]: any}): boolean {
+    return "method" in config && "url" in config;
+}
+
+function isRouteMethodMatch(ctx: {[key: string]: any}, method: string) {
+  const upperCasedMethod = method.toUpperCase();
+  return upperCasedMethod === "ALL" ||
+    ctx.method === upperCasedMethod ||
+    (upperCasedMethod === "GET" && ctx.method === "HEAD");
+}
+
+function isRouteMatch(ctx: {[key: string]: any}, config: {[key: string]: any}) {
+  if (isRouteConfig(config) && isRouteMethodMatch(ctx, config.method)) {
+    const re: RegExp = pathToRegexp(config.url);
+    return re.exec(ctx.url) ? true : false;
+  }
+  return false;
+}
+
 function createAuthorizedMiddleware(
-  middleware: (ctx: {[key: string]: any}, next: any) => any, config: {[key: string]: string},
+  middleware: (ctx: {[key: string]: any}, next: any) => any,
+  config: {[key: string]: any},
 ): (ctx: any, next: any) => any {
   return (ctx: any, next: any) => {
+    const routeMatch: boolean = isRouteMatch(ctx, config);
     if (isAuthorized(ctx, config)) {
+      if (routeMatch) {
+        ctx.status = 200;
+      }
       return middleware(ctx, next);
     }
-    ctx.status = 401;
+    if (routeMatch) {
+      ctx.status = 401;
+    }
     return next();
   };
 }

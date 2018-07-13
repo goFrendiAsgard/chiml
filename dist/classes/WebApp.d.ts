@@ -4,7 +4,7 @@ import * as https from "https";
 import * as Koa from "koa";
 export declare class WebApp extends Koa {
     createServer: () => http.Server;
-    ctx: any;
+    ctx: Koa.Context;
     constructor();
     createHttpServer(): http.Server;
     createHttpsServer(options?: {
