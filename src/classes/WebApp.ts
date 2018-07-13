@@ -11,6 +11,15 @@ import {
 export class WebApp extends Koa {
 
   public createServer = this.createHttpServer;
+  public ctx: Koa.Context;
+
+  constructor() {
+    super();
+    this.use(async (ctx, next) => {
+      this.ctx = ctx;
+      await next();
+    });
+  }
 
   public createHttpServer(): http.Server {
     return http.createServer(this.callback());
