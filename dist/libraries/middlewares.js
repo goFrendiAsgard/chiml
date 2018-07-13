@@ -64,7 +64,8 @@ function createAuthorizationMiddleware(config) {
             }
             roles.push(ctx.state.user ? "loggedIn" : "loggedOut");
             ctx.state = defineIfNotSet(ctx.state, {});
-            ctx.state.roles = (defineIfNotSet(ctx.state.roles, [])).concat(roles.filter((role) => ctx.state.roles.indexOf(role) === -1)).filter((role) => {
+            ctx.state.roles = defineIfNotSet(ctx.state.roles, []);
+            ctx.state.roles = ctx.state.roles.concat(roles.filter((role) => ctx.state.roles.indexOf(role) === -1)).filter((role) => {
                 return (role === "loggedOut" && ctx.state.user) ? false : true;
             });
             return next();
