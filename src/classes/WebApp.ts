@@ -1,6 +1,7 @@
 import * as http from "http";
 import * as https from "https";
 import * as Koa from "koa";
+import * as socketIo from "socket.io";
 import {
   createAuthenticationMiddleware,
   createAuthorizationMiddleware,
@@ -11,14 +12,22 @@ import {
 export class WebApp extends Koa {
 
   public createServer = this.createHttpServer;
-  public ctx: Koa.Context;
 
-  constructor() {
-    super();
-    this.use(async (ctx, next) => {
-      this.ctx = ctx;
-      await next();
+  public createIo(server: http.Server | https.Server, options?: socketIo.ServerOptions): socketIo.Server {
+    const io = socketIo(server, options);
+    io.use((socket, next) => {
+      let error = null;
+      try {
+        // create a new (fake) Koa context to decrypt the session cookie
+        const ctx = this.createContext(socket.request, new http.ServerResponse(socket.request));
+        Object.defineProperty(socket, "ctx", { value: ctx, writable: false });
+      } catch (err) {
+        error = err;
+        console.error(err);
+      }
+      next(error);
     });
+    return io;
   }
 
   public createHttpServer(): http.Server {
