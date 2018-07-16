@@ -1,25 +1,31 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 const http = require("http");
 const https = require("https");
 const Koa = require("koa");
+const socketIo = require("socket.io");
 const middlewares_1 = require("../libraries/middlewares");
 class WebApp extends Koa {
     constructor() {
-        super();
+        super(...arguments);
         this.createServer = this.createHttpServer;
-        this.use((ctx, next) => __awaiter(this, void 0, void 0, function* () {
-            this.ctx = ctx;
-            yield next();
-        }));
+    }
+    createIo(server, options) {
+        const io = socketIo(server, options);
+        io.use((socket, next) => {
+            let error = null;
+            try {
+                // create a new (fake) Koa context to decrypt the session cookie
+                const ctx = this.createContext(socket.request, new http.ServerResponse(socket.request));
+                Object.defineProperty(socket, "ctx", { value: ctx, writable: false });
+            }
+            catch (err) {
+                error = err;
+                console.error(err);
+            }
+            next(error);
+        });
+        return io;
     }
     createHttpServer() {
         return http.createServer(this.callback());

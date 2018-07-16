@@ -18,7 +18,7 @@ export class WebApp extends Koa {
     io.use((socket, next) => {
       let error = null;
       try {
-        // create a new (fake) Koa context to decrypt the session cookie
+        // create `fake` ctx and share it with our io instance
         const ctx = this.createContext(socket.request, new http.ServerResponse(socket.request));
         Object.defineProperty(socket, "ctx", { value: ctx, writable: false });
       } catch (err) {

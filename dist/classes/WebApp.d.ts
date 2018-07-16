@@ -2,10 +2,10 @@
 import * as http from "http";
 import * as https from "https";
 import * as Koa from "koa";
+import * as socketIo from "socket.io";
 export declare class WebApp extends Koa {
     createServer: () => http.Server;
-    ctx: Koa.Context;
-    constructor();
+    createIo(server: http.Server | https.Server, options?: socketIo.ServerOptions): socketIo.Server;
     createHttpServer(): http.Server;
     createHttpsServer(options?: {
         [key: string]: any;
