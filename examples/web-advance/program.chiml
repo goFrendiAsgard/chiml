@@ -1,0 +1,86 @@
+out: output
+vars:
+  config:
+
+    authentication:
+      controller: 'middlewares/authentication.chiml'
+
+    authorization:
+      controller: 'middlewares/authorization.chiml'
+    
+    ejs:
+      root: 'views'
+      layout: 'template'
+      viewExt: 'html'
+      cache: true
+      debug: false
+    
+    middlewares: []
+
+    routes:
+      - method: 'get'
+        url: '/'
+        controller: 'controllers/index.chiml'
+        propagateContext: true
+    
+    rpcUrl: /rpc
+    rpcSettings:
+      - method: hello
+        controller: controllers/hello.chiml
+    
+    server:
+      port: 3000
+      host: ""
+      path: ""
+      backlog: 0
+      exclusive: false
+      readableAll: false
+      writableAll: false
+
+    statics:
+      - "assets"
+      - "node_modules/socket.io-client/dist"
+do:
+
+  # load config
+  - (__dirname + "/config.yml") -> [require("fs").readFile] -> fileContent
+  - (fileContent) -> {require('js-yaml').safeLoad} -> customConfig
+  - ({}, config, customConfig) -> {Object.assign} -> config
+
+  # initialization
+  - (new sys.WebApp()) --> app
+
+  # middlewares
+  - (config.middlewares) -> {app.addMiddlewares}
+
+  # static files
+  - map: config.statics
+    ins: static
+    do: 
+      - (static) -> {require(__dirname + '/node_modules/koa-static')} -> middleware
+      - (middleware) -> {app.use}
+
+  # authentication & authorization
+  - (config.authentication) -> {app.addAuthentication}
+  - (config.authorization) -> {app.addAuthorization}
+
+  # ejs
+  - (app, config.ejs) -> {require(__dirname + '/node_modules/koa-ejs')}
+
+  # routes
+  - (config.routes) -> {app.addRoutes}
+
+  # jsonRpc
+  - (config.rpcUrl, config.rpcSettings) -> {app.addJsonRpc}
+
+  # create server
+  - (app.createServer()) --> server
+
+  # run the server
+  - (config.server) -> [server.listen]
+
+  # create io
+  - (server) -> {app.createIo} -> io
+
+  # show message
+  - (`Run server on port ${config.server.port}. Press ctrl + c to stop`) --> output
