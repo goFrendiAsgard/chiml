@@ -1,2 +1,2 @@
-const { hostname, port } = window.location;
-const socket = port ? io.connect(`http://${hostname}:${port}`) : io.connect(`http://${hostname}`);
+const { hostname, port, protocol } = window.location;
+const socket = port ? io.connect(`${protocol}//${hostname}:${port}`) : io.connect(`${protocol}//${hostname}`);
