@@ -22,19 +22,19 @@ const defaultRoles = ["loggedIn", "loggedOut"];
 const defaultMiddlewareConfig = {
   controller: (...ins) => ins.slice(0, -1).join(""),
   outProcessor: defaultOutProcessor,
-  propagateCtx: true,
+  propagateContext: true,
   roles: defaultRoles,
 };
 
 const defaultRouteConfig = {
   method: "all",
-  propagateCtx: false,
+  propagateContext: false,
   roles: defaultRoles,
   url: "/",
 };
 
 export function createAuthenticationMiddleware(config: {[key: string]: any}): (...ins: any[]) => any {
-  const normalizedConfig = Object.assign({}, {propagateCtx: true}, config);
+  const normalizedConfig = Object.assign({}, {propagateContext: true}, config);
   const handler = createHandler(normalizedConfig);
   return (ctx, next) => {
     return handler(ctx).then((out) => {
@@ -46,7 +46,7 @@ export function createAuthenticationMiddleware(config: {[key: string]: any}): (.
 }
 
 export function createAuthorizationMiddleware(config: {[key: string]: any}): (...ins: any[]) => any {
-  const normalizedConfig = Object.assign({}, {propagateCtx: true}, config);
+  const normalizedConfig = Object.assign({}, {propagateContext: true}, config);
   const handler = createHandler(normalizedConfig);
   return (ctx, next) => {
     return handler(ctx).then((out) => {
@@ -71,7 +71,7 @@ export function createAuthorizationMiddleware(config: {[key: string]: any}): (..
 
 export function createJsonRpcMiddleware(url: string, configs: any[], method: string = "all"): (...ins: any[]) => any {
   const normalizedConfigs = configs.map((config) => {
-    return Object.assign({}, {propagateCtx: false, controller: (...ins) => ins}, config);
+    return Object.assign({}, {propagateContext: false, controller: (...ins) => ins}, config);
   });
   const handler = createJsonRpcHandler(normalizedConfigs);
   const middleware = koaRoute[method](url, handler);
@@ -86,8 +86,11 @@ export function createRouteMiddleware(config: {[key: string]: any}): (...ins: an
   return createAuthorizedMiddleware(middleware, routeConfig);
 }
 
-export function createMiddleware(controller: any): (...ins: any[]) => any {
-  const config = {controller};
+export function createMiddleware(
+  controller: any,
+  middlewareConfig: {[key: string]: any} = defaultMiddlewareConfig,
+): (...ins: any[]) => any {
+  const config = Object.assign({}, middlewareConfig, {controller});
   const middleware = createHandler(config);
   return createAuthorizedMiddleware(middleware, config);
 }
@@ -143,12 +146,12 @@ function isAuthorized(ctx: {[key: string]: any}, config: {[key: string]: string}
 
 function createHandler(config: {[key: string]: any}): (...ins: any[]) => any {
   const normalizedConfig = Object.assign({}, defaultMiddlewareConfig, config);
-  const {controller, propagateCtx, outProcessor} = normalizedConfig;
-  if (!propagateCtx) {
+  const {controller, propagateContext, outProcessor} = normalizedConfig;
+  if (!propagateContext) {
     const subHandler = createHandler({
       controller,
       outProcessor,
-      propagateCtx: true,
+      propagateContext: true,
     });
     return (ctx: {[key: string]: any}, ...ins: any[]) => {
       return subHandler(...ins).then((out) => outProcessor(ctx, out));
@@ -243,13 +246,13 @@ function createJsonRpcHandler(configs: any[]): (...ins: any[]) => any {
         return jsonRpcErrorProcessor(ctx, { code: JREC.MethodNotFound,
          message: "unauthorized access"});
       }
-      const {controller, propagateCtx} = matchedConfig;
+      const {controller, propagateContext} = matchedConfig;
       const handler = createHandler({
         controller,
         outProcessor: (context, out) => {
           context.body = JSON.stringify({id, jsonrpc, result: out});
         },
-        propagateCtx,
+        propagateContext,
       });
       return await handler(ctx, ...params);
     } catch (error) {

@@ -30,17 +30,17 @@ const defaultRoles = ["loggedIn", "loggedOut"];
 const defaultMiddlewareConfig = {
     controller: (...ins) => ins.slice(0, -1).join(""),
     outProcessor: defaultOutProcessor,
-    propagateCtx: true,
+    propagateContext: true,
     roles: defaultRoles,
 };
 const defaultRouteConfig = {
     method: "all",
-    propagateCtx: false,
+    propagateContext: false,
     roles: defaultRoles,
     url: "/",
 };
 function createAuthenticationMiddleware(config) {
-    const normalizedConfig = Object.assign({}, { propagateCtx: true }, config);
+    const normalizedConfig = Object.assign({}, { propagateContext: true }, config);
     const handler = createHandler(normalizedConfig);
     return (ctx, next) => {
         return handler(ctx).then((out) => {
@@ -52,7 +52,7 @@ function createAuthenticationMiddleware(config) {
 }
 exports.createAuthenticationMiddleware = createAuthenticationMiddleware;
 function createAuthorizationMiddleware(config) {
-    const normalizedConfig = Object.assign({}, { propagateCtx: true }, config);
+    const normalizedConfig = Object.assign({}, { propagateContext: true }, config);
     const handler = createHandler(normalizedConfig);
     return (ctx, next) => {
         return handler(ctx).then((out) => {
@@ -76,7 +76,7 @@ function createAuthorizationMiddleware(config) {
 exports.createAuthorizationMiddleware = createAuthorizationMiddleware;
 function createJsonRpcMiddleware(url, configs, method = "all") {
     const normalizedConfigs = configs.map((config) => {
-        return Object.assign({}, { propagateCtx: false, controller: (...ins) => ins }, config);
+        return Object.assign({}, { propagateContext: false, controller: (...ins) => ins }, config);
     });
     const handler = createJsonRpcHandler(normalizedConfigs);
     const middleware = koaRoute[method](url, handler);
@@ -139,12 +139,12 @@ function isAuthorized(ctx, config) {
 }
 function createHandler(config) {
     const normalizedConfig = Object.assign({}, defaultMiddlewareConfig, config);
-    const { controller, propagateCtx, outProcessor } = normalizedConfig;
-    if (!propagateCtx) {
+    const { controller, propagateContext, outProcessor } = normalizedConfig;
+    if (!propagateContext) {
         const subHandler = createHandler({
             controller,
             outProcessor,
-            propagateCtx: true,
+            propagateContext: true,
         });
         return (ctx, ...ins) => {
             return subHandler(...ins).then((out) => outProcessor(ctx, out));
@@ -248,13 +248,13 @@ function createJsonRpcHandler(configs) {
                 return jsonRpcErrorProcessor(ctx, { code: JREC.MethodNotFound,
                     message: "unauthorized access" });
             }
-            const { controller, propagateCtx } = matchedConfig;
+            const { controller, propagateContext } = matchedConfig;
             const handler = createHandler({
                 controller,
                 outProcessor: (context, out) => {
                     context.body = JSON.stringify({ id, jsonrpc, result: out });
                 },
-                propagateCtx,
+                propagateContext,
             });
             return yield handler(ctx, ...params);
         }

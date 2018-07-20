@@ -32,10 +32,10 @@ it("able to add routes before middlewares", (done) => {
         },
         // compiled chiml files
         { url: "/add/:n1/:n2", controller: path_1.resolve(testcaseDirPath, "compiled-page.chiml") },
-        // propagateCtx
+        // propagateContext
         {
             controller: path_1.resolve(testcaseDirPath, "compiled-route.chiml"),
-            propagateCtx: true,
+            propagateContext: true,
             url: "/minus/:n1/:n2",
         },
         // without controller
@@ -98,7 +98,7 @@ it("able to add middlewares", (done) => {
     done();
 });
 it("able to add pages after middlewares", (done) => {
-    const propagateCtx = true;
+    const propagateContext = true;
     const configs = [
         // function
         { url: "/page-hello/:name", controller: (name) => `Hello ${name}` },
@@ -106,12 +106,12 @@ it("able to add pages after middlewares", (done) => {
         { url: "/page-hi/:name", controller: path_1.resolve(testcaseDirPath, "page.chiml") },
         // chiml script
         { url: "/page-bonjour/:name", controller: "(name) -> (name) => `Bonjour ${name}`" },
-        // function (with propagateCtx)
-        { propagateCtx, url: "/hello/:name", controller: (ctx, name) => ctx.body += `Hello ${name}` },
-        // chiml file (with propagateCtx)
-        { propagateCtx, url: "/hi/:name", controller: path_1.resolve(testcaseDirPath, "route.chiml") },
-        // chiml script (with propagateCtx)
-        { propagateCtx, url: "/bonjour/:name", controller: "(ctx, name) -> (ctx, name) => ctx.body += `Bonjour ${name}`" },
+        // function (with propagateContext)
+        { propagateContext, url: "/hello/:name", controller: (ctx, name) => ctx.body += `Hello ${name}` },
+        // chiml file (with propagateContext)
+        { propagateContext, url: "/hi/:name", controller: path_1.resolve(testcaseDirPath, "route.chiml") },
+        // chiml script (with propagateContext)
+        { propagateContext, url: "/bonjour/:name", controller: "(ctx, name) -> (ctx, name) => ctx.body += `Bonjour ${name}`" },
     ];
     app.addRoutes(configs);
     done();

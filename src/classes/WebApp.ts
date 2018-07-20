@@ -13,19 +13,18 @@ export class WebApp extends Koa {
 
   public createServer = this.createHttpServer;
 
-  public createIo(server: http.Server | https.Server, options?: socketIo.ServerOptions): socketIo.Server {
-    const io = socketIo(server, options);
-    io.use((socket, next) => {
-      let error = null;
-      try {
-        // create `fake` ctx and share it with our io instance
-        const ctx = this.createContext(socket.request, new http.ServerResponse(socket.request));
-        Object.defineProperty(socket, "ctx", { value: ctx, writable: false });
-      } catch (err) {
-        error = err;
-        console.error(err);
+  public createIo(server: http.Server | https.Server): socketIo.Server {
+    const self = this;
+    const io = socketIo(server);
+    const eventListeners: any[] = [];
+    const addEventListeners = (event: string, handler: any) => eventListeners.push({event, handler});
+    Object.defineProperty(io, "eventListeners", {value: eventListeners, writable: false});
+    Object.defineProperty(io, "addEventListeners", {value: addEventListeners, writable: false});
+    io.on("connection", (socket) => {
+      for (const eventListener of eventListeners) {
+        const {event, handler} = eventListener;
+        // TODO: add event
       }
-      next(error);
     });
     return io;
   }
