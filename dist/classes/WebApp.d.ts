@@ -5,7 +5,7 @@ import * as Koa from "koa";
 import * as socketIo from "socket.io";
 export declare class WebApp extends Koa {
     createServer: () => http.Server;
-    createIo(server: http.Server | https.Server, options?: socketIo.ServerOptions): socketIo.Server;
+    createIo(server: http.Server | https.Server): socketIo.Server;
     createHttpServer(): http.Server;
     createHttpsServer(options?: {
         [key: string]: any;

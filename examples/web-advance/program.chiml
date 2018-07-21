@@ -3,24 +3,24 @@ vars:
   config:
 
     authentication:
-      controller: 'middlewares/authentication.chiml'
+      controller: middlewares/authentication.chiml
 
     authorization:
-      controller: 'middlewares/authorization.chiml'
+      controller: middlewares/authorization.chiml
     
     ejs:
-      root: 'views'
-      layout: 'template'
-      viewExt: 'html'
+      root: views
+      layout: template
+      viewExt: html
       cache: true
       debug: false
     
     middlewares: []
 
     routes:
-      - method: 'get'
-        url: '/'
-        controller: 'controllers/index.chiml'
+      - method: get
+        url: /
+        controller: controllers/index.chiml
         propagateContext: true
     
     rpcUrl: /rpc
@@ -36,10 +36,16 @@ vars:
       exclusive: false
       readableAll: false
       writableAll: false
+    
+    socketEvents:
+      - event: ping
+        handler: controllers/ping.chiml
+      - event: pong
+        handler: controllers/pong.chiml
 
     statics:
-      - "assets"
-      - "node_modules/socket.io-client/dist"
+      - assets
+      - node_modules/socket.io-client/dist
 do:
 
   # load config
@@ -73,14 +79,13 @@ do:
   # jsonRpc
   - (config.rpcUrl, config.rpcSettings) -> {app.addJsonRpc}
 
-  # create server
+  # create and run server
   - (app.createServer()) --> server
-
-  # run the server
   - (config.server) -> [server.listen]
 
-  # create io
+  # create and run io
   - (server) -> {app.createIo} -> io
+  - 
 
   # show message
   - (`Run server on port ${config.server.port}. Press ctrl + c to stop`) --> output

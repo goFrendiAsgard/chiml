@@ -1,8 +1,9 @@
 import {runInNewContext} from "vm";
 import {CommandType, FunctionalMode, Mode} from "../enums/singleTaskProperty";
+import {IRawConfig} from "../interfaces/IRawConfig";
 import {ISingleTask} from "../interfaces/ISingleTask";
 import {createSandbox} from "../libraries/sandbox";
-import {IRawConfig, normalizeRawConfig, strToNormalizedConfig} from "../libraries/singleTaskConfigProcessor";
+import {normalizeRawConfig, strToNormalizedConfig} from "../libraries/singleTaskConfigProcessor";
 import {createHandlerScript} from "../libraries/singleTaskScriptGenerator";
 
 export class SingleTask implements ISingleTask {

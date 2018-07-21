@@ -1,0 +1,4 @@
+ins: socket, message
+do:
+  - (`ping ${message}`) -> {console.log}
+  - ('pong', message) -> {socket.emit}

@@ -2,6 +2,7 @@ import * as http from "http";
 import * as https from "https";
 import * as Koa from "koa";
 import * as socketIo from "socket.io";
+import {ISocketIoEventListener} from "../interfaces/ISocketIoEventListener";
 import {
   createAuthenticationMiddleware,
   createAuthorizationMiddleware,
@@ -16,15 +17,25 @@ export class WebApp extends Koa {
   public createIo(server: http.Server | https.Server): socketIo.Server {
     const self = this;
     const io = socketIo(server);
-    const eventListeners: any[] = [];
-    const addEventListeners = (event: string, handler: any) => eventListeners.push({event, handler});
+    let eventListeners: ISocketIoEventListener[] = [];
+    const addEventListener = (config: ISocketIoEventListener) => eventListeners.push(config);
+    const addEventListeners = (configs: ISocketIoEventListener[]) => {
+      eventListeners = eventListeners.concat(configs);
+    };
     Object.defineProperty(io, "eventListeners", {value: eventListeners, writable: false});
+    Object.defineProperty(io, "addEventListener", {value: addEventListener, writable: false});
     Object.defineProperty(io, "addEventListeners", {value: addEventListeners, writable: false});
-    io.on("connection", (socket) => {
-      for (const eventListener of eventListeners) {
-        const {event, handler} = eventListener;
-        // TODO: add event
-      }
+    Object.defineProperty(io, "applyEventListeners", {
+      value: () => {
+        io.on("connection", (socket) => {
+          for (const eventListener of eventListeners) {
+            const {event, handler} = eventListener;
+            const middleware = createMiddleware(handler, {propagateContext: true});
+            socket.on(event, middleware);
+          }
+        });
+      },
+      writable: false,
     });
     return io;
   }

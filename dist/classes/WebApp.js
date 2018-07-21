@@ -10,20 +10,28 @@ class WebApp extends Koa {
         super(...arguments);
         this.createServer = this.createHttpServer;
     }
-    createIo(server, options) {
-        const io = socketIo(server, options);
-        io.use((socket, next) => {
-            let error = null;
-            try {
-                // create a new (fake) Koa context to decrypt the session cookie
-                const ctx = this.createContext(socket.request, new http.ServerResponse(socket.request));
-                Object.defineProperty(socket, "ctx", { value: ctx, writable: false });
-            }
-            catch (err) {
-                error = err;
-                console.error(err);
-            }
-            next(error);
+    createIo(server) {
+        const self = this;
+        const io = socketIo(server);
+        let eventListeners = [];
+        const addEventListener = (config) => eventListeners.push(config);
+        const addEventListeners = (configs) => {
+            eventListeners = eventListeners.concat(configs);
+        };
+        Object.defineProperty(io, "eventListeners", { value: eventListeners, writable: false });
+        Object.defineProperty(io, "addEventListener", { value: addEventListener, writable: false });
+        Object.defineProperty(io, "addEventListeners", { value: addEventListeners, writable: false });
+        Object.defineProperty(io, "applyEventListeners", {
+            value: () => {
+                io.on("connection", (socket) => {
+                    for (const eventListener of eventListeners) {
+                        const { event, handler } = eventListener;
+                        const middleware = middlewares_1.createMiddleware(handler, { propagateContext: true });
+                        socket.on(event, middleware);
+                    }
+                });
+            },
+            writable: false,
         });
         return io;
     }

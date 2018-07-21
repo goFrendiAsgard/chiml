@@ -111,7 +111,11 @@ it("able to add pages after middlewares", (done) => {
         // chiml file (with propagateContext)
         { propagateContext, url: "/hi/:name", controller: path_1.resolve(testcaseDirPath, "route.chiml") },
         // chiml script (with propagateContext)
-        { propagateContext, url: "/bonjour/:name", controller: "(ctx, name) -> (ctx, name) => ctx.body += `Bonjour ${name}`" },
+        {
+            controller: "(ctx, name) -> (ctx, name) => ctx.body += `Bonjour ${name}`",
+            propagateContext,
+            url: "/bonjour/:name",
+        },
     ];
     app.addRoutes(configs);
     done();

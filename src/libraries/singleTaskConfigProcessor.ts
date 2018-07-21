@@ -1,27 +1,10 @@
 import {CommandType, FunctionalMode, Mode} from "../enums/singleTaskProperty";
+import {IRawConfig} from "../interfaces/IRawConfig";
 import {isFlanked, removeFlank, smartSplit} from "./stringUtil";
 
 const jsArrowFunctionPattern = /^.*\s*=>.+/g;
 const jsFunctionPattern = /^function\s*\(.*\)\s*{.+}$/g;
 const jsAsyncPattern = /^async\s*function\s*\(.*\)\s*{.+}$/g;
-
-export interface IRawConfig {
-  accumulator: string;
-  branchCondition: string;
-  command: string;
-  commandList: any[];
-  commandType: CommandType;
-  dst: string;
-  functionalMode: FunctionalMode;
-  ins: string[];
-  loopCondition: string;
-  mode: Mode;
-  out: string;
-  src: string;
-  vars: { [key: string]: any };
-  chimlPath: string;
-  __isNormal: boolean;
-}
 
 export function strToNormalizedConfig(str: string): IRawConfig {
   return normalizeRawConfig(strToRawConfig(str));

@@ -1,5 +1,6 @@
 import {readFile} from "fs";
 import {safeLoad} from "js-yaml";
+import {ILineState} from "../interfaces/ILineState";
 import {normalizeRawConfig, strToNormalizedConfig} from "./singleTaskConfigProcessor";
 
 const BLOCKED_SEQUENCE_ITEM = /^(\s*)-(\s+)(>|\|)(.+)$/gm;
@@ -8,15 +9,6 @@ const BLOCKED_STRING = /^(>|\|)(.+)$/gm;
 const CHIML_MAP_ITEM_LINE = /^(\s*)(-?)(\s*)([a-z0-9_]+)\s*:\s*(.*)\s*$/gi;
 const CHIML_SEQUENCE_ITEM_LINE = /^(\s*)-\s*(.*)\s*$/gi;
 const CHIML_FILE_NAME = /^.+\.chiml$/gmi;
-
-interface ILineState {
-  spaces1: string;
-  spaces2: string;
-  isMap: boolean;
-  isSequence: boolean;
-  key: string;
-  val: string;
-}
 
 export function chimlToYaml(chiml: string): string {
   const normalizedInlineBlock = normalizeInlineBlockDelimiter(chiml).trim();

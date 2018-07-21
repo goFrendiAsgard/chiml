@@ -91,8 +91,8 @@ function createRouteMiddleware(config) {
     return createAuthorizedMiddleware(middleware, routeConfig);
 }
 exports.createRouteMiddleware = createRouteMiddleware;
-function createMiddleware(controller) {
-    const config = { controller };
+function createMiddleware(controller, middlewareConfig = defaultMiddlewareConfig) {
+    const config = Object.assign({}, middlewareConfig, { controller });
     const middleware = createHandler(config);
     return createAuthorizedMiddleware(middleware, config);
 }
