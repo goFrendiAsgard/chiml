@@ -1,4 +1,4 @@
 export interface ISocketIoEventListener {
   event: string;
-  handler: any;
+  controller: any;
 }

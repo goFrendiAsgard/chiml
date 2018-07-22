@@ -1,0 +1,28 @@
+authentication:
+  controller: middlewares/authentication.chiml
+
+authorization:
+  controller: middlewares/authorization.chiml
+
+middlewares:
+  - middlewares/logger.chiml
+
+routes:
+  - method: get
+    url: /
+    controller: controllers/index.chiml
+    propagateContext: true
+
+rpcUrl: /rpc
+rpcSettings:
+  - method: echo
+    controller: controllers/rpc/echo.chiml
+
+socketEvents:
+  - event: snip
+    controller: controllers/snip.chiml
+  - event: snap
+    controller: controllers/snap.chiml
+
+statics:
+  - assets

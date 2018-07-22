@@ -1,0 +1,4 @@
+ins: socket, message
+do:
+  - (`snip ${message}`) -> {console.log}
+  - ('snap', message) -> {socket.emit}

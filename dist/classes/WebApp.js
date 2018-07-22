@@ -18,21 +18,25 @@ class WebApp extends Koa {
         const addEventListeners = (configs) => {
             eventListeners = eventListeners.concat(configs);
         };
+        const applyEventListeners = () => {
+            io.on("connection", (socket) => {
+                for (const eventListener of eventListeners) {
+                    const { event, controller } = eventListener;
+                    const handler = middlewares_1.createMiddleware(controller, { propagateContext: true });
+                    socket.on(event, (...ins) => {
+                        const ctx = self.createContext(socket.request, new http.ServerResponse(socket.request));
+                        Object.defineProperty(socket, "ctx", { value: ctx, writable: false, configurable: true });
+                        handler(socket, ...ins).catch((error) => {
+                            console.error(error);
+                        });
+                    });
+                }
+            });
+        };
         Object.defineProperty(io, "eventListeners", { value: eventListeners, writable: false });
         Object.defineProperty(io, "addEventListener", { value: addEventListener, writable: false });
         Object.defineProperty(io, "addEventListeners", { value: addEventListeners, writable: false });
-        Object.defineProperty(io, "applyEventListeners", {
-            value: () => {
-                io.on("connection", (socket) => {
-                    for (const eventListener of eventListeners) {
-                        const { event, handler } = eventListener;
-                        const middleware = middlewares_1.createMiddleware(handler, { propagateContext: true });
-                        socket.on(event, middleware);
-                    }
-                });
-            },
-            writable: false,
-        });
+        Object.defineProperty(io, "applyEventListeners", { value: applyEventListeners, writable: false });
         return io;
     }
     createHttpServer() {

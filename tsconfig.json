@@ -5,9 +5,9 @@
     "target": "es2015",
     "declaration": true,
     "outDir": "./dist",
-    "rootDir": "./src",
+    "rootDir": "./src"
   },
   "include": [
-    "src/**/*"
+    "src/**/*", "examples/web-advance/assets/snipsnap.js"
   ]
 }

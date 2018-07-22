@@ -1,33 +1,18 @@
 out: output
 vars:
   config:
-
-    authentication:
-      controller: middlewares/authentication.chiml
-
-    authorization:
-      controller: middlewares/authorization.chiml
-    
+    authentication: {}
+    authorization: {}
     ejs:
       root: views
       layout: template
       viewExt: html
       cache: true
       debug: false
-    
     middlewares: []
-
-    routes:
-      - method: get
-        url: /
-        controller: controllers/index.chiml
-        propagateContext: true
-    
+    routes: []
     rpcUrl: /rpc
-    rpcSettings:
-      - method: hello
-        controller: controllers/hello.chiml
-    
+    rpcSettings: []
     server:
       port: 3000
       host: ""
@@ -36,16 +21,9 @@ vars:
       exclusive: false
       readableAll: false
       writableAll: false
-    
-    socketEvents:
-      - event: ping
-        handler: controllers/ping.chiml
-      - event: pong
-        handler: controllers/pong.chiml
-
+    socketEvents: []
     statics:
       - assets
-      - node_modules/socket.io-client/dist
 do:
 
   # load config
@@ -85,7 +63,8 @@ do:
 
   # create and run io
   - (server) -> {app.createIo} -> io
-  - 
+  - (config.socketEvents) -> {io.addEventListeners}
+  - () -> {io.applyEventListeners} 
 
   # show message
   - (`Run server on port ${config.server.port}. Press ctrl + c to stop`) --> output

@@ -1,0 +1,8 @@
+ins: ctx, next
+do: |
+  async (ctx, next) => {
+    const label = `${ctx.method} ${ctx.url}`;
+    console.time(label);
+    await next();
+    console.timeEnd(label);
+  }
