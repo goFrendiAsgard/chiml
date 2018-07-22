@@ -9,6 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const path_1 = require("path");
+const io = require("socket.io-client");
 const http_1 = require("../libraries/http");
 const WebApp_1 = require("./WebApp");
 const testcaseDirPath = path_1.resolve(path_1.dirname(path_1.dirname(__dirname)), "testcase", "webApp");
@@ -125,6 +126,35 @@ it("able to create http server and run it", (done) => {
     server.listen(port);
     expect(server.listening).toBeTruthy();
     done();
+});
+it("able to create io", (done) => {
+    const configs = [
+        {
+            controller: (socket, message) => {
+                socket.emit("snap", message + 1);
+            },
+            event: "snip",
+        },
+        {
+            controller: (socket, message) => {
+                socket.emit("snip", message + 1);
+            },
+            event: "snap",
+        },
+    ];
+    const serverIo = app.createIo(server);
+    serverIo.addEventListeners(configs);
+    serverIo.applyEventListeners();
+    done();
+});
+it("able to send io request", (done) => {
+    const socket = io.connect(url);
+    socket.emit("snip", 73);
+    socket.on("snap", (message) => {
+        expect(message).toBe(74);
+        socket.disconnect();
+        done();
+    });
 });
 it("able to create https server", (done) => {
     const httpsServer = app.createHttpsServer();

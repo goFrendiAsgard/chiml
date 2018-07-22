@@ -163,5 +163,5 @@ it("compile test.chiml", (done) => {
         expect(error).toBeUndefined();
         done();
     });
-}, 60000);
+}, 100000);
 //# sourceMappingURL=cmd.test.js.map

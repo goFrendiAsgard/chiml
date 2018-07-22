@@ -13,19 +13,23 @@ class WebApp extends Koa {
     createIo(server) {
         const self = this;
         const io = socketIo(server);
-        let eventListeners = [];
-        const addEventListener = (config) => eventListeners.push(config);
-        const addEventListeners = (configs) => {
-            eventListeners = eventListeners.concat(configs);
+        io.eventListeners = [];
+        io.addEventListener = (config) => io.eventListeners.push(config);
+        io.addEventListeners = (configs) => {
+            configs.forEach((config) => io.addEventListener(config));
         };
-        const applyEventListeners = () => {
+        io.applyEventListeners = () => {
             io.on("connection", (socket) => {
-                for (const eventListener of eventListeners) {
+                for (const eventListener of io.eventListeners) {
+                    // get event and handler
                     const { event, controller } = eventListener;
                     const handler = middlewares_1.createMiddleware(controller, { propagateContext: true });
+                    // register event
                     socket.on(event, (...ins) => {
+                        // inject fake ctx to socket
                         const ctx = self.createContext(socket.request, new http.ServerResponse(socket.request));
                         Object.defineProperty(socket, "ctx", { value: ctx, writable: false, configurable: true });
+                        // execute handler
                         handler(socket, ...ins).catch((error) => {
                             console.error(error);
                         });
@@ -33,10 +37,6 @@ class WebApp extends Koa {
                 }
             });
         };
-        Object.defineProperty(io, "eventListeners", { value: eventListeners, writable: false });
-        Object.defineProperty(io, "addEventListener", { value: addEventListener, writable: false });
-        Object.defineProperty(io, "addEventListeners", { value: addEventListeners, writable: false });
-        Object.defineProperty(io, "applyEventListeners", { value: applyEventListeners, writable: false });
         return io;
     }
     createHttpServer() {

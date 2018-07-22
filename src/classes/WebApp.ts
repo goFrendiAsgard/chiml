@@ -3,6 +3,7 @@ import * as https from "https";
 import * as Koa from "koa";
 import * as socketIo from "socket.io";
 import {ISocketIoEventListener} from "../interfaces/ISocketIoEventListener";
+import {ISocketIoServer} from "../interfaces/ISocketIoServer";
 import {
   createAuthenticationMiddleware,
   createAuthorizationMiddleware,
@@ -14,22 +15,26 @@ export class WebApp extends Koa {
 
   public createServer = this.createHttpServer;
 
-  public createIo(server: http.Server | https.Server): socketIo.Server {
+  public createIo(server: http.Server | https.Server): ISocketIoServer {
     const self = this;
-    const io = socketIo(server);
-    let eventListeners: ISocketIoEventListener[] = [];
-    const addEventListener = (config: ISocketIoEventListener) => eventListeners.push(config);
-    const addEventListeners = (configs: ISocketIoEventListener[]) => {
-      eventListeners = eventListeners.concat(configs);
+    const io = socketIo(server) as ISocketIoServer;
+    io.eventListeners = [];
+    io.addEventListener = (config: ISocketIoEventListener) => io.eventListeners.push(config);
+    io.addEventListeners = (configs: ISocketIoEventListener[]) => {
+      configs.forEach((config) => io.addEventListener(config));
     };
-    const applyEventListeners = () => {
+    io.applyEventListeners = () => {
       io.on("connection", (socket) => {
-        for (const eventListener of eventListeners) {
+        for (const eventListener of io.eventListeners) {
+          // get event and handler
           const {event, controller} = eventListener;
           const handler = createMiddleware(controller, {propagateContext: true});
+          // register event
           socket.on(event, (...ins: any[]) => {
+            // inject fake ctx to socket
             const ctx = self.createContext(socket.request, new http.ServerResponse(socket.request));
             Object.defineProperty(socket, "ctx", {value: ctx, writable: false, configurable: true});
+            // execute handler
             handler(socket, ...ins).catch((error) => {
               console.error(error);
             });
@@ -37,10 +42,6 @@ export class WebApp extends Koa {
         }
       });
     };
-    Object.defineProperty(io, "eventListeners", {value: eventListeners, writable: false});
-    Object.defineProperty(io, "addEventListener", {value: addEventListener, writable: false});
-    Object.defineProperty(io, "addEventListeners", {value: addEventListeners, writable: false});
-    Object.defineProperty(io, "applyEventListeners", {value: applyEventListeners, writable: false});
     return io;
   }
 

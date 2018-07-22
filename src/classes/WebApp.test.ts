@@ -1,4 +1,5 @@
 import {dirname as pathDirName, resolve as pathResolve} from "path";
+import * as io from "socket.io-client";
 import {httpRequest, jsonRpcRequest} from "../libraries/http";
 import {WebApp} from "./WebApp";
 
@@ -122,6 +123,37 @@ it("able to create http server and run it", (done) => {
   server.listen(port);
   expect(server.listening).toBeTruthy();
   done();
+});
+
+it("able to create io", (done) => {
+  const configs = [
+    {
+      controller: (socket, message) => {
+        socket.emit("snap", message + 1);
+      },
+      event: "snip",
+    },
+    {
+      controller: (socket, message) => {
+        socket.emit("snip", message + 1);
+      },
+      event: "snap",
+    },
+  ];
+  const serverIo = app.createIo(server);
+  serverIo.addEventListeners(configs);
+  serverIo.applyEventListeners();
+  done();
+});
+
+it("able to send io request", (done) => {
+  const socket = io.connect(url);
+  socket.emit("snip", 73);
+  socket.on("snap", (message) => {
+    expect(message).toBe(74);
+    socket.disconnect();
+    done();
+  });
 });
 
 it("able to create https server", (done) => {

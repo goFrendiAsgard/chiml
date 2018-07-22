@@ -76,7 +76,7 @@ it("compile test.chiml", (done) => {
     expect(error).toBeUndefined();
     done();
   });
-}, 60000);
+}, 100000);
 
 it("read file recursively", (done) => {
   getFiles(pathResolve(rootDirPath, "src")).then((result) => {

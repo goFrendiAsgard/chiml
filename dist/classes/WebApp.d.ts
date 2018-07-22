@@ -2,10 +2,10 @@
 import * as http from "http";
 import * as https from "https";
 import * as Koa from "koa";
-import * as socketIo from "socket.io";
+import { ISocketIoServer } from "../interfaces/ISocketIoServer";
 export declare class WebApp extends Koa {
     createServer: () => http.Server;
-    createIo(server: http.Server | https.Server): socketIo.Server;
+    createIo(server: http.Server | https.Server): ISocketIoServer;
     createHttpServer(): http.Server;
     createHttpsServer(options?: {
         [key: string]: any;
