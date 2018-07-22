@@ -20,9 +20,9 @@ rpcSettings:
 
 socketEvents:
   - event: snip
-    controller: controllers/snip.chiml
+    controller: controllers/websocket/snip.chiml
   - event: snap
-    controller: controllers/snap.chiml
+    controller: controllers/websocket/snap.chiml
 
 statics:
   - assets
