@@ -12,4 +12,3 @@ function readFromStream(stream) {
     });
 }
 exports.readFromStream = readFromStream;
-//# sourceMappingURL=stream.js.map

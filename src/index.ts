@@ -7,6 +7,7 @@ import {CommandType, FunctionalMode, Mode} from "./enums/singleTaskProperty";
 import {IRawConfig} from "./interfaces/IRawConfig";
 import {ISingleTask} from "./interfaces/ISingleTask";
 import {cmd, cmdComposedCommand, composeCommand, getChimlCompiledScriptPath} from "./libraries/cmd";
+import {cascade} from "./libraries/environment";
 import {httpRequest, jsonRpcRequest} from "./libraries/http";
 import {createPrompt, print} from "./libraries/inputOutput";
 import {createAuthenticationMiddleware, createAuthorizationMiddleware,
@@ -33,6 +34,7 @@ export {
     Mode,
     SingleTask,
     WebApp,
+    cascade,
     chimlToConfig,
     chimlToYaml,
     cmd,

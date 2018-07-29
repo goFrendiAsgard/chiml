@@ -6,4 +6,3 @@ it("transform ts to js", (done) => {
     expect(js).toBe("var x = 1;\nx += 5;\nconsole.log(x);\n");
     done();
 });
-//# sourceMappingURL=scriptTransform.test.js.map

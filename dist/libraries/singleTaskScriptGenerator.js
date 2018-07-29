@@ -239,4 +239,3 @@ function getLocalScopeVariables(task) {
     }
     return vars;
 }
-//# sourceMappingURL=singleTaskScriptGenerator.js.map

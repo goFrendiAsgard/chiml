@@ -30,6 +30,7 @@ do:
     - (__dirname + "/config.yml") -> [require("fs").readFile] -> fileContent
     - (fileContent) -> {require('js-yaml').safeLoad} -> customConfig
     - ({}, config, customConfig) -> {Object.assign} -> config
+    - (config) -> {sys.cascadeEnv} -> config
 
     # initialization
     - (new sys.WebApp()) --> app
