@@ -153,7 +153,8 @@ function parseSingleCommand(normalizedConfig, config) {
         }
         else {
             const command = normalizedConfig.command;
-            if (command.match(jsArrowFunctionPattern) || command.match(jsFunctionPattern) || command.match(jsAsyncPattern)) {
+            if (command.match(jsArrowFunctionPattern) ||
+                command.match(jsFunctionPattern) || command.match(jsAsyncPattern)) {
                 normalizedConfig.commandType = singleTaskProperty_1.CommandType.jsSyncFunction;
             }
             else {

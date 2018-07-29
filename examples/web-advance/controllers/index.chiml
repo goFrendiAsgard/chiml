@@ -1,7 +1,7 @@
 ins: ctx
 vars:
-  data:
-    title: "Hello world"
-    lang: "eng"
+    data:
+        title: "Hello world"
+        lang: "eng"
 do:
-  - ('index', data) -> {ctx.render}
+    - ('index', data) -> {ctx.render}

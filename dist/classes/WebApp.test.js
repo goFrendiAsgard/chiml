@@ -65,7 +65,11 @@ it("able to add authentication, authorization, and authorized routes", (done) =>
         { url: "/adminDashboard", controller: () => "Admin Dashboard Page", roles: ["admin"] },
         { url: "/authorDashboard", controller: () => "Author Dashboard Page", roles: ["author"] },
         { url: "/contributorDashboard", controller: () => "Contributor Dashboard Page", roles: ["contributor"] },
-        { url: "/adminAndAuthorDashboard", controller: () => "Admin and Author Dashboard Page", roles: ["admin", "author"] },
+        {
+            controller: () => "Admin and Author Dashboard Page",
+            roles: ["admin", "author"],
+            url: "/adminAndAuthorDashboard",
+        },
         { url: "/memberDashboard", controller: () => "Member Dashboard Page", roles: ["loggedIn"] },
         { url: "/registrationForm", controller: () => "Registration Form Page", roles: ["loggedOut"] },
         { url: "/landingPage", controller: () => "Landing Page", roles: ["loggedIn", "loggedOut"] },

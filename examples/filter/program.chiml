@@ -1,6 +1,6 @@
 ins: numbers
 out: squares
 do:
-  - filter: numbers
-    into: squares
-    do: (num) -> x => (x % 2) === 0
+    - filter: numbers
+      into: squares
+      do: (num) -> x => (x % 2) === 0

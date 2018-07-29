@@ -1,11 +1,15 @@
 <!doctype html>
 <html lang="<%= lang || 'en' %>">
-  <head>
+
+<head>
     <meta charset="UTF-8">
-    <title><%= title || "Default title" %></title>
-  </head>
-  <body>
+    <title>
+        <%= title || "Default title" %>
+    </title>
+</head>
+
+<body>
     <script src="/socket.io/socket.io.js"></script>
     <%- body %>
-  </body>
+</body>
 </html>

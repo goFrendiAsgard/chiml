@@ -8,9 +8,11 @@ if (require.main === module) {
         console.error("Expect more than one parameter(s): `chiml script/file` and `inputs`");
     }
     else {
-        index_1.execute(...args).then((result) => {
+        index_1.execute(...args)
+            .then((result) => {
             console.log(result);
-        }).catch((error) => {
+        })
+            .catch((error) => {
             console.error(error);
         });
     }

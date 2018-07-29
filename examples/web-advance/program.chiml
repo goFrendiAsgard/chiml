@@ -1,70 +1,70 @@
 out: output
 vars:
-  config:
-    authentication: {}
-    authorization: {}
-    ejs:
-      root: views
-      layout: template
-      viewExt: html
-      cache: true
-      debug: false
-    middlewares: []
-    routes: []
-    rpcUrl: /rpc
-    rpcSettings: []
-    server:
-      port: 3000
-      host: ""
-      path: ""
-      backlog: 0
-      exclusive: false
-      readableAll: false
-      writableAll: false
-    socketEvents: []
-    statics:
-      - assets
+    config:
+        authentication: {}
+        authorization: {}
+        ejs:
+            root: views
+            layout: template
+            viewExt: html
+            cache: true
+            debug: false
+        middlewares: []
+        routes: []
+        rpcUrl: /rpc
+        rpcSettings: []
+        server:
+            port: 3000
+            host: ""
+            path: ""
+            backlog: 0
+            exclusive: false
+            readableAll: false
+            writableAll: false
+        socketEvents: []
+        statics:
+            - assets
 do:
 
-  # load config
-  - (__dirname + "/config.yml") -> [require("fs").readFile] -> fileContent
-  - (fileContent) -> {require('js-yaml').safeLoad} -> customConfig
-  - ({}, config, customConfig) -> {Object.assign} -> config
+    # load config
+    - (__dirname + "/config.yml") -> [require("fs").readFile] -> fileContent
+    - (fileContent) -> {require('js-yaml').safeLoad} -> customConfig
+    - ({}, config, customConfig) -> {Object.assign} -> config
 
-  # initialization
-  - (new sys.WebApp()) --> app
+    # initialization
+    - (new sys.WebApp()) --> app
 
-  # middlewares
-  - (config.middlewares) -> {app.addMiddlewares}
+    # middlewares
+    - (config.middlewares) -> {app.addMiddlewares}
 
-  # static files
-  - map: config.statics
-    ins: static
-    do: 
-      - (static) -> {require(__dirname + '/node_modules/koa-static')} -> middleware
-      - (middleware) -> {app.use}
+    # static files
+    - map: config.statics
+      ins: static
+      do: 
+          - (static) -> {require(__dirname + '/node_modules/koa-static')} -> middleware
+          - (middleware) -> {app.use}
 
-  # authentication & authorization
-  - (config.authentication) -> {app.addAuthentication}
-  - (config.authorization) -> {app.addAuthorization}
+    # authentication & authorization
+    - (config.authentication) -> {app.addAuthentication}
+    - (config.authorization) -> {app.addAuthorization}
 
-  # ejs
-  - (app, config.ejs) -> {require(__dirname + '/node_modules/koa-ejs')}
+    # ejs
+    - (app, config.ejs) -> {require(__dirname + '/node_modules/koa-ejs')}
 
-  # routes
-  - (config.routes) -> {app.addRoutes}
+    # routes
+    - (config.routes) -> {app.addRoutes}
 
-  # jsonRpc
-  - (config.rpcUrl, config.rpcSettings) -> {app.addJsonRpc}
+    # jsonRpc
+    - (config.rpcUrl, config.rpcSettings) -> {app.addJsonRpc}
 
-  # create and run server
-  - (app.createServer()) --> server
-  - (config.server) -> [server.listen]
+    # create and run server
+    - (app.createServer()) --> server
+    - (config.server) -> [server.listen]
 
-  # create and run io
-  - (server) -> {app.createIo} -> io
-  - (config.socketEvents) -> {io.addEventListeners}
-  - () -> {io.applyEventListeners} 
+    # create and run io
+    - (server) -> {app.createIo} -> io
+    - (config.socketEvents) -> {io.addEventListeners}
+    - () -> {io.applyEventListeners} 
 
-  # show message
-  - (`Run server on port ${config.server.port}. Press ctrl + c to stop`) --> output
+    # show message
+    - (`Run server on port ${config.server.port}. Press ctrl + c to stop`) --> output

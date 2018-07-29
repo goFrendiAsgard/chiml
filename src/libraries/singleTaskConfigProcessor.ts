@@ -7,210 +7,211 @@ const jsFunctionPattern = /^function\s*\(.*\)\s*{.+}$/g;
 const jsAsyncPattern = /^async\s*function\s*\(.*\)\s*{.+}$/g;
 
 export function strToNormalizedConfig(str: string): IRawConfig {
-  return normalizeRawConfig(strToRawConfig(str));
+    return normalizeRawConfig(strToRawConfig(str));
 }
 
 export function normalizeRawConfig(rawConfig: {[key: string]: any}): IRawConfig {
-  if ("__isNormal" in rawConfig) {
-    return rawConfig as IRawConfig;
-  }
-  const config = preprocessRawConfigShorthand(rawConfig);
-  let normalizedConfig: IRawConfig = {
-    __isNormal: true,
-    accumulator: "accumulator" in config ? config.accumulator : "0",
-    branchCondition: "if" in config ? config.if : "true",
-    chimlPath: "",
-    command: null,
-    commandList: [],
-    commandType: CommandType.cmd,
-    dst: "into" in config ? config.into : "__fx",
-    functionalMode: FunctionalMode.none,
-    ins: getNormalIns(config.ins),
-    loopCondition: "while" in config ? config.while : "false",
-    mode: Mode.single,
-    out: "out" in config ? config.out : "__ans",
-    src: null,
-    vars: "vars" in config ? config.vars : {},
-  };
-  normalizedConfig = parseCommand(normalizedConfig, config);
-  return normalizedConfig;
+    if ("__isNormal" in rawConfig) {
+        return rawConfig as IRawConfig;
+    }
+    const config = preprocessRawConfigShorthand(rawConfig);
+    let normalizedConfig: IRawConfig = {
+        __isNormal: true,
+        accumulator: "accumulator" in config ? config.accumulator : "0",
+        branchCondition: "if" in config ? config.if : "true",
+        chimlPath: "",
+        command: null,
+        commandList: [],
+        commandType: CommandType.cmd,
+        dst: "into" in config ? config.into : "__fx",
+        functionalMode: FunctionalMode.none,
+        ins: getNormalIns(config.ins),
+        loopCondition: "while" in config ? config.while : "false",
+        mode: Mode.single,
+        out: "out" in config ? config.out : "__ans",
+        src: null,
+        vars: "vars" in config ? config.vars : {},
+    };
+    normalizedConfig = parseCommand(normalizedConfig, config);
+    return normalizedConfig;
 }
 
 export function strToRawConfig(str: string): {[key: string]: any} {
-  let config: {[key: string]: any} = {};
-  const longArrowParts = splitByLongArrow(str);
-  if (longArrowParts.length === 2) {
-    config = longArrowPartsToConfig(longArrowParts);
-  } else {
-    const shortArrowParts = splitByShortArrow(str);
-    config = shortArrowPartsToConfig(shortArrowParts);
-  }
-  return config;
+    let config: {[key: string]: any} = {};
+    const longArrowParts = splitByLongArrow(str);
+    if (longArrowParts.length === 2) {
+        config = longArrowPartsToConfig(longArrowParts);
+    } else {
+        const shortArrowParts = splitByShortArrow(str);
+        config = shortArrowPartsToConfig(shortArrowParts);
+    }
+    return config;
 }
 
 function longArrowPartsToConfig(longArrowParts: string[]): {[key: string]: any} {
-  // `ins --> out`
+    // `ins --> out`
 
-  return {
-    ins: smartSplit(removeFlank(longArrowParts[0], "(", ")"), ","),
-    out: longArrowParts[1],
-  };
+    return {
+        ins: smartSplit(removeFlank(longArrowParts[0], "(", ")"), ","),
+        out: longArrowParts[1],
+    };
 }
 
 function shortArrowPartsToConfig(shortArrowParts: string[]): {[key: string]: any} {
-  const config: {[key: string]: any} = {};
-  if (shortArrowParts.length === 3) {
-    // `(ins) -> do -> out`
-    config.ins = smartSplit(removeFlank(shortArrowParts[0], "(", ")"), ",");
-    config.do = shortArrowParts[1];
-    config.out = shortArrowParts[2];
-  } else if (shortArrowParts.length === 2) {
-    if (isFlanked(shortArrowParts[0], "(", ")")) {
-      // `(ins) -> do`
-      config.ins = smartSplit(removeFlank(shortArrowParts[0], "(", ")"), ",");
-      config.do = shortArrowParts[1];
+    const config: {[key: string]: any} = {};
+    if (shortArrowParts.length === 3) {
+        // `(ins) -> do -> out`
+        config.ins = smartSplit(removeFlank(shortArrowParts[0], "(", ")"), ",");
+        config.do = shortArrowParts[1];
+        config.out = shortArrowParts[2];
+    } else if (shortArrowParts.length === 2) {
+        if (isFlanked(shortArrowParts[0], "(", ")")) {
+            // `(ins) -> do`
+            config.ins = smartSplit(removeFlank(shortArrowParts[0], "(", ")"), ",");
+            config.do = shortArrowParts[1];
+        } else {
+            // `do -> out`
+            config.do = shortArrowParts[0];
+            config.out = shortArrowParts[1];
+        }
     } else {
-      // `do -> out`
-      config.do = shortArrowParts[0];
-      config.out = shortArrowParts[1];
+        // `do`
+        config.do = shortArrowParts[0];
     }
-  } else {
-    // `do`
-    config.do = shortArrowParts[0];
-  }
-  return config;
+    return config;
 }
 
 function splitByShortArrow(str: string): string[] {
-  return splitBy(str, "->", "<-");
+    return splitBy(str, "->", "<-");
 }
 
 function splitByLongArrow(str: string): string[] {
-  return splitBy(str, "-->", "<--");
+    return splitBy(str, "-->", "<--");
 }
 
 function splitBy(str: string, splitter: string, reverseSplitter: string): string[] {
-  let parts = smartSplit(str, splitter);
-  if (parts.length === 1) {
-    parts = smartSplit(str, reverseSplitter).reverse();
-  }
-  return parts;
+    let parts = smartSplit(str, splitter);
+    if (parts.length === 1) {
+        parts = smartSplit(str, reverseSplitter).reverse();
+    }
+    return parts;
 }
 
 function preprocessRawConfigShorthand(config: {[key: string]: any}): {[key: string]: any} {
-  if ("do" in config && typeof config.do === "string") {
-    const tmpConfig = strToRawConfig(config.do);
-    if (tmpConfig.do !== config.do) {
-      if ("ins" in tmpConfig) {
-        config.ins = tmpConfig.ins;
-      }
-      if ("out" in tmpConfig) {
-        config.out = tmpConfig.out;
-      }
-      if ("do" in tmpConfig) {
-        config.do = tmpConfig.do;
-      } else {
-        delete config.do;
-      }
+    if ("do" in config && typeof config.do === "string") {
+        const tmpConfig = strToRawConfig(config.do);
+        if (tmpConfig.do !== config.do) {
+            if ("ins" in tmpConfig) {
+                config.ins = tmpConfig.ins;
+            }
+            if ("out" in tmpConfig) {
+                config.out = tmpConfig.out;
+            }
+            if ("do" in tmpConfig) {
+                config.do = tmpConfig.do;
+            } else {
+                delete config.do;
+            }
+        }
     }
-  }
-  return config;
+    return config;
 }
 
 function parseCommand(normalizedConfig: IRawConfig, config: {[key: string]: any}): IRawConfig {
-  normalizedConfig = parseFunctionalCommand(normalizedConfig, config);
-  normalizedConfig = parseSingleCommand(normalizedConfig, config);
-  normalizedConfig = parseNestedCommand(normalizedConfig, config);
-  return normalizedConfig;
+    normalizedConfig = parseFunctionalCommand(normalizedConfig, config);
+    normalizedConfig = parseSingleCommand(normalizedConfig, config);
+    normalizedConfig = parseNestedCommand(normalizedConfig, config);
+    return normalizedConfig;
 }
 
 function getNormalIns(ins: any): string[] {
-  if (typeof ins === "string") {
-    const newIns = smartSplit(ins, ",");
-    if (newIns.length === 1 && newIns[0] === "") {
-      return [];
+    if (typeof ins === "string") {
+        const newIns = smartSplit(ins, ",");
+        if (newIns.length === 1 && newIns[0] === "") {
+            return [];
+        }
+        return newIns;
+    } else if (ins === null || ins === undefined) {
+        return [];
     }
-    return newIns;
-  } else if (ins === null || ins === undefined) {
-    return [];
-  }
-  if (ins.length === 1 && ins[0] === "") {
-    return [];
-  }
-  return ins;
+    if (ins.length === 1 && ins[0] === "") {
+        return [];
+    }
+    return ins;
 }
 
 function parseSingleCommand(normalizedConfig: IRawConfig, config: {[key: string]: any}): IRawConfig {
-  if ("do" in config && typeof config.do === "string") {
-    normalizedConfig.command = config.do ? config.do : "(x) => x";
-    if (isFlanked(normalizedConfig.command, "{", "}")) {
-      normalizedConfig.command = removeFlank(normalizedConfig.command, "{", "}");
-      normalizedConfig.commandType = CommandType.jsSyncFunction;
-    } else if (isFlanked(normalizedConfig.command, "<", ">")) {
-      normalizedConfig.command = removeFlank(normalizedConfig.command, "<", ">");
-      normalizedConfig.commandType = CommandType.jsPromise;
-    } else if (isFlanked(normalizedConfig.command, "[", "]")) {
-      normalizedConfig.command = removeFlank(normalizedConfig.command, "[", "]");
-      normalizedConfig.commandType = CommandType.jsAsyncFunction;
-    } else {
-      const command: string = normalizedConfig.command;
-      if (command.match(jsArrowFunctionPattern) || command.match(jsFunctionPattern) || command.match(jsAsyncPattern)) {
-        normalizedConfig.commandType = CommandType.jsSyncFunction;
-      } else {
-        normalizedConfig.commandType = CommandType.cmd;
-      }
+    if ("do" in config && typeof config.do === "string") {
+        normalizedConfig.command = config.do ? config.do : "(x) => x";
+        if (isFlanked(normalizedConfig.command, "{", "}")) {
+            normalizedConfig.command = removeFlank(normalizedConfig.command, "{", "}");
+            normalizedConfig.commandType = CommandType.jsSyncFunction;
+        } else if (isFlanked(normalizedConfig.command, "<", ">")) {
+            normalizedConfig.command = removeFlank(normalizedConfig.command, "<", ">");
+            normalizedConfig.commandType = CommandType.jsPromise;
+        } else if (isFlanked(normalizedConfig.command, "[", "]")) {
+            normalizedConfig.command = removeFlank(normalizedConfig.command, "[", "]");
+            normalizedConfig.commandType = CommandType.jsAsyncFunction;
+        } else {
+            const command: string = normalizedConfig.command;
+            if (command.match(jsArrowFunctionPattern) ||
+            command.match(jsFunctionPattern) || command.match(jsAsyncPattern)) {
+                normalizedConfig.commandType = CommandType.jsSyncFunction;
+            } else {
+                normalizedConfig.commandType = CommandType.cmd;
+            }
+        }
+        normalizedConfig.mode = Mode.single;
     }
-    normalizedConfig.mode = Mode.single;
-  }
-  return normalizedConfig;
+    return normalizedConfig;
 }
 
 function parseNestedCommand(normalizedConfig: IRawConfig, config: {[key: string]: any}): IRawConfig {
-  if ("do" in config && typeof config.do !== "string") {
-    normalizedConfig.commandList = config.do;
-    normalizedConfig.mode = Mode.series;
-  } else if ("series" in config) {
-    normalizedConfig.commandList = config.series;
-    normalizedConfig.mode = Mode.series;
-  } else if ("parallel" in config) {
-    normalizedConfig.commandList = config.parallel;
-    normalizedConfig.mode = Mode.parallel;
-  } else if (!normalizedConfig.command) {
-    normalizedConfig.command = "(x) => x";
-    normalizedConfig.commandType = CommandType.jsSyncFunction;
-    normalizedConfig.mode = Mode.single;
-  }
-  return normalizedConfig;
+    if ("do" in config && typeof config.do !== "string") {
+        normalizedConfig.commandList = config.do;
+        normalizedConfig.mode = Mode.series;
+    } else if ("series" in config) {
+        normalizedConfig.commandList = config.series;
+        normalizedConfig.mode = Mode.series;
+    } else if ("parallel" in config) {
+        normalizedConfig.commandList = config.parallel;
+        normalizedConfig.mode = Mode.parallel;
+    } else if (!normalizedConfig.command) {
+        normalizedConfig.command = "(x) => x";
+        normalizedConfig.commandType = CommandType.jsSyncFunction;
+        normalizedConfig.mode = Mode.single;
+    }
+    return normalizedConfig;
 }
 
 function parseFunctionalCommand(normalizedConfig: IRawConfig, config: {[key: string]: any}): IRawConfig {
-  if ("map" in config || "filter" in config || "reduce" in config) {
-    if ("map" in config) { // map
-      normalizedConfig.src = getNormalSrc(config.map);
-      normalizedConfig.functionalMode = FunctionalMode.map;
-      if (normalizedConfig.ins.length < 1) {
-        normalizedConfig.ins = ["__el"];
-      }
-    } else if ("filter" in config) { // filter
-      normalizedConfig.src = getNormalSrc(config.filter);
-      normalizedConfig.functionalMode = FunctionalMode.filter;
-      if (normalizedConfig.ins.length < 1) {
-        normalizedConfig.ins = ["__el"];
-      }
-    } else { // reduce
-      normalizedConfig.src = getNormalSrc(config.reduce);
-      normalizedConfig.functionalMode = FunctionalMode.reduce;
-      if (normalizedConfig.ins.length < 2) {
-        normalizedConfig.ins = ["__el", "__acc"];
-      }
+    if ("map" in config || "filter" in config || "reduce" in config) {
+        if ("map" in config) { // map
+            normalizedConfig.src = getNormalSrc(config.map);
+            normalizedConfig.functionalMode = FunctionalMode.map;
+            if (normalizedConfig.ins.length < 1) {
+                normalizedConfig.ins = ["__el"];
+            }
+        } else if ("filter" in config) { // filter
+            normalizedConfig.src = getNormalSrc(config.filter);
+            normalizedConfig.functionalMode = FunctionalMode.filter;
+            if (normalizedConfig.ins.length < 1) {
+                normalizedConfig.ins = ["__el"];
+            }
+        } else { // reduce
+            normalizedConfig.src = getNormalSrc(config.reduce);
+            normalizedConfig.functionalMode = FunctionalMode.reduce;
+            if (normalizedConfig.ins.length < 2) {
+                normalizedConfig.ins = ["__el", "__acc"];
+            }
+        }
     }
-  }
-  return normalizedConfig;
+    return normalizedConfig;
 }
 
 function getNormalSrc(src: any): string {
-  if (typeof src !== "string" && Array.isArray(src)) {
-    return JSON.stringify(src);
-  }
-  return src;
+    if (typeof src !== "string" && Array.isArray(src)) {
+        return JSON.stringify(src);
+    }
+    return src;
 }

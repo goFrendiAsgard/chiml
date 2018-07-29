@@ -7,87 +7,87 @@ const chimlSample1 = `
 ins: a, b
 out: f
 do:
-  - |(a, b) -> (x, y) => x + y -> c
-  - |(a, b) -> (x, y) => x - y -> d
-  # comment
-  - do: |(c, d) -> (x, y) => x * y -> e
-  - do: |("result: " + e) --> f
+    - |(a, b) -> (x, y) => x + y -> c
+    - |(a, b) -> (x, y) => x - y -> d
+    # comment
+    - do: |(c, d) -> (x, y) => x * y -> e
+    - do: |("result: " + e) --> f
 `;
 const chimlSample1Unblocked = `
 # comment
 ins: a, b
 out: f
 do:
-  - (a, b) -> (x, y) => x + y -> c
-  - (a, b) -> (x, y) => x - y -> d
-  # comment
-  - do: (c, d) -> (x, y) => x * y -> e
-  - do: ("result: " + e) --> f
+    - (a, b) -> (x, y) => x + y -> c
+    - (a, b) -> (x, y) => x - y -> d
+    # comment
+    - do: (c, d) -> (x, y) => x * y -> e
+    - do: ("result: " + e) --> f
 `;
 const expectedYaml1 = `
 # comment
 ins: a, b
 out: f
 do:
-  - "(a, b) -> (x, y) => x + y -> c"
-  - "(a, b) -> (x, y) => x - y -> d"
-  # comment
-  - do: "(c, d) -> (x, y) => x * y -> e"
-  - do: "(\\\"result: \\\" + e) --> f"
+    - "(a, b) -> (x, y) => x + y -> c"
+    - "(a, b) -> (x, y) => x - y -> d"
+    # comment
+    - do: "(c, d) -> (x, y) => x * y -> e"
+    - do: "(\\\"result: \\\" + e) --> f"
 `.trim();
 const chimlSample2 = `
 ins: a, b
 out: f
 do:
-  - parallel:
-    - |(a, b) -> (x, y) => x + y -> c
-    - |(a, b) -> (x, y) => x - y -> d
-  - ins:
-      - c
-      - d
-    out: e
-    do: (x, y) => x * y
-  - do: |
-      () => {
-        return "smile";
-      }
-  - do: |("result: " + e) --> f
+    - parallel:
+        - |(a, b) -> (x, y) => x + y -> c
+        - |(a, b) -> (x, y) => x - y -> d
+    - ins:
+            - c
+            - d
+        out: e
+        do: (x, y) => x * y
+    - do: |
+            () => {
+                return "smile";
+            }
+    - do: |("result: " + e) --> f
 `;
 const chimlSample2Unblocked = `
 ins: a, b
 out: f
 do:
-  - parallel:
-    - (a, b) -> (x, y) => x + y -> c
-    - (a, b) -> (x, y) => x - y -> d
-  - ins:
-      - c
-      - d
-    out: e
-    do: (x, y) => x * y
-  - do: |
-      () => {
-        return "smile";
-      }
-  - do: ("result: " + e) --> f
+    - parallel:
+        - (a, b) -> (x, y) => x + y -> c
+        - (a, b) -> (x, y) => x - y -> d
+    - ins:
+            - c
+            - d
+        out: e
+        do: (x, y) => x * y
+    - do: |
+            () => {
+                return "smile";
+            }
+    - do: ("result: " + e) --> f
 `;
 const expectedYaml2 = `
 ins: a, b
 out: f
 do:
-  - parallel:
-    - "(a, b) -> (x, y) => x + y -> c"
-    - "(a, b) -> (x, y) => x - y -> d"
-  - ins:
-      - c
-      - d
-    out: e
-    do: "(x, y) => x * y"
-  - do: |
-      () => {
-        return "smile";
-      }
-  - do: "(\\\"result: \\\" + e) --> f"
+    - parallel:
+        - "(a, b) -> (x, y) => x + y -> c"
+        - "(a, b) -> (x, y) => x - y -> d"
+    - ins:
+            - c
+            - d
+        out: e
+        do: "(x, y) => x * y"
+    - do: |
+            () => {
+                return "smile";
+            }
+    - do: "(\\\"result: \\\" + e) --> f"
 `.trim();
 const chimlSample3 = `|("Hello" + name) --> output`;
 const chimlSample3Unblocked = `("Hello" + name) --> output`;

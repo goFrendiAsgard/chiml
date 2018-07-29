@@ -2,23 +2,22 @@
 ins: a, b
 out: result
 do: 
-  # load JavaScript library
-  - (require(__dirname + "/lib/lib.js")) --> lib
-  # adding `a` and `b` using different methods
-  - parallel:
-    # call external CHIML script
-    - (a, b) -> chie lib/add.chiml -> c
-    # call external Python program
-    - (a, b) -> python3 lib/add.py -> d
-    # call JavaScript synchronous function
-    - (a, b) -> {lib.syncAdd} -> e
-    # call JavaScript asynchronous function
-    - (a, b) -> [lib.asyncAdd] -> f
-    # use JavaScript promise
-    - do:
-      - (a, b) -> {lib.promiseAddMaker} -> myPromise
-      - <myPromise> -> g
-    # define and call Javascript arrow function
-    - (a, b) -> (x, y) => x + y -> h
-  - result <-- ({c, d, e, f, g, h})
-
+    # load JavaScript library
+    - (require(__dirname + "/lib/lib.js")) --> lib
+    # adding `a` and `b` using different methods
+    - parallel:
+        # call external CHIML script
+        - (a, b) -> chie lib/add.chiml -> c
+        # call external Python program
+        - (a, b) -> python3 lib/add.py -> d
+        # call JavaScript synchronous function
+        - (a, b) -> {lib.syncAdd} -> e
+        # call JavaScript asynchronous function
+        - (a, b) -> [lib.asyncAdd] -> f
+        # use JavaScript promise
+        - do:
+            - (a, b) -> {lib.promiseAddMaker} -> myPromise
+            - <myPromise> -> g
+        # define and call Javascript arrow function
+        - (a, b) -> (x, y) => x + y -> h
+    - result <-- ({c, d, e, f, g, h})

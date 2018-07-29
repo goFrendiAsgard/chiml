@@ -5,11 +5,11 @@ import {createPrompt, print} from "./inputOutput";
 import {parseStringArray as __parseIns} from "./stringUtil";
 
 const sys = {
-  WebApp,
-  httpRequest,
-  jsonRpcRequest,
-  print,
-  prompt: createPrompt(),
+    WebApp,
+    httpRequest,
+    jsonRpcRequest,
+    print,
+    prompt: createPrompt(),
 };
 
 export {__cmd, __parseIns, sys};

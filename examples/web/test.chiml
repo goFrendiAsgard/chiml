@@ -1,33 +1,33 @@
 parallel:
 
-  # start web server
-  - chie program.chiml
+    # start web server
+    - chie program.chiml
 
-  - do:
-    # wait for 3 seconds
-    - [(cb) => {setTimeout(cb, 3000)}]
+    - do:
+        # wait for 3 seconds
+        - [(cb) => {setTimeout(cb, 3000)}]
 
-    # send http request
-    - ("http://localhost:3000/hello/Einstein") -> [sys.httpRequest] -> response
-    - (response) -> {console.log}
+        # send http request
+        - ("http://localhost:3000/hello/Einstein") -> [sys.httpRequest] -> response
+        - (response) -> {console.log}
 
-    # send json-rpc request
-    - ("http://localhost:3000/rpc", "hello", "Newton") -> [sys.jsonRpcRequest] -> response
-    - (response) -> {console.log}
+        # send json-rpc request
+        - ("http://localhost:3000/rpc", "hello", "Newton") -> [sys.jsonRpcRequest] -> response
+        - (response) -> {console.log}
 
-    # send http request (authorized)
-    - ("http://localhost:3000/hi/Einstein?user=admin&password=secret") -> [sys.httpRequest] -> response
-    - (response) -> {console.log}
+        # send http request (authorized)
+        - ("http://localhost:3000/hi/Einstein?user=admin&password=secret") -> [sys.httpRequest] -> response
+        - (response) -> {console.log}
 
-    # send json-rpc request (authorized)
-    - ("http://localhost:3000/rpc?user=admin&password=secret", "hi", "Newton") -> [sys.jsonRpcRequest] -> response
-    - (response) -> {console.log}
+        # send json-rpc request (authorized)
+        - ("http://localhost:3000/rpc?user=admin&password=secret", "hi", "Newton") -> [sys.jsonRpcRequest] -> response
+        - (response) -> {console.log}
 
-    # send http request (unauthorized)
-    - ("http://localhost:3000/hi/Einstein") -> [sys.httpRequest] -> response
-    - (response) -> {console.log}
+        # send http request (unauthorized)
+        - ("http://localhost:3000/hi/Einstein") -> [sys.httpRequest] -> response
+        - (response) -> {console.log}
 
-    # send json-rpc request (unauthorized)
-    - ("http://localhost:3000/rpc", "hi", "Newton") -> [sys.jsonRpcRequest] -> response
-    - (response) -> {console.log}
+        # send json-rpc request (unauthorized)
+        - ("http://localhost:3000/rpc", "hi", "Newton") -> [sys.jsonRpcRequest] -> response
+        - (response) -> {console.log}
 

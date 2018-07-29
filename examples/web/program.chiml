@@ -1,54 +1,54 @@
 out: output
 vars:
 
-  serverConfig:
-    port: 3000
-    host: ""
-    path: ""
-    backlog: 0
-    exclusive: false
-    readableAll: false
-    writableAll: false
+    serverConfig:
+        port: 3000
+        host: ""
+        path: ""
+        backlog: 0
+        exclusive: false
+        readableAll: false
+        writableAll: false
 
-  middlewares:
-    - middlewares/logger.chiml
+    middlewares:
+        - middlewares/logger.chiml
 
-  routes:
-    - method: get
-      url: /hello/:name
-      controller: controllers/hello.chiml
-    - method: get
-      url: /hi/:name
-      controller: controllers/hello.chiml
-      roles: ["admin"]
+    routes:
+        - method: get
+          url: /hello/:name
+          controller: controllers/hello.chiml
+        - method: get
+          url: /hi/:name
+          controller: controllers/hello.chiml
+          roles: ["admin"]
 
-  rpcUrl: /rpc
-  rpcSettings:
-    - method: hello
-      controller: controllers/hello.chiml
-    - method: hi
-      controller: controllers/hello.chiml
-      roles: ["admin"]
+    rpcUrl: /rpc
+    rpcSettings:
+        - method: hello
+          controller: controllers/hello.chiml
+        - method: hi
+          controller: controllers/hello.chiml
+          roles: ["admin"]
 
 do:
 
-  # initialization
-  - (new sys.WebApp()) --> app
+    # initialization
+    - (new sys.WebApp()) --> app
 
-  # middlewares
-  - (middlewares) -> {app.addMiddlewares}
+    # middlewares
+    - (middlewares) -> {app.addMiddlewares}
 
-  # authentication & authorization
-  - "({controller:(ctx) => ctx.query.user == 'admin' && ctx.query.password == 'secret' ? 'admin' : null}) -> {app.addAuthentication}"
-  - "({controller:(ctx) => ctx.state.user == 'admin' ? ['admin'] : []}) -> {app.addAuthorization}"
+    # authentication & authorization
+    - "({controller:(ctx) => ctx.query.user == 'admin' && ctx.query.password == 'secret' ? 'admin' : null}) -> {app.addAuthentication}"
+    - "({controller:(ctx) => ctx.state.user == 'admin' ? ['admin'] : []}) -> {app.addAuthorization}"
 
-  # routes
-  - (routes) -> {app.addRoutes}
+    # routes
+    - (routes) -> {app.addRoutes}
 
-  # jsonRpc
-  - (rpcUrl, rpcSettings) -> {app.addJsonRpc}
+    # jsonRpc
+    - (rpcUrl, rpcSettings) -> {app.addJsonRpc}
 
-  # run the server
-  - (app.createServer()) --> server
-  - (serverConfig) -> [server.listen]
-  - (`Run server on port ${serverConfig.port}. Press ctrl + c to stop`) --> output
+    # run the server
+    - (app.createServer()) --> server
+    - (serverConfig) -> [server.listen]
+    - (`Run server on port ${serverConfig.port}. Press ctrl + c to stop`) --> output

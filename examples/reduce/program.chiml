@@ -1,7 +1,7 @@
 ins: numbers
 out: sum
 do:
-  - reduce: numbers
-    into: sum
-    accumulator: 0
-    do: (num) -> (x, acc) => x + acc
+    - reduce: numbers
+      into: sum
+      accumulator: 0
+      do: (num) -> (x, acc) => x + acc

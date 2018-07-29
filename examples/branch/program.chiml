@@ -2,8 +2,8 @@ ins: score
 out: status
 do:
 
-  - if: score < 60
-    do: ("fail") --> status
+    - if: score < 60
+      do: ("fail") --> status
 
-  - if: score >= 60
-    do: ("pass") --> status
+    - if: score >= 60
+      do: ("pass") --> status

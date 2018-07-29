@@ -232,7 +232,8 @@ function getLocalScopeVariables(task) {
         vars.push(out);
     }
     for (const subTask of task.commandList) {
-        const subVars = subTask.functionalMode === singleTaskProperty_1.FunctionalMode.none ? getLocalScopeVariables(subTask) : [subTask.dst];
+        const subVars = subTask.functionalMode === singleTaskProperty_1.FunctionalMode.none ?
+            getLocalScopeVariables(subTask) : [subTask.dst];
         const uniqueSubVars = subVars.filter((element) => vars.indexOf(element) === -1);
         vars = vars.concat(uniqueSubVars);
     }
