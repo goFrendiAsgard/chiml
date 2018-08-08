@@ -89,6 +89,7 @@ libs  node_modules  program.chiml  program.js
 * [Reduce](./examples/reduce): Functional reduce to get sum of numbers.
 * [Web](./examples/web): Make a web server that has a single page and a JSON-RPC endpoint.
 * [Interactive](./examples/interactive): Number guessing game using loop, `[sys.prompt]` and `[sys.print]`.
+* [Web Advance](./examples/web-advance): Make a web server the semi-professional way :).
 
 # Technical Specification
 
