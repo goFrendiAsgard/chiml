@@ -40,7 +40,9 @@ class SingleTask {
                 const script = this.getScript();
                 vm_1.runInNewContext(script, sandbox);
                 const handler = sandbox.__main_0;
-                handler(...inputs).then(resolve).catch(reject);
+                handler(...inputs)
+                .then(resolve)
+                .catch(reject);
             }
             catch (error) {
                 reject(error);

@@ -16,10 +16,12 @@ it("constructor works with complete config object", (done) => {
     expect(task.mode).toBe(singleTaskProperty_1.Mode.single);
     expect(task.branchCondition).toBe("a > b");
     expect(task.loopCondition).toBe("b < 2 * a");
-    task.execute(5, 4).then((result) => {
+    task.execute(5, 4)
+    .then((result) => {
         expect(result).toBe(14);
         done();
-    }).catch((error) => {
+    })
+    .catch((error) => {
         expect(error).toBeNull();
         done();
     });
@@ -35,10 +37,12 @@ it("constructor works with object that has empty `do`", (done) => {
     expect(task.mode).toBe(singleTaskProperty_1.Mode.single);
     expect(task.branchCondition).toBe("true");
     expect(task.loopCondition).toBe("false");
-    task.execute().then((result) => {
+    task.execute()
+    .then((result) => {
         expect(result).toBeUndefined();
         done();
-    }).catch((error) => {
+    })
+    .catch((error) => {
         expect(error).toBeNull();
         done();
     });
@@ -54,10 +58,12 @@ it("constructor works with empty object", (done) => {
     expect(task.mode).toBe(singleTaskProperty_1.Mode.single);
     expect(task.branchCondition).toBe("true");
     expect(task.loopCondition).toBe("false");
-    task.execute().then((result) => {
+    task.execute()
+    .then((result) => {
         expect(result).toBeUndefined();
         done();
-    }).catch((error) => {
+    })
+    .catch((error) => {
         expect(error).toBeNull();
         done();
     });
@@ -75,10 +81,12 @@ it("constructor works with config object where ins is string and command is unfl
     expect(task.mode).toBe(singleTaskProperty_1.Mode.single);
     expect(task.branchCondition).toBe("true");
     expect(task.loopCondition).toBe("false");
-    task.execute(4, 5).then((result) => {
+    task.execute(4, 5)
+    .then((result) => {
         expect(result).toBe(9);
         done();
-    }).catch((error) => {
+    })
+    .catch((error) => {
         expect(error).toBeNull();
         done();
     });
@@ -96,10 +104,12 @@ it("constructor works with config object where command is unflanked anonymous fu
     expect(task.mode).toBe(singleTaskProperty_1.Mode.single);
     expect(task.branchCondition).toBe("true");
     expect(task.loopCondition).toBe("false");
-    task.execute(4, 5).then((result) => {
+    task.execute(4, 5)
+    .then((result) => {
         expect(result).toBe(9);
         done();
-    }).catch((error) => {
+    })
+    .catch((error) => {
         expect(error).toBeNull();
         done();
     });
@@ -108,10 +118,12 @@ it("SingleTask.execute reject in case of invalid syntax", (done) => {
     // missing closing brace, should be syntax error
     const config = { ins: "a, b", do: "[function (x,y, callback) {callback(null, x+y)]", out: "c" };
     const task = new SingleTask_1.SingleTask(config);
-    task.execute(4, 5).then((result) => {
+    task.execute(4, 5)
+    .then((result) => {
         expect(result).toBeNull();
         done();
-    }).catch((error) => {
+    })
+    .catch((error) => {
         expect(error).toBeDefined();
         done();
     });
@@ -129,10 +141,12 @@ it("constructor works with config object where command is flanked with square br
     expect(task.mode).toBe(singleTaskProperty_1.Mode.single);
     expect(task.branchCondition).toBe("true");
     expect(task.loopCondition).toBe("false");
-    task.execute(4, 5).then((result) => {
+    task.execute(4, 5)
+    .then((result) => {
         expect(result).toBe(9);
         done();
-    }).catch((error) => {
+    })
+    .catch((error) => {
         expect(error).toBeNull();
         done();
     });
@@ -148,10 +162,12 @@ it("constructor works with config object where command is flanked with chevron",
     expect(task.mode).toBe(singleTaskProperty_1.Mode.single);
     expect(task.branchCondition).toBe("true");
     expect(task.loopCondition).toBe("false");
-    task.execute().then((result) => {
+    task.execute()
+    .then((result) => {
         expect(result).toBe(73);
         done();
-    }).catch((error) => {
+    })
+    .catch((error) => {
         expect(error).toBeNull();
         done();
     });
@@ -168,10 +184,12 @@ it("constructor works with config object where command is cmd", (done) => {
     expect(task.mode).toBe(singleTaskProperty_1.Mode.single);
     expect(task.branchCondition).toBe("true");
     expect(task.loopCondition).toBe("false");
-    task.execute(15).then((result) => {
+    task.execute(15)
+    .then((result) => {
         expect(result).toBe(15);
         done();
-    }).catch((error) => {
+    })
+    .catch((error) => {
         expect(error).toBeNull();
         done();
     });
@@ -187,10 +205,12 @@ it("constructor works with empty config object", (done) => {
     expect(task.mode).toBe(singleTaskProperty_1.Mode.single);
     expect(task.branchCondition).toBe("true");
     expect(task.loopCondition).toBe("false");
-    task.execute(15).then((result) => {
+    task.execute(15)
+    .then((result) => {
         expect(result).toBeUndefined();
         done();
-    }).catch((error) => {
+    })
+    .catch((error) => {
         expect(error).toBeNull();
         done();
     });
@@ -208,10 +228,12 @@ it("constructor works with config string `(a, b) -> (x, y) => x+y -> c`", (done)
     expect(task.mode).toBe(singleTaskProperty_1.Mode.single);
     expect(task.branchCondition).toBe("true");
     expect(task.loopCondition).toBe("false");
-    task.execute(4, 5).then((result) => {
+    task.execute(4, 5)
+    .then((result) => {
         expect(result).toBe(9);
         done();
-    }).catch((error) => {
+    })
+    .catch((error) => {
         expect(error).toBeNull();
         done();
     });
@@ -229,10 +251,12 @@ it("constructor works with config string `c <- (x, y) => x+y <- (a, b)`", (done)
     expect(task.mode).toBe(singleTaskProperty_1.Mode.single);
     expect(task.branchCondition).toBe("true");
     expect(task.loopCondition).toBe("false");
-    task.execute(4, 5).then((result) => {
+    task.execute(4, 5)
+    .then((result) => {
         expect(result).toBe(9);
         done();
-    }).catch((error) => {
+    })
+    .catch((error) => {
         expect(error).toBeNull();
         done();
     });
@@ -250,10 +274,12 @@ it("constructor works with config string `(a, b) -> (x, y) => x+y`", (done) => {
     expect(task.mode).toBe(singleTaskProperty_1.Mode.single);
     expect(task.branchCondition).toBe("true");
     expect(task.loopCondition).toBe("false");
-    task.execute(4, 5).then((result) => {
+    task.execute(4, 5)
+    .then((result) => {
         expect(result).toBe(9);
         done();
-    }).catch((error) => {
+    })
+    .catch((error) => {
         expect(error).toBeNull();
         done();
     });
@@ -271,10 +297,12 @@ it("constructor works with config string `(x, y) => x+y <- (a, b)`", (done) => {
     expect(task.mode).toBe(singleTaskProperty_1.Mode.single);
     expect(task.branchCondition).toBe("true");
     expect(task.loopCondition).toBe("false");
-    task.execute(4, 5).then((result) => {
+    task.execute(4, 5)
+    .then((result) => {
         expect(result).toBe(9);
         done();
-    }).catch((error) => {
+    })
+    .catch((error) => {
         expect(error).toBeNull();
         done();
     });
@@ -290,10 +318,12 @@ it("constructor works with config string `() => 73 -> a`", (done) => {
     expect(task.mode).toBe(singleTaskProperty_1.Mode.single);
     expect(task.branchCondition).toBe("true");
     expect(task.loopCondition).toBe("false");
-    task.execute().then((result) => {
+    task.execute()
+    .then((result) => {
         expect(result).toBe(73);
         done();
-    }).catch((error) => {
+    })
+    .catch((error) => {
         expect(error).toBeNull();
         done();
     });
@@ -309,10 +339,12 @@ it("constructor works with config string `a <- () => 73`", (done) => {
     expect(task.mode).toBe(singleTaskProperty_1.Mode.single);
     expect(task.branchCondition).toBe("true");
     expect(task.loopCondition).toBe("false");
-    task.execute().then((result) => {
+    task.execute()
+    .then((result) => {
         expect(result).toBe(73);
         done();
-    }).catch((error) => {
+    })
+    .catch((error) => {
         expect(error).toBeNull();
         done();
     });
@@ -329,10 +361,12 @@ it("constructor works with config string `a --> b`", (done) => {
     expect(task.mode).toBe(singleTaskProperty_1.Mode.single);
     expect(task.branchCondition).toBe("true");
     expect(task.loopCondition).toBe("false");
-    task.execute(4).then((result) => {
+    task.execute(4)
+    .then((result) => {
         expect(result).toBe(4);
         done();
-    }).catch((error) => {
+    })
+    .catch((error) => {
         expect(error).toBeNull();
         done();
     });
@@ -349,10 +383,12 @@ it("constructor works with config string `b <-- a`", (done) => {
     expect(task.mode).toBe(singleTaskProperty_1.Mode.single);
     expect(task.branchCondition).toBe("true");
     expect(task.loopCondition).toBe("false");
-    task.execute(4).then((result) => {
+    task.execute(4)
+    .then((result) => {
         expect(result).toBe(4);
         done();
-    }).catch((error) => {
+    })
+    .catch((error) => {
         expect(error).toBeNull();
         done();
     });
@@ -368,10 +404,12 @@ it("constructor works with config string `echo abc`", (done) => {
     expect(task.mode).toBe(singleTaskProperty_1.Mode.single);
     expect(task.branchCondition).toBe("true");
     expect(task.loopCondition).toBe("false");
-    task.execute().then((result) => {
+    task.execute()
+    .then((result) => {
         expect(result).toBe("abc");
         done();
-    }).catch((error) => {
+    })
+    .catch((error) => {
         expect(error).toBeNull();
         done();
     });
@@ -389,10 +427,12 @@ it("constructor works with config.do = `(a, b) -> (x, y) => x+y -> c`", (done) =
     expect(task.mode).toBe(singleTaskProperty_1.Mode.single);
     expect(task.branchCondition).toBe("true");
     expect(task.loopCondition).toBe("false");
-    task.execute(4, 5).then((result) => {
+    task.execute(4, 5)
+    .then((result) => {
         expect(result).toBe(9);
         done();
-    }).catch((error) => {
+    })
+    .catch((error) => {
         expect(error).toBeNull();
         done();
     });
@@ -410,10 +450,12 @@ it("constructor works with config.do = `c <- (x, y) => x+y <- (a, b)`", (done) =
     expect(task.mode).toBe(singleTaskProperty_1.Mode.single);
     expect(task.branchCondition).toBe("true");
     expect(task.loopCondition).toBe("false");
-    task.execute(4, 5).then((result) => {
+    task.execute(4, 5)
+    .then((result) => {
         expect(result).toBe(9);
         done();
-    }).catch((error) => {
+    })
+    .catch((error) => {
         expect(error).toBeNull();
         done();
     });
@@ -431,10 +473,12 @@ it("constructor works with config.do = `(a, b) -> (x, y) => x+y`", (done) => {
     expect(task.mode).toBe(singleTaskProperty_1.Mode.single);
     expect(task.branchCondition).toBe("true");
     expect(task.loopCondition).toBe("false");
-    task.execute(4, 5).then((result) => {
+    task.execute(4, 5)
+    .then((result) => {
         expect(result).toBe(9);
         done();
-    }).catch((error) => {
+    })
+    .catch((error) => {
         expect(error).toBeNull();
         done();
     });
@@ -452,10 +496,12 @@ it("constructor works with config.do = `(x, y) => x+y <- (a, b)`", (done) => {
     expect(task.mode).toBe(singleTaskProperty_1.Mode.single);
     expect(task.branchCondition).toBe("true");
     expect(task.loopCondition).toBe("false");
-    task.execute(4, 5).then((result) => {
+    task.execute(4, 5)
+    .then((result) => {
         expect(result).toBe(9);
         done();
-    }).catch((error) => {
+    })
+    .catch((error) => {
         expect(error).toBeNull();
         done();
     });
@@ -471,10 +517,12 @@ it("constructor works with config.do = `() => 73 -> a`", (done) => {
     expect(task.mode).toBe(singleTaskProperty_1.Mode.single);
     expect(task.branchCondition).toBe("true");
     expect(task.loopCondition).toBe("false");
-    task.execute(73).then((result) => {
+    task.execute(73)
+    .then((result) => {
         expect(result).toBe(73);
         done();
-    }).catch((error) => {
+    })
+    .catch((error) => {
         expect(error).toBeNull();
         done();
     });
@@ -490,10 +538,12 @@ it("constructor works with config.do = `a <- () => 73`", (done) => {
     expect(task.mode).toBe(singleTaskProperty_1.Mode.single);
     expect(task.branchCondition).toBe("true");
     expect(task.loopCondition).toBe("false");
-    task.execute(73).then((result) => {
+    task.execute(73)
+    .then((result) => {
         expect(result).toBe(73);
         done();
-    }).catch((error) => {
+    })
+    .catch((error) => {
         expect(error).toBeNull();
         done();
     });
@@ -510,10 +560,12 @@ it("constructor works with config.do = `a --> b`", (done) => {
     expect(task.mode).toBe(singleTaskProperty_1.Mode.single);
     expect(task.branchCondition).toBe("true");
     expect(task.loopCondition).toBe("false");
-    task.execute(73).then((result) => {
+    task.execute(73)
+    .then((result) => {
         expect(result).toBe(73);
         done();
-    }).catch((error) => {
+    })
+    .catch((error) => {
         expect(error).toBeNull();
         done();
     });
@@ -530,10 +582,12 @@ it("constructor works with config.do = `b <-- a`", (done) => {
     expect(task.mode).toBe(singleTaskProperty_1.Mode.single);
     expect(task.branchCondition).toBe("true");
     expect(task.loopCondition).toBe("false");
-    task.execute(73).then((result) => {
+    task.execute(73)
+    .then((result) => {
         expect(result).toBe(73);
         done();
-    }).catch((error) => {
+    })
+    .catch((error) => {
         expect(error).toBeNull();
         done();
     });
@@ -549,10 +603,12 @@ it("constructor works with config.do = `echo abc`", (done) => {
     expect(task.mode).toBe(singleTaskProperty_1.Mode.single);
     expect(task.branchCondition).toBe("true");
     expect(task.loopCondition).toBe("false");
-    task.execute().then((result) => {
+    task.execute()
+    .then((result) => {
         expect(result).toBe("abc");
         done();
-    }).catch((error) => {
+    })
+    .catch((error) => {
         expect(error).toBeNull();
         done();
     });
@@ -614,10 +670,12 @@ it("constructor works with nested config object", (done) => {
     expect(task.commandList[1].command).toBe("(x, y) => x * y");
     expect(task.branchCondition).toBe("true");
     expect(task.loopCondition).toBe("false");
-    task.execute(10, 6).then((result) => {
+    task.execute(10, 6)
+    .then((result) => {
         expect(result).toBe(64);
         done();
-    }).catch((error) => {
+    })
+    .catch((error) => {
         expect(error).toBeNull();
         done();
     });
@@ -679,10 +737,12 @@ it("constructor works with nested config object", (done) => {
     expect(task.commandList[1].command).toBe("(x, y) => x * y");
     expect(task.branchCondition).toBe("true");
     expect(task.loopCondition).toBe("false");
-    task.execute(10, 6).then((result) => {
+    task.execute(10, 6)
+    .then((result) => {
         expect(result).toBe(64);
         done();
-    }).catch((error) => {
+    })
+    .catch((error) => {
         expect(error).toBeNull();
         done();
     });
@@ -696,10 +756,12 @@ it("constructor recognize map", (done) => {
     expect(task.dst).toBe("square");
     expect(task.functionalMode).toBe(singleTaskProperty_1.FunctionalMode.map);
     expect(task.command).toBe("(x) => x * x");
-    task.execute().then((result) => {
+    task.execute()
+    .then((result) => {
         expect(result).toMatchObject([1, 4, 9, 16, 25]);
         done();
-    }).catch((error) => {
+    })
+    .catch((error) => {
         expect(error).toBeNull();
         done();
     });
@@ -713,10 +775,12 @@ it("constructor recognize map (config.src is array, and config.into is null)", (
     expect(task.dst).toBe("__fx");
     expect(task.functionalMode).toBe(singleTaskProperty_1.FunctionalMode.map);
     expect(task.command).toBe("(x) => x * x");
-    task.execute().then((result) => {
+    task.execute()
+    .then((result) => {
         expect(result).toMatchObject([1, 4, 9, 16, 25]);
         done();
-    }).catch((error) => {
+    })
+    .catch((error) => {
         expect(error).toBeNull();
         done();
     });
@@ -730,10 +794,12 @@ it("constructor recognize filter", (done) => {
     expect(task.dst).toBe("even");
     expect(task.functionalMode).toBe(singleTaskProperty_1.FunctionalMode.filter);
     expect(task.command).toBe("(x) => x % 2 === 0");
-    task.execute().then((result) => {
+    task.execute()
+    .then((result) => {
         expect(result).toMatchObject([2, 4]);
         done();
-    }).catch((error) => {
+    })
+    .catch((error) => {
         expect(error).toBeNull();
         done();
     });
@@ -749,10 +815,12 @@ it("constructor recognize reduce", (done) => {
     expect(task.functionalMode).toBe(singleTaskProperty_1.FunctionalMode.reduce);
     expect(task.command).toBe("(x, y) => x + y");
     expect(task.accumulator).toBe("0");
-    task.execute().then((result) => {
+    task.execute()
+    .then((result) => {
         expect(result).toBe(15);
         done();
-    }).catch((error) => {
+    })
+    .catch((error) => {
         expect(error).toBeNull();
         done();
     });
@@ -768,10 +836,12 @@ it("constructor recognize reduce (with accumulator)", (done) => {
     expect(task.functionalMode).toBe(singleTaskProperty_1.FunctionalMode.reduce);
     expect(task.command).toBe("(x, y) => x + y");
     expect(task.accumulator).toBe("1");
-    task.execute().then((result) => {
+    task.execute()
+    .then((result) => {
         expect(result).toBe(16);
         done();
-    }).catch((error) => {
+    })
+    .catch((error) => {
         expect(error).toBeNull();
         done();
     });

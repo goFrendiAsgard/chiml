@@ -1,9 +1,11 @@
-import {CommandType, FunctionalMode, Mode} from "../enums/singleTaskProperty";
-import {normalizeRawConfig, strToNormalizedConfig} from "./singleTaskConfigProcessor";
+import { CommandType, FunctionalMode, Mode } from "../enums/singleTaskProperty";
+import { normalizeRawConfig, strToNormalizedConfig } from "./singleTaskConfigProcessor";
 
 it("normalizeRawConfig works with complete config object", (done) => {
-    const rawConfig = {do: "{(x,y) => x+y}", if: "a < b", ins: ["a", "b"],
-        out: "c", vars: {foo: "bar"}, while: "c < 2 * (a + b)"};
+    const rawConfig = {
+        do: "{(x,y) => x+y}", if: "a < b", ins: ["a", "b"],
+        out: "c", vars: { foo: "bar" }, while: "c < 2 * (a + b)",
+    };
     const config = normalizeRawConfig(rawConfig);
     expect(config.ins.length).toBe(2);
     expect(config.ins[0]).toBe("a");
@@ -18,7 +20,7 @@ it("normalizeRawConfig works with complete config object", (done) => {
 });
 
 it("normalizeRawConfig works with object that has empty `do`", (done) => {
-    const rawConfig = {do: ""};
+    const rawConfig = { do: "" };
     const config = normalizeRawConfig(rawConfig);
     expect(config.ins.length).toBe(0);
     expect(config.out).toBe("__ans");
@@ -45,22 +47,22 @@ it("normalizeRawConfig works with empty object", (done) => {
 
 it("normalizeRawConfig works with config object where ins is string and command is unflanked arrow function",
     (done) => {
-    const rawConfig = {ins: "a, b", do: "(x,y) => x+y", out: "c"};
-    const config = normalizeRawConfig(rawConfig);
-    expect(config.ins.length).toBe(2);
-    expect(config.ins[0]).toBe("a");
-    expect(config.ins[1]).toBe("b");
-    expect(config.out).toBe("c");
-    expect(config.command).toBe("(x,y) => x+y");
-    expect(config.commandType).toBe(CommandType.jsSyncFunction);
-    expect(config.mode).toBe(Mode.single);
-    expect(config.branchCondition).toBe("true");
-    expect(config.loopCondition).toBe("false");
-    done();
-});
+        const rawConfig = { ins: "a, b", do: "(x,y) => x+y", out: "c" };
+        const config = normalizeRawConfig(rawConfig);
+        expect(config.ins.length).toBe(2);
+        expect(config.ins[0]).toBe("a");
+        expect(config.ins[1]).toBe("b");
+        expect(config.out).toBe("c");
+        expect(config.command).toBe("(x,y) => x+y");
+        expect(config.commandType).toBe(CommandType.jsSyncFunction);
+        expect(config.mode).toBe(Mode.single);
+        expect(config.branchCondition).toBe("true");
+        expect(config.loopCondition).toBe("false");
+        done();
+    });
 
 it("normalizeRawConfig works with config object where command is unflanked anonymous function", (done) => {
-    const rawConfig = {ins: "a, b", do: "function (x,y) {return x+y;}", out: "c"};
+    const rawConfig = { ins: "a, b", do: "function (x,y) {return x+y;}", out: "c" };
     const config = normalizeRawConfig(rawConfig);
     expect(config.ins.length).toBe(2);
     expect(config.ins[0]).toBe("a");
@@ -75,7 +77,7 @@ it("normalizeRawConfig works with config object where command is unflanked anony
 });
 
 it("normalizeRawConfig works with config object where command is flanked with square bracket", (done) => {
-    const rawConfig = {ins: "a, b", do: "[function (x,y, callback) {callback(x+y)]", out: "c"};
+    const rawConfig = { ins: "a, b", do: "[function (x,y, callback) {callback(x+y)]", out: "c" };
     const config = normalizeRawConfig(rawConfig);
     expect(config.ins.length).toBe(2);
     expect(config.ins[0]).toBe("a");
@@ -90,7 +92,7 @@ it("normalizeRawConfig works with config object where command is flanked with sq
 });
 
 it("normalizeRawConfig works with config object where command is flanked with chevron", (done) => {
-    const rawConfig = {ins: "", do: "<new Promise((resolve, reject) => {resolve(73);});>", out: "c"};
+    const rawConfig = { ins: "", do: "<new Promise((resolve, reject) => {resolve(73);});>", out: "c" };
     const config = normalizeRawConfig(rawConfig);
     expect(config.ins.length).toBe(0);
     expect(config.out).toBe("c");
@@ -103,7 +105,7 @@ it("normalizeRawConfig works with config object where command is flanked with ch
 });
 
 it("normalizeRawConfig works with config object where command is cmd", (done) => {
-    const rawConfig = {ins: "a", do: "cowsay", out: "b"};
+    const rawConfig = { ins: "a", do: "cowsay", out: "b" };
     const config = normalizeRawConfig(rawConfig);
     expect(config.ins.length).toBe(1);
     expect(config.ins[0]).toBe("a");
@@ -257,7 +259,7 @@ it("strToNormalizedConfig works with config string `ls`", (done) => {
 });
 
 it("normalizeRawConfig works with config.do = `(a, b) -> (x, y) => x+y -> c`", (done) => {
-    const rawConfig = {do: "(a, b) -> (x, y) => x+y -> c"};
+    const rawConfig = { do: "(a, b) -> (x, y) => x+y -> c" };
     const config = normalizeRawConfig(rawConfig);
     expect(config.ins.length).toBe(2);
     expect(config.ins[0]).toBe("a");
@@ -272,7 +274,7 @@ it("normalizeRawConfig works with config.do = `(a, b) -> (x, y) => x+y -> c`", (
 });
 
 it("normalizeRawConfig works with config.do = `c <- (x, y) => x+y <- (a, b)`", (done) => {
-    const rawConfig = {do: "c <- (x, y) => x+y <- (a, b)"};
+    const rawConfig = { do: "c <- (x, y) => x+y <- (a, b)" };
     const config = normalizeRawConfig(rawConfig);
     expect(config.ins.length).toBe(2);
     expect(config.ins[0]).toBe("a");
@@ -287,7 +289,7 @@ it("normalizeRawConfig works with config.do = `c <- (x, y) => x+y <- (a, b)`", (
 });
 
 it("normalizeRawConfig works with config.do = `(a, b) -> (x, y) => x+y`", (done) => {
-    const rawConfig = {do: "(a, b) -> (x, y) => x+y"};
+    const rawConfig = { do: "(a, b) -> (x, y) => x+y" };
     const config = normalizeRawConfig(rawConfig);
     expect(config.ins.length).toBe(2);
     expect(config.ins[0]).toBe("a");
@@ -302,7 +304,7 @@ it("normalizeRawConfig works with config.do = `(a, b) -> (x, y) => x+y`", (done)
 });
 
 it("normalizeRawConfig works with config.do = `(x, y) => x+y <- (a, b)`", (done) => {
-    const rawConfig = {do: "(x, y) => x+y <- (a, b)"};
+    const rawConfig = { do: "(x, y) => x+y <- (a, b)" };
     const config = normalizeRawConfig(rawConfig);
     expect(config.ins.length).toBe(2);
     expect(config.ins[0]).toBe("a");
@@ -317,7 +319,7 @@ it("normalizeRawConfig works with config.do = `(x, y) => x+y <- (a, b)`", (done)
 });
 
 it("normalizeRawConfig works with config.do = `() => 73 -> a`", (done) => {
-    const rawConfig = {do: "() => 73 -> a"};
+    const rawConfig = { do: "() => 73 -> a" };
     const config = normalizeRawConfig(rawConfig);
     expect(config.ins.length).toBe(0);
     expect(config.out).toBe("a");
@@ -330,7 +332,7 @@ it("normalizeRawConfig works with config.do = `() => 73 -> a`", (done) => {
 });
 
 it("normalizeRawConfig works with config.do = `a <- () => 73`", (done) => {
-    const rawConfig = {do: "a <- () => 73"};
+    const rawConfig = { do: "a <- () => 73" };
     const config = normalizeRawConfig(rawConfig);
     expect(config.ins.length).toBe(0);
     expect(config.out).toBe("a");
@@ -343,7 +345,7 @@ it("normalizeRawConfig works with config.do = `a <- () => 73`", (done) => {
 });
 
 it("normalizeRawConfig works with config.do = `a --> b`", (done) => {
-    const rawConfig = {do: "a --> b"};
+    const rawConfig = { do: "a --> b" };
     const config = normalizeRawConfig(rawConfig);
     expect(config.ins.length).toBe(1);
     expect(config.ins[0]).toBe("a");
@@ -357,7 +359,7 @@ it("normalizeRawConfig works with config.do = `a --> b`", (done) => {
 });
 
 it("normalizeRawConfig works with config.do = `b <-- a`", (done) => {
-    const rawConfig = {do: "b <-- a"};
+    const rawConfig = { do: "b <-- a" };
     const config = normalizeRawConfig(rawConfig);
     expect(config.ins.length).toBe(1);
     expect(config.ins[0]).toBe("a");
@@ -371,7 +373,7 @@ it("normalizeRawConfig works with config.do = `b <-- a`", (done) => {
 });
 
 it("normalizeRawConfig works with config.do = `ls`", (done) => {
-    const rawConfig = {do: "ls"};
+    const rawConfig = { do: "ls" };
     const config = normalizeRawConfig(rawConfig);
     expect(config.ins.length).toBe(0);
     expect(config.out).toBe("__ans");
@@ -386,10 +388,12 @@ it("normalizeRawConfig works with config.do = `ls`", (done) => {
 it("normalizeRawConfig works with nested config object", (done) => {
     const rawConfig = {
         do: [
-            {parallel: [
-                "(a, b) -> (x, y) => x + y -> c",
-                "(a, b) -> (x, y) => x - y -> d",
-            ]},
+            {
+                parallel: [
+                    "(a, b) -> (x, y) => x + y -> c",
+                    "(a, b) -> (x, y) => x - y -> d",
+                ],
+            },
             "(c, d) -> (x, y) => x * y -> e",
         ],
         ins: "a, b",
@@ -410,10 +414,12 @@ it("normalizeRawConfig works with nested config object", (done) => {
         ins: "a, b",
         out: "e",
         series: [
-            {parallel: [
-                "(a, b) -> (x, y) => x + y -> c",
-                "(a, b) -> (x, y) => x - y -> d",
-            ]},
+            {
+                parallel: [
+                    "(a, b) -> (x, y) => x + y -> c",
+                    "(a, b) -> (x, y) => x - y -> d",
+                ],
+            },
             "(c, d) -> (x, y) => x * y -> e",
         ],
     };
@@ -428,7 +434,7 @@ it("normalizeRawConfig works with nested config object", (done) => {
 });
 
 it("normalizeRawConfig recognize map", (done) => {
-    const rawConfig = {map: "[1, 2, 3, 4, 5]", into: "square", do: "(x) => x * x"};
+    const rawConfig = { map: "[1, 2, 3, 4, 5]", into: "square", do: "(x) => x * x" };
     const config = normalizeRawConfig(rawConfig);
     expect(config.src).toBe("[1, 2, 3, 4, 5]");
     expect(config.dst).toBe("square");
@@ -438,7 +444,7 @@ it("normalizeRawConfig recognize map", (done) => {
 });
 
 it("normalizeRawConfig recognize map (config.src is array, and config.into is null)", (done) => {
-    const rawConfig = {map: [1, 2, 3, 4, 5], do: "(x) => x * x"};
+    const rawConfig = { map: [1, 2, 3, 4, 5], do: "(x) => x * x" };
     const config = normalizeRawConfig(rawConfig);
     expect(config.src).toBe("[1,2,3,4,5]");
     expect(config.dst).toBe("__fx");
@@ -448,7 +454,7 @@ it("normalizeRawConfig recognize map (config.src is array, and config.into is nu
 });
 
 it("normalizeRawConfig recognize filter", (done) => {
-    const rawConfig = {filter: "[1, 2, 3, 4, 5]", into: "even", do: "(x) => x % 2"};
+    const rawConfig = { filter: "[1, 2, 3, 4, 5]", into: "even", do: "(x) => x % 2" };
     const config = normalizeRawConfig(rawConfig);
     expect(config.src).toBe("[1, 2, 3, 4, 5]");
     expect(config.dst).toBe("even");
@@ -458,7 +464,7 @@ it("normalizeRawConfig recognize filter", (done) => {
 });
 
 it("normalizeRawConfig recognize reduce", (done) => {
-    const rawConfig = {reduce: "[1, 2, 3, 4, 5]", into: "sum", do: "(x, y) => x + y"};
+    const rawConfig = { reduce: "[1, 2, 3, 4, 5]", into: "sum", do: "(x, y) => x + y" };
     const config = normalizeRawConfig(rawConfig);
     expect(config.src).toBe("[1, 2, 3, 4, 5]");
     expect(config.dst).toBe("sum");
@@ -469,7 +475,7 @@ it("normalizeRawConfig recognize reduce", (done) => {
 });
 
 it("normalizeRawConfig recognize reduce (with accumulator)", (done) => {
-    const rawConfig = {reduce: "[1, 2, 3, 4, 5]", into: "sum", accumulator: "1", do: "(x, y) => x + y"};
+    const rawConfig = { reduce: "[1, 2, 3, 4, 5]", into: "sum", accumulator: "1", do: "(x, y) => x + y" };
     const config = normalizeRawConfig(rawConfig);
     expect(config.src).toBe("[1, 2, 3, 4, 5]");
     expect(config.dst).toBe("sum");

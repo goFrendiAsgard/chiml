@@ -1,5 +1,6 @@
 package-lock.json
 .cache
+.vscode
 node_modules
 /lab
 /coverage

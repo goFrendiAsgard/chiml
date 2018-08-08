@@ -1,4 +1,4 @@
-import {cascade} from "./environment";
+import { cascade } from "./environment";
 
 it("able to cascade environment", (done) => {
 

@@ -61,7 +61,9 @@ export class SingleTask implements ISingleTask {
                 const script = this.getScript();
                 runInNewContext(script, sandbox);
                 const handler = sandbox.__main_0;
-                handler(...inputs).then(resolve).catch(reject);
+                handler(...inputs)
+                    .then(resolve)
+                    .catch(reject);
             } catch (error) {
                 reject(error);
             }

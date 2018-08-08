@@ -6,6 +6,6 @@ export function tsToJs(source: string) {
         target: ts.ScriptTarget.ES5,
     };
     const reportDiagnostics = true;
-    const result = ts.transpileModule(source, {compilerOptions, reportDiagnostics});
+    const result = ts.transpileModule(source, { compilerOptions, reportDiagnostics });
     return result.outputText;
 }

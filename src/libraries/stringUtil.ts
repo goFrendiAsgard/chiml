@@ -1,7 +1,7 @@
-import {readFile} from "fs";
-import {safeLoad} from "js-yaml";
-import {ILineState} from "../interfaces/ILineState";
-import {normalizeRawConfig, strToNormalizedConfig} from "./singleTaskConfigProcessor";
+import { readFile } from "fs";
+import { safeLoad } from "js-yaml";
+import { ILineState } from "../interfaces/ILineState";
+import { normalizeRawConfig, strToNormalizedConfig } from "./singleTaskConfigProcessor";
 
 const BLOCKED_SEQUENCE_ITEM = /^(\s*)-(\s+)(>|\|)(.+)$/gm;
 const BLOCKED_MAP_ITEM = /^(\s*)([-\s\w]+:)(\s+)(>|\|)(.+)$/gm;
@@ -27,14 +27,18 @@ export function chimlToConfig(chiml: string, firstTime: boolean = true): Promise
         return new Promise((resolve, reject) => {
             readFile(chiml, (error, content) => {
                 if (error) {
-                    return chimlToConfig(chiml, false).then((result) => {
-                        const config = strToNormalizedConfig(chiml);
-                        resolve(result);
-                    }).catch(reject);
+                    return chimlToConfig(chiml, false)
+                        .then((result) => {
+                            const config = strToNormalizedConfig(chiml);
+                            resolve(result);
+                        })
+                        .catch(reject);
                 }
-                return chimlToConfig(String(content), false).then((config) => {
-                    resolve(config);
-                }).catch(reject);
+                return chimlToConfig(String(content), false)
+                    .then((config) => {
+                        resolve(config);
+                    })
+                    .catch(reject);
             });
         });
     }
@@ -151,7 +155,7 @@ function getChimlLineState(line: string): ILineState {
             isSequence = true;
         }
     }
-    return {spaces1, spaces2, isMap, isSequence, key, val};
+    return { spaces1, spaces2, isMap, isSequence, key, val };
 }
 
 function normalizeChimlLines(lines: string[]): string[] {
@@ -162,7 +166,7 @@ function normalizeChimlLines(lines: string[]): string[] {
     const previousKeyList: string[] = ["root"];
     for (const line of lines) {
         const lineState = getChimlLineState(line);
-        const {spaces1, spaces2, isMap, isSequence, key, val} = lineState;
+        const { spaces1, spaces2, isMap, isSequence, key, val } = lineState;
         if (isMap || isSequence) {
             const newSpaceCount = spaces1.length + spaces2.length + (isSequence ? 1 : 0);
             let lastSpaceCount = previousSpaceCount[previousSpaceCount.length - 1];

@@ -1,8 +1,8 @@
-import {exec} from "child_process";
-import {isAbsolute as isAbsolutePath, resolve as pathResolve} from "path";
-import {doubleQuote, smartSplit} from "./stringUtil";
+import { exec } from "child_process";
+import { isAbsolute as isAbsolutePath, resolve as pathResolve } from "path";
+import { doubleQuote, smartSplit } from "./stringUtil";
 
-export function cmd(command: string, options?: {[key: string]: any}): Promise<string> {
+export function cmd(command: string, options?: { [key: string]: any }): Promise<string> {
     return new Promise((resolve, reject) => {
         const subProcess = exec(command, options, (error, stdout, stderr) => {
             if (error) {
@@ -43,7 +43,7 @@ export function composeCommand(command: string, ins: any[] = []): string {
 }
 
 export function cmdComposedCommand(
-    command: string, ins: any[] = [], opts?: {[key: string]: any}, isCompiled: boolean = false): Promise<any> {
+    command: string, ins: any[] = [], opts?: { [key: string]: any }, isCompiled: boolean = false): Promise<any> {
     if (isCompiled) {
         const commandParts = smartSplit(command, " ").filter((part) => part !== "");
         if (commandParts.length > 1 && commandParts[0] === "chie") {
@@ -55,15 +55,16 @@ export function cmdComposedCommand(
             }
         }
     }
-    return cmd(composeCommand(command, ins), opts).then((result) => {
-        return new Promise((resolve, reject) => {
-            try {
-                resolve(JSON.parse(result.trim()));
-            } catch (error) {
-                resolve(result.trim());
-            }
+    return cmd(composeCommand(command, ins), opts)
+        .then((result) => {
+            return new Promise((resolve, reject) => {
+                try {
+                    resolve(JSON.parse(result.trim()));
+                } catch (error) {
+                    resolve(result.trim());
+                }
+            });
         });
-    });
 }
 
 export function getChimlCompiledScriptPath(chimlPath: string, cwd: string) {

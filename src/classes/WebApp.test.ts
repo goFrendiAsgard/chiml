@@ -1,7 +1,7 @@
-import {dirname as pathDirName, resolve as pathResolve} from "path";
+import { dirname as pathDirName, resolve as pathResolve } from "path";
 import * as io from "socket.io-client";
-import {httpRequest, jsonRpcRequest} from "../libraries/http";
-import {WebApp} from "./WebApp";
+import { httpRequest, jsonRpcRequest } from "../libraries/http";
+import { WebApp } from "./WebApp";
 
 const testcaseDirPath = pathResolve(pathDirName(pathDirName(__dirname)), "testcase", "webApp");
 const header = "<h1>Header</h1>";
@@ -16,7 +16,7 @@ let server;
 it("able to add routes before middlewares", (done) => {
     const routes = [
         // function
-        {url: "/first", controller: () => "Roses are red"},
+        { url: "/first", controller: () => "Roses are red" },
         // function with custom outProcessor
         {
             controller: () => "blue",
@@ -24,7 +24,7 @@ it("able to add routes before middlewares", (done) => {
             url: "/second",
         },
         // compiled chiml files
-        {url: "/add/:n1/:n2", controller: pathResolve(testcaseDirPath, "compiled-page.chiml")},
+        { url: "/add/:n1/:n2", controller: pathResolve(testcaseDirPath, "compiled-page.chiml") },
         // propagateContext
         {
             controller: pathResolve(testcaseDirPath, "compiled-route.chiml"),
@@ -42,30 +42,34 @@ it("able to add routes before middlewares", (done) => {
 
 it("able to add authentication, authorization, and authorized routes", (done) => {
     // authentication
-    app.addAuthentication({controller: (ctx) => {
-        return ctx.query.user;
-    }});
+    app.addAuthentication({
+        controller: (ctx) => {
+            return ctx.query.user;
+        },
+    });
     // authorization
-    app.addAuthorization({controller: (ctx) => {
-        switch (ctx.state.user) {
-            case "alice": return "admin";
-            case "bob": return ["author", "contributor"];
-            default: return null;
-        }
-    }});
+    app.addAuthorization({
+        controller: (ctx) => {
+            switch (ctx.state.user) {
+                case "alice": return "admin";
+                case "bob": return ["author", "contributor"];
+                default: return null;
+            }
+        },
+    });
     // authorized middlewares
     const routes = [
-        {url: "/adminDashboard", controller: () => "Admin Dashboard Page", roles: ["admin"]},
-        {url: "/authorDashboard", controller: () => "Author Dashboard Page", roles: ["author"]},
-        {url: "/contributorDashboard", controller: () => "Contributor Dashboard Page", roles: ["contributor"]},
+        { url: "/adminDashboard", controller: () => "Admin Dashboard Page", roles: ["admin"] },
+        { url: "/authorDashboard", controller: () => "Author Dashboard Page", roles: ["author"] },
+        { url: "/contributorDashboard", controller: () => "Contributor Dashboard Page", roles: ["contributor"] },
         {
-          controller: () => "Admin and Author Dashboard Page",
-          roles: ["admin", "author"],
-          url: "/adminAndAuthorDashboard",
+            controller: () => "Admin and Author Dashboard Page",
+            roles: ["admin", "author"],
+            url: "/adminAndAuthorDashboard",
         },
-        {url: "/memberDashboard", controller: () => "Member Dashboard Page", roles: ["loggedIn"]},
-        {url: "/registrationForm", controller: () => "Registration Form Page", roles: ["loggedOut"]},
-        {url: "/landingPage", controller: () => "Landing Page", roles: ["loggedIn", "loggedOut"]},
+        { url: "/memberDashboard", controller: () => "Member Dashboard Page", roles: ["loggedIn"] },
+        { url: "/registrationForm", controller: () => "Registration Form Page", roles: ["loggedOut"] },
+        { url: "/landingPage", controller: () => "Landing Page", roles: ["loggedIn", "loggedOut"] },
     ];
     app.addRoutes(routes);
     done();
@@ -73,9 +77,9 @@ it("able to add authentication, authorization, and authorized routes", (done) =>
 
 it("able to add jsonRpc middleware", (done) => {
     const configs = [
-        {method: "add", controller: pathResolve(testcaseDirPath, "compiled-page.chiml")},
-        {method: "plus", controller: pathResolve(testcaseDirPath, "compiled-page.chiml"), roles: ["admin"]},
-        {method: "invalid", controller: "invalid.chiml"},
+        { method: "add", controller: pathResolve(testcaseDirPath, "compiled-page.chiml") },
+        { method: "plus", controller: pathResolve(testcaseDirPath, "compiled-page.chiml"), roles: ["admin"] },
+        { method: "invalid", controller: "invalid.chiml" },
     ];
     app.addJsonRpc("/jsonrpc", configs);
     done();
@@ -102,15 +106,15 @@ it("able to add pages after middlewares", (done) => {
     const propagateContext = true;
     const configs = [
         // function
-        {url: "/page-hello/:name", controller: (name) => `Hello ${name}`},
+        { url: "/page-hello/:name", controller: (name) => `Hello ${name}` },
         // chiml file
-        {url: "/page-hi/:name", controller: pathResolve(testcaseDirPath, "page.chiml")},
+        { url: "/page-hi/:name", controller: pathResolve(testcaseDirPath, "page.chiml") },
         // chiml script
-        {url: "/page-bonjour/:name", controller: "(name) -> (name) => `Bonjour ${name}`"},
+        { url: "/page-bonjour/:name", controller: "(name) -> (name) => `Bonjour ${name}`" },
         // function (with propagateContext)
-        {propagateContext, url: "/hello/:name", controller: (ctx, name) => ctx.body += `Hello ${name}`},
+        { propagateContext, url: "/hello/:name", controller: (ctx, name) => ctx.body += `Hello ${name}` },
         // chiml file (with propagateContext)
-        {propagateContext, url: "/hi/:name", controller: pathResolve(testcaseDirPath, "route.chiml")},
+        { propagateContext, url: "/hi/:name", controller: pathResolve(testcaseDirPath, "route.chiml") },
         // chiml script (with propagateContext)
         {
             controller: "(ctx, name) -> (ctx, name) => ctx.body += `Bonjour ${name}`",
@@ -349,7 +353,7 @@ it("able to reply request to /jsonrpc (using httpRequest)", (done) => {
     };
     httpRequest(requestConfig, (error, body) => {
         expect(error).toBeNull();
-        expect(JSON.parse(body)).toMatchObject({id: 1, result: 9, jsonrpc: "2.0"});
+        expect(JSON.parse(body)).toMatchObject({ id: 1, result: 9, jsonrpc: "2.0" });
         done();
     });
 });

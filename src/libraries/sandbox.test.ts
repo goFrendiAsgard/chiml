@@ -1,5 +1,5 @@
-import {dirname as pathDirName, resolve as pathResolve} from "path";
-import {createSandbox} from "./sandbox";
+import { dirname as pathDirName, resolve as pathResolve } from "path";
+import { createSandbox } from "./sandbox";
 
 it("construct sandbox for `(a) --> b`", (done) => {
     const result = createSandbox("(a) --> b");

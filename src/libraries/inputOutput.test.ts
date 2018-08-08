@@ -1,5 +1,5 @@
-import {Readable, Writable} from "stream";
-import {createPrompt, print} from "./inputOutput";
+import { Readable, Writable } from "stream";
+import { createPrompt, print } from "./inputOutput";
 
 it("able to print", (done) => {
     print("hello", (error, result) => {

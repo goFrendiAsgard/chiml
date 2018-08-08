@@ -1,6 +1,6 @@
-import {CommandType, FunctionalMode, Mode} from "../enums/singleTaskProperty";
-import {IRawConfig} from "../interfaces/IRawConfig";
-import {isFlanked, removeFlank, smartSplit} from "./stringUtil";
+import { CommandType, FunctionalMode, Mode } from "../enums/singleTaskProperty";
+import { IRawConfig } from "../interfaces/IRawConfig";
+import { isFlanked, removeFlank, smartSplit } from "./stringUtil";
 
 const jsArrowFunctionPattern = /^.*\s*=>.+/g;
 const jsFunctionPattern = /^function\s*\(.*\)\s*{.+}$/g;
@@ -10,7 +10,7 @@ export function strToNormalizedConfig(str: string): IRawConfig {
     return normalizeRawConfig(strToRawConfig(str));
 }
 
-export function normalizeRawConfig(rawConfig: {[key: string]: any}): IRawConfig {
+export function normalizeRawConfig(rawConfig: { [key: string]: any }): IRawConfig {
     if ("__isNormal" in rawConfig) {
         return rawConfig as IRawConfig;
     }
@@ -36,8 +36,8 @@ export function normalizeRawConfig(rawConfig: {[key: string]: any}): IRawConfig 
     return normalizedConfig;
 }
 
-export function strToRawConfig(str: string): {[key: string]: any} {
-    let config: {[key: string]: any} = {};
+export function strToRawConfig(str: string): { [key: string]: any } {
+    let config: { [key: string]: any } = {};
     const longArrowParts = splitByLongArrow(str);
     if (longArrowParts.length === 2) {
         config = longArrowPartsToConfig(longArrowParts);
@@ -48,7 +48,7 @@ export function strToRawConfig(str: string): {[key: string]: any} {
     return config;
 }
 
-function longArrowPartsToConfig(longArrowParts: string[]): {[key: string]: any} {
+function longArrowPartsToConfig(longArrowParts: string[]): { [key: string]: any } {
     // `ins --> out`
 
     return {
@@ -57,8 +57,8 @@ function longArrowPartsToConfig(longArrowParts: string[]): {[key: string]: any} 
     };
 }
 
-function shortArrowPartsToConfig(shortArrowParts: string[]): {[key: string]: any} {
-    const config: {[key: string]: any} = {};
+function shortArrowPartsToConfig(shortArrowParts: string[]): { [key: string]: any } {
+    const config: { [key: string]: any } = {};
     if (shortArrowParts.length === 3) {
         // `(ins) -> do -> out`
         config.ins = smartSplit(removeFlank(shortArrowParts[0], "(", ")"), ",");
@@ -97,7 +97,7 @@ function splitBy(str: string, splitter: string, reverseSplitter: string): string
     return parts;
 }
 
-function preprocessRawConfigShorthand(config: {[key: string]: any}): {[key: string]: any} {
+function preprocessRawConfigShorthand(config: { [key: string]: any }): { [key: string]: any } {
     if ("do" in config && typeof config.do === "string") {
         const tmpConfig = strToRawConfig(config.do);
         if (tmpConfig.do !== config.do) {
@@ -117,7 +117,7 @@ function preprocessRawConfigShorthand(config: {[key: string]: any}): {[key: stri
     return config;
 }
 
-function parseCommand(normalizedConfig: IRawConfig, config: {[key: string]: any}): IRawConfig {
+function parseCommand(normalizedConfig: IRawConfig, config: { [key: string]: any }): IRawConfig {
     normalizedConfig = parseFunctionalCommand(normalizedConfig, config);
     normalizedConfig = parseSingleCommand(normalizedConfig, config);
     normalizedConfig = parseNestedCommand(normalizedConfig, config);
@@ -140,7 +140,7 @@ function getNormalIns(ins: any): string[] {
     return ins;
 }
 
-function parseSingleCommand(normalizedConfig: IRawConfig, config: {[key: string]: any}): IRawConfig {
+function parseSingleCommand(normalizedConfig: IRawConfig, config: { [key: string]: any }): IRawConfig {
     if ("do" in config && typeof config.do === "string") {
         normalizedConfig.command = config.do ? config.do : "(x) => x";
         if (isFlanked(normalizedConfig.command, "{", "}")) {
@@ -155,7 +155,7 @@ function parseSingleCommand(normalizedConfig: IRawConfig, config: {[key: string]
         } else {
             const command: string = normalizedConfig.command;
             if (command.match(jsArrowFunctionPattern) ||
-            command.match(jsFunctionPattern) || command.match(jsAsyncPattern)) {
+                command.match(jsFunctionPattern) || command.match(jsAsyncPattern)) {
                 normalizedConfig.commandType = CommandType.jsSyncFunction;
             } else {
                 normalizedConfig.commandType = CommandType.cmd;
@@ -166,7 +166,7 @@ function parseSingleCommand(normalizedConfig: IRawConfig, config: {[key: string]
     return normalizedConfig;
 }
 
-function parseNestedCommand(normalizedConfig: IRawConfig, config: {[key: string]: any}): IRawConfig {
+function parseNestedCommand(normalizedConfig: IRawConfig, config: { [key: string]: any }): IRawConfig {
     if ("do" in config && typeof config.do !== "string") {
         normalizedConfig.commandList = config.do;
         normalizedConfig.mode = Mode.series;
@@ -184,7 +184,7 @@ function parseNestedCommand(normalizedConfig: IRawConfig, config: {[key: string]
     return normalizedConfig;
 }
 
-function parseFunctionalCommand(normalizedConfig: IRawConfig, config: {[key: string]: any}): IRawConfig {
+function parseFunctionalCommand(normalizedConfig: IRawConfig, config: { [key: string]: any }): IRawConfig {
     if ("map" in config || "filter" in config || "reduce" in config) {
         if ("map" in config) { // map
             normalizedConfig.src = getNormalSrc(config.map);

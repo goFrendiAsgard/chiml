@@ -1,6 +1,6 @@
-import {createInterface, ReadLine, ReadLineOptions} from "readline";
+import { createInterface, ReadLine, ReadLineOptions } from "readline";
 
-export function createPrompt(config: ReadLineOptions = {input: process.stdin, output: process.stderr}): any {
+export function createPrompt(config: ReadLineOptions = { input: process.stdin, output: process.stderr }): any {
     return (textPrompt: string, callback): any => {
         const rl: ReadLine = createInterface(config);
         rl.question(textPrompt, (userInput) => {

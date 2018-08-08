@@ -1,5 +1,5 @@
 #! /usr/bin/env node
-import {execute} from "../index";
+import { execute } from "../index";
 
 if (require.main === module) {
     const args = process.argv.slice(2);
@@ -7,11 +7,11 @@ if (require.main === module) {
         console.error("Expect more than one parameter(s): `chiml script/file` and `inputs`");
     } else {
         execute(...args)
-        .then((result) => {
-            console.log(result);
-        })
-        .catch((error) => {
-            console.error(error);
-        });
+            .then((result) => {
+                console.log(result);
+            })
+            .catch((error) => {
+                console.error(error);
+            });
     }
 }

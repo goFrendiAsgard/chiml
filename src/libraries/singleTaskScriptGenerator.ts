@@ -1,8 +1,8 @@
-import {render} from "ejs";
-import {CommandType, FunctionalMode, Mode} from "../enums/singleTaskProperty";
-import {ISingleTask} from "../interfaces/ISingleTask";
+import { render } from "ejs";
+import { CommandType, FunctionalMode, Mode } from "../enums/singleTaskProperty";
+import { ISingleTask } from "../interfaces/ISingleTask";
 
-export function renderTemplate(template: string, config: {[key: string]: any}, spaceCount: number = 0): string {
+export function renderTemplate(template: string, config: { [key: string]: any }, spaceCount: number = 0): string {
     let spaces = "";
     for (let i = 0; i < spaceCount; i++) {
         spaces += " ";
@@ -18,7 +18,7 @@ export function createHandlerScript(task: ISingleTask, spaceCount: number = 0): 
     const branch = task.branchCondition;
     const loop = task.loopCondition;
     const template = getTemplate(task);
-    return renderTemplate(template, {task, ins, firstFlag, branch, loop}, spaceCount);
+    return renderTemplate(template, { task, ins, firstFlag, branch, loop }, spaceCount);
 }
 
 function wrapJsSyncFunction(task: ISingleTask, spaceCount: number): string {
@@ -34,7 +34,7 @@ function wrapJsSyncFunction(task: ISingleTask, spaceCount: number): string {
         "})",
 
     ].join("\n");
-    return renderTemplate(template, {task, ins}, spaceCount);
+    return renderTemplate(template, { task, ins }, spaceCount);
 }
 
 function wrapJsAsyncFunction(task: ISingleTask, spaceCount: number): string {
@@ -56,14 +56,14 @@ function wrapJsAsyncFunction(task: ISingleTask, spaceCount: number): string {
         "  });",
         "});",
     ].join("\n");
-    return renderTemplate(template, {task, ins}, spaceCount);
+    return renderTemplate(template, { task, ins }, spaceCount);
 }
 
 function wrapJsPromise(task: ISingleTask, spaceCount: number): string {
     const ins = task.ins.join(", ");
     const template = "const __promise<%- task.id %> = " +
         "<%- task.command %>.then((__result) => {<%- task.out %> = __result;});";
-    return renderTemplate(template, {task, ins}, spaceCount);
+    return renderTemplate(template, { task, ins }, spaceCount);
 }
 
 function wrapCmd(task: ISingleTask, spaceCount: number): string {
@@ -74,7 +74,7 @@ function wrapCmd(task: ISingleTask, spaceCount: number): string {
         '__cmd("<%- command %>", [<%- ins %>], {cwd: __dirname}, __isCompiled)',
         ".then((__result) => {<%- task.out %> = __result;});",
     ].join("");
-    return renderTemplate(template, {command, task, ins}, spaceCount);
+    return renderTemplate(template, { command, task, ins }, spaceCount);
 }
 
 function createSubHandlerDeclaration(task: ISingleTask, spaceCount: number): string {
@@ -91,7 +91,7 @@ function wrapParallel(task: ISingleTask, spaceCount: number): string {
     const parallelCall = subHandlerNames.map((name) => name + "()").join(", ");
     const template = "<%- subHandlerDeclaration %>\n" +
         "const __promise<%- task.id %> = Promise.all([<%- parallelCall %>]);";
-    return renderTemplate(template, {task, parallelCall, subHandlerDeclaration}, spaceCount);
+    return renderTemplate(template, { task, parallelCall, subHandlerDeclaration }, spaceCount);
 }
 
 function wrapSeries(task: ISingleTask, spaceCount: number): string {
@@ -100,7 +100,7 @@ function wrapSeries(task: ISingleTask, spaceCount: number): string {
     const seriesChain = subHandlerNames.map((name) => `.then(() => ${name}())`).join("");
     const template = "<%- subHandlerDeclaration %>\n" +
         "const __promise<%- task.id %> = Promise.resolve(true)<%- seriesChain %>;";
-    return renderTemplate(template, {task, seriesChain, subHandlerDeclaration}, spaceCount);
+    return renderTemplate(template, { task, seriesChain, subHandlerDeclaration }, spaceCount);
 }
 
 function getWrapper(task: ISingleTask): (task: ISingleTask, spaceCount: number) => string {
@@ -123,7 +123,7 @@ function getVariableDeclaration(variables, task: ISingleTask, spaceCount): strin
         return task.ins.indexOf(variableName) === -1;
     }).map((variableName) => {
         const value = variableName in task.vars ? getVariableValue(task.vars[variableName]) : "null";
-        return renderTemplate(template, {variableName, value}, spaceCount);
+        return renderTemplate(template, { variableName, value }, spaceCount);
     }).join("\n");
     return variableDeclaration;
 }

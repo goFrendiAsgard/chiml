@@ -37,7 +37,8 @@ export function createAuthenticationMiddleware(config: {[key: string]: any}): (.
     const normalizedConfig = Object.assign({}, {propagateContext: true}, config);
     const handler = createHandler(normalizedConfig);
     return (ctx, next) => {
-        return handler(ctx).then((out) => {
+        return handler(ctx)
+        .then((out) => {
             ctx.state = defineIfNotSet(ctx.state, {});
             ctx.state.user = defineIfNotSet(ctx.state.user, out);
             return next();
@@ -49,7 +50,8 @@ export function createAuthorizationMiddleware(config: {[key: string]: any}): (..
     const normalizedConfig = Object.assign({}, {propagateContext: true}, config);
     const handler = createHandler(normalizedConfig);
     return (ctx, next) => {
-        return handler(ctx).then((out) => {
+        return handler(ctx)
+        .then((out) => {
             let roles: string[] = [];
             if (Array.isArray(out)) {
                 roles = out;
@@ -154,7 +156,8 @@ function createHandler(config: {[key: string]: any}): (...ins: any[]) => any {
             propagateContext: true,
         });
         return (ctx: {[key: string]: any}, ...ins: any[]) => {
-            return subHandler(...ins).then((out) => outProcessor(ctx, out));
+            return subHandler(...ins)
+            .then((out) => outProcessor(ctx, out));
         };
     }
     if (typeof controller === "string") {
