@@ -26,14 +26,18 @@ function chimlToConfig(chiml, firstTime = true) {
         return new Promise((resolve, reject) => {
             fs_1.readFile(chiml, (error, content) => {
                 if (error) {
-                    return chimlToConfig(chiml, false).then((result) => {
+                    return chimlToConfig(chiml, false)
+                        .then((result) => {
                         const config = singleTaskConfigProcessor_1.strToNormalizedConfig(chiml);
                         resolve(result);
-                    }).catch(reject);
+                    })
+                        .catch(reject);
                 }
-                return chimlToConfig(String(content), false).then((config) => {
+                return chimlToConfig(String(content), false)
+                    .then((config) => {
                     resolve(config);
-                }).catch(reject);
+                })
+                    .catch(reject);
             });
         });
     }
@@ -199,3 +203,4 @@ function normalizeChimlLines(lines) {
     }
     return newLines;
 }
+//# sourceMappingURL=stringUtil.js.map

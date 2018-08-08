@@ -22,16 +22,21 @@ function execute(...args) {
     const chiml = args[0];
     const ins = stringUtil_1.parseStringArray(args.slice(1));
     return new Promise((resolve, reject) => {
-        stringUtil_1.chimlToConfig(chiml).then((config) => {
+        stringUtil_1.chimlToConfig(chiml)
+            .then((config) => {
             const task = new SingleTask_1.SingleTask(config);
-            task.execute(...ins).then(resolve).catch(reject);
-        }).catch(reject);
+            task.execute(...ins)
+                .then(resolve)
+                .catch(reject);
+        })
+            .catch(reject);
     });
 }
 exports.execute = execute;
 function getCompiledScript(chiml) {
     return new Promise((resolve, reject) => {
-        stringUtil_1.chimlToConfig(chiml).then((config) => {
+        stringUtil_1.chimlToConfig(chiml)
+            .then((config) => {
             const task = new SingleTask_1.SingleTask(config);
             const mainScript = task.getScript();
             const script = [
@@ -49,7 +54,8 @@ function getCompiledScript(chiml) {
                 "}",
             ].join("\n");
             resolve(scriptTransform_1.tsToJs(script));
-        }).catch(reject);
+        })
+            .catch(reject);
     });
 }
 exports.getCompiledScript = getCompiledScript;
@@ -60,11 +66,14 @@ function compile(chimlFiles) {
     const uniqueParentDirs = [...new Set(parentDirs)].filter((dirPath) => dirPath !== rootDirPath);
     const compilator = chimlFiles.map((chiml) => compileSingleFile(chiml));
     const nodeModuleCreator = uniqueParentDirs.map((dirPath) => createSingleNodeModule(dirPath));
-    return Promise.all(compilator).then((result) => {
+    return Promise.all(compilator)
+        .then((result) => {
         jsFilePathList = result;
-    }).then(() => {
+    })
+        .then(() => {
         return Promise.all(nodeModuleCreator);
-    }).then(() => {
+    })
+        .then(() => {
         return Promise.resolve(jsFilePathList);
     });
 }
@@ -91,12 +100,14 @@ function createSingleNodeModule(targetDirPath) {
     const newSrcPath = path_1.resolve(targetDirPath, "node_modules", "chiml", "src");
     const newPackageJsonPath = path_1.resolve(targetDirPath, "node_modules", "chiml", "package.json");
     const options = { dereference: true };
-    return fs_extra_1.copy(packageJsonPath, newPackageJsonPath, options).then(() => {
+    return fs_extra_1.copy(packageJsonPath, newPackageJsonPath, options)
+        .then(() => {
         return Promise.all([
             fs_extra_1.copy(distPath, newDistPath, options),
             fs_extra_1.copy(srcPath, newSrcPath, options),
             fs_extra_1.copy(nodeModulePath, newNodeModulePath, options),
-        ]).then(() => Promise.resolve(true));
+        ])
+            .then(() => Promise.resolve(true));
     });
 }
 function compileSingleFile(chiml) {
@@ -104,11 +115,15 @@ function compileSingleFile(chiml) {
     const targetFileName = path_1.basename(chiml);
     const jsFileName = targetFileName.replace(/^(.*)\.chiml$/gmi, "$1.js");
     const jsFilePath = path_1.resolve(targetDirPath, jsFileName);
-    return fs_extra_1.readFile(chiml).then(() => {
+    return fs_extra_1.readFile(chiml)
+        .then(() => {
         return getCompiledScript(chiml);
-    }).then((compiledScript) => {
+    })
+        .then((compiledScript) => {
         return fs_extra_1.writeFile(jsFilePath, compiledScript);
-    }).then(() => {
+    })
+        .then(() => {
         return Promise.resolve(jsFilePath);
     });
 }
+//# sourceMappingURL=tools.js.map

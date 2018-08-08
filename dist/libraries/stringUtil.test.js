@@ -121,47 +121,55 @@ it("able to turn chiml file and chiml script into config", (done) => {
     const p1 = stringUtil_1.chimlToConfig(path_1.resolve(testDirPath, "stringUtil", "sample.chiml"));
     const p2 = stringUtil_1.chimlToConfig(chimlSample1);
     const p3 = stringUtil_1.chimlToConfig(path_1.resolve(testDirPath, "stringUtil", "test.chiml"));
-    Promise.all([p1, p2, p3]).then(([result1, result2, result3]) => {
+    Promise.all([p1, p2, p3])
+        .then(([result1, result2, result3]) => {
         expect(result1).toMatchObject(result2);
         expect(result3.commandList.length).toBe(2);
         expect(result1.__isNormal).toBeTruthy();
         expect(result2.__isNormal).toBeTruthy();
         expect(result3.__isNormal).toBeTruthy();
         done();
-    }).catch((error) => {
+    })
+        .catch((error) => {
         expect(error).toBeNull();
         done();
     });
 });
 it("able to turn nonexisting chiml file into config", (done) => {
-    stringUtil_1.chimlToConfig("nonexists.chiml").then((result) => {
+    stringUtil_1.chimlToConfig("nonexists.chiml")
+        .then((result) => {
         expect(result.__isNormal).toBeTruthy();
         expect(result.command).toBe("nonexists.chiml");
         done();
-    }).catch((error) => {
+    })
+        .catch((error) => {
         expect(error).toBeNull();
         done();
     });
 });
 it("able to turn json-string into config", (done) => {
     const json = { vars: { a: 5, b: 7 }, ins: "x, y" };
-    stringUtil_1.chimlToConfig(JSON.stringify(json)).then((result) => {
+    stringUtil_1.chimlToConfig(JSON.stringify(json))
+        .then((result) => {
         expect(result.vars).toMatchObject(json.vars);
         expect(result.ins.length).toBe(2);
         expect(result.ins[0]).toBe("x");
         expect(result.ins[1]).toBe("y");
         expect(result.__isNormal).toBeTruthy();
         done();
-    }).catch((error) => {
+    })
+        .catch((error) => {
         expect(error).toBeNull();
         done();
     });
 });
 it("should fail to parse invalid yaml", (done) => {
-    stringUtil_1.chimlToConfig("key: val\n   misindentKey: otherVal").then((result) => {
+    stringUtil_1.chimlToConfig("key: val\n   misindentKey: otherVal")
+        .then((result) => {
         expect(result).toBeUndefined();
         done();
-    }).catch((error) => {
+    })
+        .catch((error) => {
         expect(error).toBeDefined();
         done();
     });
@@ -204,3 +212,4 @@ it("able to double quote", (done) => {
     expect(result1).toBe("\"System.out.println(\\\"Hello world\\\");\"");
     done();
 });
+//# sourceMappingURL=stringUtil.test.js.map

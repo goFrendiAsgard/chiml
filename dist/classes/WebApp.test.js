@@ -49,17 +49,21 @@ it("able to add routes before middlewares", (done) => {
 });
 it("able to add authentication, authorization, and authorized routes", (done) => {
     // authentication
-    app.addAuthentication({ controller: (ctx) => {
+    app.addAuthentication({
+        controller: (ctx) => {
             return ctx.query.user;
-        } });
+        },
+    });
     // authorization
-    app.addAuthorization({ controller: (ctx) => {
+    app.addAuthorization({
+        controller: (ctx) => {
             switch (ctx.state.user) {
                 case "alice": return "admin";
                 case "bob": return ["author", "contributor"];
                 default: return null;
             }
-        } });
+        },
+    });
     // authorized middlewares
     const routes = [
         { url: "/adminDashboard", controller: () => "Admin Dashboard Page", roles: ["admin"] },
@@ -544,3 +548,4 @@ it("able to close server", (done) => {
     expect(server.listening).toBeFalsy();
     done();
 });
+//# sourceMappingURL=WebApp.test.js.map

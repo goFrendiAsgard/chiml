@@ -50,7 +50,8 @@ function cmdComposedCommand(command, ins = [], opts, isCompiled = false) {
             }
         }
     }
-    return cmd(composeCommand(command, ins), opts).then((result) => {
+    return cmd(composeCommand(command, ins), opts)
+        .then((result) => {
         return new Promise((resolve, reject) => {
             try {
                 resolve(JSON.parse(result.trim()));
@@ -83,3 +84,4 @@ function runCompiledChiml(scriptPath, ins) {
 function createStdInListener(subProcess) {
     return (chunk) => subProcess.stdin.write(chunk);
 }
+//# sourceMappingURL=cmd.js.map

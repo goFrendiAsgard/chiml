@@ -41,8 +41,8 @@ class SingleTask {
                 vm_1.runInNewContext(script, sandbox);
                 const handler = sandbox.__main_0;
                 handler(...inputs)
-                .then(resolve)
-                .catch(reject);
+                    .then(resolve)
+                    .catch(reject);
             }
             catch (error) {
                 reject(error);
@@ -51,3 +51,4 @@ class SingleTask {
     }
 }
 exports.SingleTask = SingleTask;
+//# sourceMappingURL=SingleTask.js.map

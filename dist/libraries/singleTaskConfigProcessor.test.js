@@ -3,8 +3,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const singleTaskProperty_1 = require("../enums/singleTaskProperty");
 const singleTaskConfigProcessor_1 = require("./singleTaskConfigProcessor");
 it("normalizeRawConfig works with complete config object", (done) => {
-    const rawConfig = { do: "{(x,y) => x+y}", if: "a < b", ins: ["a", "b"],
-        out: "c", vars: { foo: "bar" }, while: "c < 2 * (a + b)" };
+    const rawConfig = {
+        do: "{(x,y) => x+y}", if: "a < b", ins: ["a", "b"],
+        out: "c", vars: { foo: "bar" }, while: "c < 2 * (a + b)",
+    };
     const config = singleTaskConfigProcessor_1.normalizeRawConfig(rawConfig);
     expect(config.ins.length).toBe(2);
     expect(config.ins[0]).toBe("a");
@@ -359,10 +361,12 @@ it("normalizeRawConfig works with config.do = `ls`", (done) => {
 it("normalizeRawConfig works with nested config object", (done) => {
     const rawConfig = {
         do: [
-            { parallel: [
+            {
+                parallel: [
                     "(a, b) -> (x, y) => x + y -> c",
                     "(a, b) -> (x, y) => x - y -> d",
-                ] },
+                ],
+            },
             "(c, d) -> (x, y) => x * y -> e",
         ],
         ins: "a, b",
@@ -382,10 +386,12 @@ it("normalizeRawConfig works with nested config object", (done) => {
         ins: "a, b",
         out: "e",
         series: [
-            { parallel: [
+            {
+                parallel: [
                     "(a, b) -> (x, y) => x + y -> c",
                     "(a, b) -> (x, y) => x - y -> d",
-                ] },
+                ],
+            },
             "(c, d) -> (x, y) => x * y -> e",
         ],
     };
@@ -445,3 +451,4 @@ it("normalizeRawConfig recognize reduce (with accumulator)", (done) => {
     expect(config.accumulator).toBe("1");
     done();
 });
+//# sourceMappingURL=singleTaskConfigProcessor.test.js.map

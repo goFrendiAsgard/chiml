@@ -32,3 +32,4 @@ it("able to cascade environment", (done) => {
     expect(result).toMatchObject(expected);
     done();
 });
+//# sourceMappingURL=environment.test.js.map
