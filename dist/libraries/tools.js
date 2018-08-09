@@ -8,6 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const child_process_1 = require("child_process");
 const fs_extra_1 = require("fs-extra");
 const path_1 = require("path");
 const SingleTask_1 = require("../classes/SingleTask");
@@ -102,13 +103,38 @@ function createSingleNodeModule(targetDirPath) {
     const options = { dereference: true };
     return fs_extra_1.copy(packageJsonPath, newPackageJsonPath, options)
         .then(() => {
-        return Promise.all([
-            fs_extra_1.copy(distPath, newDistPath, options),
-            fs_extra_1.copy(srcPath, newSrcPath, options),
-            fs_extra_1.copy(nodeModulePath, newNodeModulePath, options),
-        ])
-            .then(() => Promise.resolve(true));
+        return copyMultiDirs([
+            [distPath, newDistPath],
+            [srcPath, newSrcPath],
+            [nodeModulePath, newNodeModulePath],
+        ], options);
     });
+}
+function copyMultiDirs(configs, options) {
+    const commandList = configs.map((config) => {
+        const source = config[0];
+        const destination = config[1];
+        return createCopyCommand(source, destination);
+    });
+    const command = commandList.join(" && ");
+    // Promise: try to execute the command. If failed, fallback to fsCopy
+    return new Promise((resolve, reject) => {
+        child_process_1.exec(command, (error, stdout, stderr) => {
+            if (error) {
+                // fallback to fsCopy
+                const promises = configs.map((config) => fs_extra_1.copy(config[0], config[1], options));
+                return Promise.all(promises)
+                    .then(resolve)
+                    .catch(reject);
+            }
+            resolve(true);
+        });
+    });
+}
+function createCopyCommand(source, destination) {
+    const quotedSource = stringUtil_1.doubleQuote(source);
+    const quotedDestination = stringUtil_1.doubleQuote(destination);
+    return `cp -r ${quotedSource} ${quotedDestination}`;
 }
 function compileSingleFile(chiml) {
     const targetDirPath = path_1.dirname(chiml);

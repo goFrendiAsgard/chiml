@@ -12,6 +12,7 @@ routes:
       url: /
       controller: controllers/index.chiml
       propagateContext: true
+    - {}
 
 rpcUrl: /rpc
 rpcSettings:

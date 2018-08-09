@@ -7,7 +7,7 @@ import {
     parseStringArray,
     removeFlank,
     smartSplit,
-} from "./stringUtil";
+} from "../../libraries/stringUtil";
 
 const chimlSample1 = `
 # comment
@@ -133,7 +133,7 @@ it("able to parse string array", (done) => {
 });
 
 it("able to turn chiml file and chiml script into config", (done) => {
-    const rootDirPath = pathDirName(pathDirName(__dirname));
+    const rootDirPath = pathDirName(pathDirName(pathDirName(__dirname)));
     const testDirPath = pathResolve(rootDirPath, "testcase");
     const p1 = chimlToConfig(pathResolve(testDirPath, "stringUtil", "sample.chiml"));
     const p2 = chimlToConfig(chimlSample1);

@@ -1,4 +1,4 @@
-import { tsToJs } from "./scriptTransform";
+import { tsToJs } from "../../libraries/scriptTransform";
 
 it("transform ts to js", (done) => {
     const js = tsToJs("let x: number = 1; x += 5; console.log(x);");

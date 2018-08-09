@@ -1,7 +1,7 @@
 import { remove as fsRemove } from "fs-extra";
 import { dirname as pathDirName, resolve as pathResolve } from "path";
-import { cmdComposedCommand } from "./cmd";
-import { compile, execute, getCompiledScript, getFiles } from "./tools";
+import { cmdComposedCommand } from "../../libraries/cmd";
+import { compile, execute, getCompiledScript, getFiles } from "../../libraries/tools";
 
 it("run correct chiml script", (done) => {
     execute("(a, b) -> (x, y) => x + y", 4, 5)
@@ -51,7 +51,7 @@ it("yield error when translate incorrect chiml script", (done) => {
         });
 });
 
-const rootDirPath = pathDirName(pathDirName(__dirname));
+const rootDirPath = pathDirName(pathDirName(pathDirName(__dirname)));
 const testDirPath = pathResolve(rootDirPath, "testcase", "compile");
 const srcFilePath = pathResolve(testDirPath, "test.chiml");
 

@@ -1,8 +1,9 @@
+import { exec } from "child_process";
 import { copy as fsCopy, readdir as readDir, readFile, stat as fsStat, writeFile } from "fs-extra";
 import { basename as pathBaseName, dirname as pathDirName, resolve as pathResolve } from "path";
 import { SingleTask } from "../classes/SingleTask";
 import { tsToJs } from "./scriptTransform";
-import { chimlToConfig, parseStringArray } from "./stringUtil";
+import { chimlToConfig, doubleQuote, parseStringArray } from "./stringUtil";
 
 const rootDirPath = pathDirName(pathDirName(__dirname));
 const distPath = pathResolve(rootDirPath, "dist");
@@ -70,7 +71,7 @@ export function compile(chimlFiles: string[]): Promise<any> {
         });
 }
 
-export async function getFiles(dir): Promise<any> {
+export async function getFiles(dir: string): Promise<any> {
     try {
         const subdirs = await readDir(dir);
         const files = await Promise.all(subdirs.map(async (subdir) => {
@@ -83,7 +84,7 @@ export async function getFiles(dir): Promise<any> {
     }
 }
 
-function createSingleNodeModule(targetDirPath): Promise<any> {
+function createSingleNodeModule(targetDirPath: string): Promise<any> {
     const newNodeModulePath = pathResolve(targetDirPath, "node_modules");
     const newDistPath = pathResolve(targetDirPath, "node_modules", "chiml", "dist");
     const newSrcPath = pathResolve(targetDirPath, "node_modules", "chiml", "src");
@@ -91,13 +92,40 @@ function createSingleNodeModule(targetDirPath): Promise<any> {
     const options = { dereference: true };
     return fsCopy(packageJsonPath, newPackageJsonPath, options)
         .then(() => {
-            return Promise.all([
-                fsCopy(distPath, newDistPath, options),
-                fsCopy(srcPath, newSrcPath, options),
-                fsCopy(nodeModulePath, newNodeModulePath, options),
-            ])
-                .then(() => Promise.resolve(true));
+            return copyMultiDirs([
+                [distPath, newDistPath],
+                [srcPath, newSrcPath],
+                [nodeModulePath, newNodeModulePath],
+            ], options);
         });
+}
+
+function copyMultiDirs(configs: string[][], options: { [key: string]: any }): Promise<any> {
+    const commandList = configs.map((config) => {
+        const source = config[0];
+        const destination = config[1];
+        return createCopyCommand(source, destination);
+    });
+    const command = commandList.join(" && ");
+    // Promise: try to execute the command. If failed, fallback to fsCopy
+    return new Promise((resolve, reject) => {
+        exec(command, (error, stdout, stderr) => {
+            if (error) {
+                // fallback to fsCopy
+                const promises = configs.map((config) => fsCopy(config[0], config[1], options));
+                return Promise.all(promises)
+                    .then(resolve)
+                    .catch(reject);
+            }
+            resolve(true);
+        });
+    });
+}
+
+function createCopyCommand(source: string, destination: string): string {
+    const quotedSource = doubleQuote(source);
+    const quotedDestination = doubleQuote(destination);
+    return `cp -r ${quotedSource} ${quotedDestination}`;
 }
 
 function compileSingleFile(chiml: string): Promise<any> {

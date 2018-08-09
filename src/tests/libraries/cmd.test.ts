@@ -1,6 +1,6 @@
 import { remove as fsRemove } from "fs-extra";
 import { dirname as pathDirName, resolve as pathResolve } from "path";
-import { cmd, cmdComposedCommand, composeCommand } from "./cmd";
+import { cmd, cmdComposedCommand, composeCommand } from "../../libraries/cmd";
 
 it("should able to run `node -e \"console.log('hello');\"`", (done) => {
     cmd("node -e \"console.log('hello');\"")
@@ -26,7 +26,7 @@ it("should yield error when run `sendNukeToKrypton` (assuming that command is no
         });
 });
 
-const rootDirPath = pathDirName(pathDirName(__dirname));
+const rootDirPath = pathDirName(pathDirName(pathDirName(__dirname)));
 const cmdTestPath = pathResolve(rootDirPath, "testcase", "cmd");
 const nestedTestPath = pathResolve(rootDirPath, "testcase", "nested");
 const addJsPath = pathResolve(cmdTestPath, "add.js");

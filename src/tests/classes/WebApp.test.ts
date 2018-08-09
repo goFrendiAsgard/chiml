@@ -1,9 +1,9 @@
 import { dirname as pathDirName, resolve as pathResolve } from "path";
 import * as io from "socket.io-client";
-import { httpRequest, jsonRpcRequest } from "../libraries/http";
-import { WebApp } from "./WebApp";
+import { WebApp } from "../../classes/WebApp";
+import { httpRequest, jsonRpcRequest } from "../../libraries/http";
 
-const testcaseDirPath = pathResolve(pathDirName(pathDirName(__dirname)), "testcase", "webApp");
+const testcaseDirPath = pathResolve(pathDirName(pathDirName(pathDirName(__dirname))), "testcase", "webApp");
 const header = "<h1>Header</h1>";
 const footer = "<footer>Footer</footer>";
 const copyRight = "&copy; goFrendi";

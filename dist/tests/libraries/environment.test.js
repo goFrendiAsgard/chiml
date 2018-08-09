@@ -1,14 +1,13 @@
-import { cascade } from "./environment";
-
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const environment_1 = require("../../libraries/environment");
 it("able to cascade environment", (done) => {
-
     const env = {
         config_db_port: "3306",
         config_name: "test",
         lazy: 1,
         unknown: 1,
     };
-
     const obj = {
         config: {
             db: {
@@ -19,7 +18,6 @@ it("able to cascade environment", (done) => {
         },
         lazy: null,
     };
-
     const expected = {
         config: {
             db: {
@@ -30,8 +28,8 @@ it("able to cascade environment", (done) => {
         },
         lazy: 1,
     };
-
-    const result = cascade(obj, env);
+    const result = environment_1.cascade(obj, env);
     expect(result).toMatchObject(expected);
     done();
 });
+//# sourceMappingURL=environment.test.js.map
