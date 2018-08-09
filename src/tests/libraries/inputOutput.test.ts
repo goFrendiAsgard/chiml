@@ -1,14 +1,13 @@
 import { Readable, Writable } from "stream";
 import { createPrompt, print } from "../../libraries/inputOutput";
 
-it("able to print", (done) => {
-    print("hello", (error, result) => {
+test("able to print", () => {
+    print("hello", (error) => {
         expect(error).toBeNull();
-        done();
     });
 });
 
-it("able to prompt", (done) => {
+test("able to prompt", () => {
     const prompt = createPrompt({
         input: new Readable({
             read(size) {
@@ -24,7 +23,6 @@ it("able to prompt", (done) => {
     const rl = prompt("Say something", (error, result) => {
         expect(error).toBeNull();
         expect(result).toBe("Hello");
-        done();
     });
     rl.write("Hello\r\n");
 });

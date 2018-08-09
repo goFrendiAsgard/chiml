@@ -5,7 +5,7 @@ const vm_1 = require("vm");
 const SingleTask_1 = require("../../classes/SingleTask");
 const sandbox_1 = require("../../libraries/sandbox");
 const singleTaskScriptGenerator_1 = require("../../libraries/singleTaskScriptGenerator");
-it("render template correctly", (done) => {
+test("render template correctly", () => {
     const template = "function <%= functionName %> (<%= inputs.join(', ') %>){\n" +
         "  vars <%= vars.join(', ') %>;\n" +
         "  return true;\n" +
@@ -23,7 +23,6 @@ it("render template correctly", (done) => {
         "  }";
     const result2 = singleTaskScriptGenerator_1.renderTemplate(template, config, 2);
     expect(result2).toBe(expect2);
-    done();
 });
 function createScriptAndHandler(config) {
     const script = singleTaskScriptGenerator_1.createHandlerScript(new SingleTask_1.SingleTask(config));

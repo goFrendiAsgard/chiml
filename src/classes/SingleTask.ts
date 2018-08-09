@@ -6,6 +6,8 @@ import { createSandbox } from "../libraries/sandbox";
 import { normalizeRawConfig, strToNormalizedConfig } from "../libraries/singleTaskConfigProcessor";
 import { createHandlerScript } from "../libraries/singleTaskScriptGenerator";
 
+type singleTaskConfig = string | {[key: string]: any};
+
 export class SingleTask implements ISingleTask {
     public id: string;
     public src: string;
@@ -25,7 +27,7 @@ export class SingleTask implements ISingleTask {
     public expectLocalScope: boolean;
     public hasParent: boolean;
 
-    constructor(config: any, parentId: string = "", id: number = 0) {
+    constructor(config: singleTaskConfig, parentId: string = "", id: number = 0) {
         const normalizedConfig: IRawConfig = typeof config === "string" ?
             strToNormalizedConfig(config) : normalizeRawConfig(config);
         this.ins = normalizedConfig.ins;

@@ -10,26 +10,26 @@ function strToNormalizedConfig(str) {
 }
 exports.strToNormalizedConfig = strToNormalizedConfig;
 function normalizeRawConfig(rawConfig) {
-    if ("__isNormal" in rawConfig) {
+    if (rawConfig && "__isNormal" in rawConfig) {
         return rawConfig;
     }
     const config = preprocessRawConfigShorthand(rawConfig);
     let normalizedConfig = {
         __isNormal: true,
-        accumulator: "accumulator" in config ? config.accumulator : "0",
-        branchCondition: "if" in config ? config.if : "true",
+        accumulator: config && "accumulator" in config ? config.accumulator : "0",
+        branchCondition: config && "if" in config ? config.if : "true",
         chimlPath: "",
-        command: null,
+        command: "",
         commandList: [],
         commandType: singleTaskProperty_1.CommandType.cmd,
-        dst: "into" in config ? config.into : "__fx",
+        dst: config && "into" in config ? config.into : "__fx",
         functionalMode: singleTaskProperty_1.FunctionalMode.none,
-        ins: getNormalIns(config.ins),
-        loopCondition: "while" in config ? config.while : "false",
+        ins: config ? getNormalIns(config.ins) : [],
+        loopCondition: config && "while" in config ? config.while : "false",
         mode: singleTaskProperty_1.Mode.single,
-        out: "out" in config ? config.out : "__ans",
+        out: config && "out" in config ? config.out : "__ans",
         src: null,
-        vars: "vars" in config ? config.vars : {},
+        vars: config && "vars" in config ? config.vars : {},
     };
     normalizedConfig = parseCommand(normalizedConfig, config);
     return normalizedConfig;
@@ -95,16 +95,19 @@ function splitBy(str, splitter, reverseSplitter) {
     return parts;
 }
 function preprocessRawConfigShorthand(config) {
-    if ("do" in config && typeof config.do === "string") {
+    if (!config) {
+        config = { do: null };
+    }
+    if (config && "do" in config && typeof config.do === "string") {
         const tmpConfig = strToRawConfig(config.do);
-        if (tmpConfig.do !== config.do) {
-            if ("ins" in tmpConfig) {
+        if (tmpConfig && tmpConfig.do !== config.do) {
+            if (tmpConfig && "ins" in tmpConfig) {
                 config.ins = tmpConfig.ins;
             }
-            if ("out" in tmpConfig) {
+            if (tmpConfig && "out" in tmpConfig) {
                 config.out = tmpConfig.out;
             }
-            if ("do" in tmpConfig) {
+            if (tmpConfig && "do" in tmpConfig) {
                 config.do = tmpConfig.do;
             }
             else {
@@ -137,7 +140,7 @@ function getNormalIns(ins) {
     return ins;
 }
 function parseSingleCommand(normalizedConfig, config) {
-    if ("do" in config && typeof config.do === "string") {
+    if (config && "do" in config && typeof config.do === "string") {
         normalizedConfig.command = config.do ? config.do : "(x) => x";
         if (stringUtil_1.isFlanked(normalizedConfig.command, "{", "}")) {
             normalizedConfig.command = stringUtil_1.removeFlank(normalizedConfig.command, "{", "}");
@@ -166,19 +169,19 @@ function parseSingleCommand(normalizedConfig, config) {
     return normalizedConfig;
 }
 function parseNestedCommand(normalizedConfig, config) {
-    if ("do" in config && typeof config.do !== "string") {
+    if (config && "do" in config && Array.isArray(config.do)) {
         normalizedConfig.commandList = config.do;
         normalizedConfig.mode = singleTaskProperty_1.Mode.series;
     }
-    else if ("series" in config) {
+    else if (config && "series" in config) {
         normalizedConfig.commandList = config.series;
         normalizedConfig.mode = singleTaskProperty_1.Mode.series;
     }
-    else if ("parallel" in config) {
+    else if (config && "parallel" in config) {
         normalizedConfig.commandList = config.parallel;
         normalizedConfig.mode = singleTaskProperty_1.Mode.parallel;
     }
-    else if (!normalizedConfig.command) {
+    else if (config && !normalizedConfig.command) {
         normalizedConfig.command = "(x) => x";
         normalizedConfig.commandType = singleTaskProperty_1.CommandType.jsSyncFunction;
         normalizedConfig.mode = singleTaskProperty_1.Mode.single;
@@ -186,7 +189,7 @@ function parseNestedCommand(normalizedConfig, config) {
     return normalizedConfig;
 }
 function parseFunctionalCommand(normalizedConfig, config) {
-    if ("map" in config || "filter" in config || "reduce" in config) {
+    if (config && ("map" in config || "filter" in config || "reduce" in config)) {
         if ("map" in config) { // map
             normalizedConfig.src = getNormalSrc(config.map);
             normalizedConfig.functionalMode = singleTaskProperty_1.FunctionalMode.map;

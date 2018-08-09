@@ -11,26 +11,26 @@ export function strToNormalizedConfig(str: string): IRawConfig {
 }
 
 export function normalizeRawConfig(rawConfig: { [key: string]: any }): IRawConfig {
-    if ("__isNormal" in rawConfig) {
+    if (rawConfig && "__isNormal" in rawConfig) {
         return rawConfig as IRawConfig;
     }
     const config = preprocessRawConfigShorthand(rawConfig);
     let normalizedConfig: IRawConfig = {
         __isNormal: true,
-        accumulator: "accumulator" in config ? config.accumulator : "0",
-        branchCondition: "if" in config ? config.if : "true",
+        accumulator: config && "accumulator" in config ? config.accumulator : "0",
+        branchCondition: config && "if" in config ? config.if : "true",
         chimlPath: "",
-        command: null,
+        command: "",
         commandList: [],
         commandType: CommandType.cmd,
-        dst: "into" in config ? config.into : "__fx",
+        dst: config && "into" in config ? config.into : "__fx",
         functionalMode: FunctionalMode.none,
-        ins: getNormalIns(config.ins),
-        loopCondition: "while" in config ? config.while : "false",
+        ins: config ? getNormalIns(config.ins) : [],
+        loopCondition: config && "while" in config ? config.while : "false",
         mode: Mode.single,
-        out: "out" in config ? config.out : "__ans",
+        out: config && "out" in config ? config.out : "__ans",
         src: null,
-        vars: "vars" in config ? config.vars : {},
+        vars: config && "vars" in config ? config.vars : {},
     };
     normalizedConfig = parseCommand(normalizedConfig, config);
     return normalizedConfig;
@@ -98,16 +98,19 @@ function splitBy(str: string, splitter: string, reverseSplitter: string): string
 }
 
 function preprocessRawConfigShorthand(config: { [key: string]: any }): { [key: string]: any } {
-    if ("do" in config && typeof config.do === "string") {
+    if (!config) {
+        config = {do: null};
+    }
+    if (config && "do" in config && typeof config.do === "string") {
         const tmpConfig = strToRawConfig(config.do);
-        if (tmpConfig.do !== config.do) {
-            if ("ins" in tmpConfig) {
+        if (tmpConfig && tmpConfig.do !== config.do) {
+            if (tmpConfig && "ins" in tmpConfig) {
                 config.ins = tmpConfig.ins;
             }
-            if ("out" in tmpConfig) {
+            if (tmpConfig && "out" in tmpConfig) {
                 config.out = tmpConfig.out;
             }
-            if ("do" in tmpConfig) {
+            if (tmpConfig && "do" in tmpConfig) {
                 config.do = tmpConfig.do;
             } else {
                 delete config.do;
@@ -141,7 +144,7 @@ function getNormalIns(ins: any): string[] {
 }
 
 function parseSingleCommand(normalizedConfig: IRawConfig, config: { [key: string]: any }): IRawConfig {
-    if ("do" in config && typeof config.do === "string") {
+    if (config && "do" in config && typeof config.do === "string") {
         normalizedConfig.command = config.do ? config.do : "(x) => x";
         if (isFlanked(normalizedConfig.command, "{", "}")) {
             normalizedConfig.command = removeFlank(normalizedConfig.command, "{", "}");
@@ -167,16 +170,16 @@ function parseSingleCommand(normalizedConfig: IRawConfig, config: { [key: string
 }
 
 function parseNestedCommand(normalizedConfig: IRawConfig, config: { [key: string]: any }): IRawConfig {
-    if ("do" in config && typeof config.do !== "string") {
+    if (config && "do" in config && Array.isArray(config.do)) {
         normalizedConfig.commandList = config.do;
         normalizedConfig.mode = Mode.series;
-    } else if ("series" in config) {
+    } else if (config && "series" in config) {
         normalizedConfig.commandList = config.series;
         normalizedConfig.mode = Mode.series;
-    } else if ("parallel" in config) {
+    } else if (config && "parallel" in config) {
         normalizedConfig.commandList = config.parallel;
         normalizedConfig.mode = Mode.parallel;
-    } else if (!normalizedConfig.command) {
+    } else if (config && !normalizedConfig.command) {
         normalizedConfig.command = "(x) => x";
         normalizedConfig.commandType = CommandType.jsSyncFunction;
         normalizedConfig.mode = Mode.single;
@@ -185,7 +188,7 @@ function parseNestedCommand(normalizedConfig: IRawConfig, config: { [key: string
 }
 
 function parseFunctionalCommand(normalizedConfig: IRawConfig, config: { [key: string]: any }): IRawConfig {
-    if ("map" in config || "filter" in config || "reduce" in config) {
+    if (config && ("map" in config || "filter" in config || "reduce" in config)) {
         if ("map" in config) { // map
             normalizedConfig.src = getNormalSrc(config.map);
             normalizedConfig.functionalMode = FunctionalMode.map;

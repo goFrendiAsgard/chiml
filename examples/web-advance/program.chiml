@@ -40,9 +40,9 @@ do:
 
     # static files
     - map: config.statics
-      ins: static
+      ins: staticPath
       do: 
-          - (static) -> {require(__dirname + '/node_modules/koa-static')} -> middleware
+          - (staticPath) -> {require(__dirname + '/node_modules/koa-static')} -> middleware
           - (middleware) -> {app.use}
 
     # authentication & authorization

@@ -2,49 +2,45 @@ import { remove as fsRemove } from "fs-extra";
 import { dirname as pathDirName, resolve as pathResolve } from "path";
 import { cmd, cmdComposedCommand, composeCommand } from "../../libraries/cmd";
 
-it("should able to run `node -e \"console.log('hello');\"`", (done) => {
-    cmd("node -e \"console.log('hello');\"")
-        .then((stdout) => {
-            expect(stdout).toBe("hello\n");
-            done();
-        })
-        .catch((error) => {
-            expect(error).toBeNull();
-            done(error);
-        });
-});
-
-it("should yield error when run `sendNukeToKrypton` (assuming that command is not exists)", (done) => {
-    cmd("sendNukeToKrypton")
-        .then((stdout) => {
-            expect(stdout).toBeNull();
-            done();
-        })
-        .catch((error) => {
-            expect(error).toBeDefined();
-            done();
-        });
-});
-
 const rootDirPath = pathDirName(pathDirName(pathDirName(__dirname)));
 const cmdTestPath = pathResolve(rootDirPath, "testcase", "cmd");
 const nestedTestPath = pathResolve(rootDirPath, "testcase", "nested");
 const addJsPath = pathResolve(cmdTestPath, "add.js");
 const helloJsPath = pathResolve(cmdTestPath, "hello.js");
 
-it("should able to run `node add.js` with input redirection", (done) => {
-    cmd(`(echo "2" && echo "3") | node ${addJsPath}`)
+test("should able to run `node -e \"console.log('hello');\"`", () => {
+    cmd("node -e \"console.log('hello');\"")
         .then((stdout) => {
-            expect(stdout).toBe("5\n");
-            done();
+            expect(stdout).toBe("hello\n");
         })
         .catch((error) => {
+            console.error(error);
             expect(error).toBeNull();
-            done(error);
         });
 });
 
-it("should able to compose command `node add.js` and run it", (done) => {
+test("should yield error when run `sendNukeToKrypton` (assuming that command is not exists)", () => {
+    cmd("sendNukeToKrypton")
+        .then((stdout) => {
+            expect(stdout).toBeNull();
+        })
+        .catch((error) => {
+            expect(error).toBeDefined();
+        });
+});
+
+test("should able to run `node add.js` with input redirection", () => {
+    cmd(`(echo "2" && echo "3") | node ${addJsPath}`)
+        .then((stdout) => {
+            expect(stdout).toBe("5\n");
+        })
+        .catch((error) => {
+            console.error(error);
+            expect(error).toBeNull();
+        });
+});
+
+test("should able to compose command `node add.js` and run it", () => {
     const command = `node ${addJsPath}`;
     const ins = [7, 4];
     const composedCommand = composeCommand(command, ins);
@@ -52,45 +48,42 @@ it("should able to compose command `node add.js` and run it", (done) => {
     cmdComposedCommand(command, ins)
         .then((stdout) => {
             expect(stdout).toBe(11);
-            done();
         })
         .catch((error) => {
+            console.error(error);
             expect(error).toBeNull();
-            done(error);
         });
 });
 
-it("should able to compose command `node hello.js` and run it", (done) => {
+test("should able to compose command `node hello.js` and run it", () => {
     const command = `node ${helloJsPath}`;
     const composedCommand = composeCommand(command);
     expect(composedCommand).toBe(`${command}`);
     cmdComposedCommand(command)
         .then((stdout) => {
             expect(stdout).toBe("hello");
-            done();
         })
         .catch((error) => {
+            console.error(error);
             expect(error).toBeNull();
-            done(error);
         });
 });
 
-it("should able to compose command `node hello.js` and run it", (done) => {
+test("should able to compose command `node hello.js` and run it", () => {
     const command = `node ${helloJsPath}`;
     const composedCommand = composeCommand(command);
     expect(composedCommand).toBe(`${command}`);
     cmdComposedCommand(command, [], {}, true)
         .then((stdout) => {
             expect(stdout).toBe("hello");
-            done();
         })
         .catch((error) => {
+            console.error(error);
             expect(error).toBeNull();
-            done(error);
         });
 });
 
-it("should able to compose command `echo` and run it", (done) => {
+test("should able to compose command `echo` and run it", () => {
     const command = "echo";
     const ins = ["hello"];
     const composedCommand = composeCommand(command, ins);
@@ -98,15 +91,14 @@ it("should able to compose command `echo` and run it", (done) => {
     cmdComposedCommand(command, ins)
         .then((stdout) => {
             expect(stdout).toBe("hello");
-            done();
         })
         .catch((error) => {
+            console.error(error);
             expect(error).toBeNull();
-            done(error);
         });
 });
 
-it("should able to compose command `echo abc` and run it", (done) => {
+test("should able to compose command `echo abc` and run it", () => {
     const command = "echo abc";
     const ins = [];
     const composedCommand = composeCommand(command, ins);
@@ -114,43 +106,38 @@ it("should able to compose command `echo abc` and run it", (done) => {
     cmdComposedCommand(command, ins)
         .then((stdout) => {
             expect(stdout).toBe("abc");
-            done();
         })
         .catch((error) => {
+            console.error(error);
             expect(error).toBeNull();
-            done(error);
         });
 });
 
-it("should able to run composed command `chie uncompiled.chiml`", (done) => {
+test("should able to run composed command `chie uncompiled.chiml`", () => {
     const chimlPath = pathResolve(cmdTestPath, "uncompiled.chiml");
     const command = `chie ${chimlPath}`;
     const ins = ["hello"];
     cmdComposedCommand(command, ins)
         .then((stdout) => {
             expect(stdout).toBe("uncompiled hello");
-            done();
         })
         .catch((error) => {
             console.error(error);
             expect(error).toBeNull();
-            done(error);
         });
 });
 
-it("should able to run composed command `chie compiled.chiml`", (done) => {
+test("should able to run composed command `chie compiled.chiml`", () => {
     const chimlPath = pathResolve(cmdTestPath, "compiled.chiml");
     const command = `chie ${chimlPath}`;
     const ins = ["hello"];
     cmdComposedCommand(command, ins, {}, true)
         .then((stdout) => {
             expect(stdout).toBe("compiled hello");
-            done();
         })
         .catch((error) => {
             console.error(error);
             expect(error).toBeNull();
-            done(error);
         });
 });
 
@@ -164,7 +151,7 @@ it("compile test.chiml", (done) => {
     new Promise((resolve, reject) => {
         cmdComposedCommand("chie parent.chiml", [10, 8], { cwd: nestedTestPath }, true)
             .then((result) => {
-                expect(result).toBeUndefined();
+                expect(result).toBeNull();
                 resolve(true);
             })
             .catch((error) => {
@@ -186,20 +173,21 @@ it("compile test.chiml", (done) => {
         })
         .then((result) => {
             expect(result).toBe(2);
-        }).then(() => {
+        })
+        .then(() => {
             return Promise.all([
                 fsRemove(nodeModulePath),
                 fsRemove(cachePath),
                 fsRemove(childJsPath),
                 fsRemove(parentJsPath),
-            ]);
-        })
-        .then(() => {
-            done();
+            ])
+                .then(() => {
+                    done();
+                });
         })
         .catch((error) => {
             console.error(error);
-            expect(error).toBeUndefined();
+            expect(error).toBeNull();
             done();
         });
 }, 100000);

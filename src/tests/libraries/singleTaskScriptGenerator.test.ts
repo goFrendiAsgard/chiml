@@ -4,7 +4,7 @@ import { SingleTask } from "../../classes/SingleTask";
 import { createSandbox } from "../../libraries/sandbox";
 import { createHandlerScript, renderTemplate } from "../../libraries/singleTaskScriptGenerator";
 
-it("render template correctly", (done) => {
+test("render template correctly", () => {
     const template = "function <%= functionName %> (<%= inputs.join(', ') %>){\n" +
         "  vars <%= vars.join(', ') %>;\n" +
         "  return true;\n" +
@@ -24,8 +24,6 @@ it("render template correctly", (done) => {
         "  }";
     const result2 = renderTemplate(template, config, 2);
     expect(result2).toBe(expect2);
-
-    done();
 });
 
 function createScriptAndHandler(config: any): Promise<any> {

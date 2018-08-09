@@ -1,5 +1,8 @@
 import { CommandType, FunctionalMode, Mode } from "../enums/singleTaskProperty";
 import { ISingleTask } from "../interfaces/ISingleTask";
+declare type singleTaskConfig = string | {
+    [key: string]: any;
+};
 export declare class SingleTask implements ISingleTask {
     id: string;
     src: string;
@@ -20,7 +23,8 @@ export declare class SingleTask implements ISingleTask {
     chimlPath: string;
     expectLocalScope: boolean;
     hasParent: boolean;
-    constructor(config: any, parentId?: string, id?: number);
+    constructor(config: singleTaskConfig, parentId?: string, id?: number);
     getScript(): string;
     execute(...inputs: any[]): Promise<any>;
 }
+export {};

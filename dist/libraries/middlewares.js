@@ -225,31 +225,43 @@ function createJsonRpcHandler(configs) {
         }
         const { id, jsonrpc, method, params } = jsonRequest;
         if (!isValidJsonRpcId(id)) {
-            return jsonRpcErrorProcessor(ctx, { code: JREC.InvalidRequest,
-                message: "id should be null, undefined, or interger" });
+            return jsonRpcErrorProcessor(ctx, {
+                code: JREC.InvalidRequest,
+                message: "id should be null, undefined, or interger",
+            });
         }
         if (jsonrpc !== "2.0") {
-            return jsonRpcErrorProcessor(ctx, { code: JREC.InvalidRequest,
-                message: 'jsonrpc must be exactly "2.0"' });
+            return jsonRpcErrorProcessor(ctx, {
+                code: JREC.InvalidRequest,
+                message: 'jsonrpc must be exactly "2.0"',
+            });
         }
         if (typeof method !== "string") {
-            return jsonRpcErrorProcessor(ctx, { code: JREC.InvalidRequest,
-                message: "method must be string" });
+            return jsonRpcErrorProcessor(ctx, {
+                code: JREC.InvalidRequest,
+                message: "method must be string",
+            });
         }
         if (!Array.isArray(params)) {
-            return jsonRpcErrorProcessor(ctx, { code: JREC.InvalidParams,
-                message: "invalid params" });
+            return jsonRpcErrorProcessor(ctx, {
+                code: JREC.InvalidParams,
+                message: "invalid params",
+            });
         }
         const matchedConfigs = configs.filter((config) => config.method === method);
         if (matchedConfigs.length < 1) {
-            return jsonRpcErrorProcessor(ctx, { code: JREC.MethodNotFound,
-                message: "method not found" });
+            return jsonRpcErrorProcessor(ctx, {
+                code: JREC.MethodNotFound,
+                message: "method not found",
+            });
         }
         try {
             const matchedConfig = matchedConfigs[0];
             if (!isAuthorized(ctx, matchedConfig)) {
-                return jsonRpcErrorProcessor(ctx, { code: JREC.MethodNotFound,
-                    message: "unauthorized access" });
+                return jsonRpcErrorProcessor(ctx, {
+                    code: JREC.MethodNotFound,
+                    message: "unauthorized access",
+                });
             }
             const { controller, propagateContext } = matchedConfig;
             const handler = createHandler({
@@ -277,3 +289,4 @@ function getNormalizedIns(ins) {
         }
     });
 }
+//# sourceMappingURL=middlewares.js.map

@@ -95,7 +95,7 @@ const expectedYaml3 = `"(\\\"Hello\\\" + name) --> output"`;
 const chimlSample4 = `do: |("Hello" + name) --> output`;
 const chimlSample4Unblocked = `do: ("Hello" + name) --> output`;
 const expectedYaml4 = `do: "(\\\"Hello\\\" + name) --> output"`;
-it("able to translate chiml into yaml", (done) => {
+test("able to translate chiml into yaml", () => {
     expect(stringUtil_1.chimlToYaml(chimlSample1)).toBe(expectedYaml1);
     expect(stringUtil_1.chimlToYaml(chimlSample1Unblocked)).toBe(expectedYaml1);
     expect(stringUtil_1.chimlToYaml(chimlSample2)).toBe(expectedYaml2);
@@ -104,18 +104,16 @@ it("able to translate chiml into yaml", (done) => {
     expect(stringUtil_1.chimlToYaml(chimlSample3Unblocked)).toBe(expectedYaml3);
     expect(stringUtil_1.chimlToYaml(chimlSample4)).toBe(expectedYaml4);
     expect(stringUtil_1.chimlToYaml(chimlSample4Unblocked)).toBe(expectedYaml4);
-    done();
 });
-it("able to parse string array", (done) => {
+test("able to parse string array", () => {
     const result = stringUtil_1.parseStringArray(["1", "abc", "false", "{\"a\": 5}"]);
     expect(result.length).toBe(4);
     expect(result[0]).toBe(1);
     expect(result[1]).toBe("abc");
     expect(result[2]).toBe(false);
     expect(result[3]).toMatchObject({ a: 5 });
-    done();
 });
-it("able to turn chiml file and chiml script into config", (done) => {
+test("able to turn chiml file and chiml script into config", () => {
     const rootDirPath = path_1.dirname(path_1.dirname(path_1.dirname(__dirname)));
     const testDirPath = path_1.resolve(rootDirPath, "testcase");
     const p1 = stringUtil_1.chimlToConfig(path_1.resolve(testDirPath, "stringUtil", "sample.chiml"));
@@ -128,26 +126,22 @@ it("able to turn chiml file and chiml script into config", (done) => {
         expect(result1.__isNormal).toBeTruthy();
         expect(result2.__isNormal).toBeTruthy();
         expect(result3.__isNormal).toBeTruthy();
-        done();
     })
         .catch((error) => {
         expect(error).toBeNull();
-        done();
     });
 });
-it("able to turn nonexisting chiml file into config", (done) => {
+test("able to turn nonexisting chiml file into config", () => {
     stringUtil_1.chimlToConfig("nonexists.chiml")
         .then((result) => {
         expect(result.__isNormal).toBeTruthy();
         expect(result.command).toBe("nonexists.chiml");
-        done();
     })
         .catch((error) => {
         expect(error).toBeNull();
-        done();
     });
 });
-it("able to turn json-string into config", (done) => {
+test("able to turn json-string into config", () => {
     const json = { vars: { a: 5, b: 7 }, ins: "x, y" };
     stringUtil_1.chimlToConfig(JSON.stringify(json))
         .then((result) => {
@@ -156,25 +150,21 @@ it("able to turn json-string into config", (done) => {
         expect(result.ins[0]).toBe("x");
         expect(result.ins[1]).toBe("y");
         expect(result.__isNormal).toBeTruthy();
-        done();
     })
         .catch((error) => {
         expect(error).toBeNull();
-        done();
     });
 });
-it("should fail to parse invalid yaml", (done) => {
+test("should fail to parse invalid yaml", () => {
     stringUtil_1.chimlToConfig("key: val\n   misindentKey: otherVal")
         .then((result) => {
         expect(result).toBeUndefined();
-        done();
     })
         .catch((error) => {
         expect(error).toBeDefined();
-        done();
     });
 });
-it("able to smartsplit", (done) => {
+test("able to smartsplit", () => {
     const result1 = stringUtil_1.smartSplit("'a -> b' -> \"$a->call();\" -> \"c->d\"", "->");
     expect(result1.length).toBe(3);
     expect(result1[0]).toBe("'a -> b'");
@@ -183,9 +173,8 @@ it("able to smartsplit", (done) => {
     const result2 = stringUtil_1.smartSplit("a, b, c", "->");
     expect(result2.length).toBe(1);
     expect(result2[0]).toBe("a, b, c");
-    done();
 });
-it("able to recognized flanks", (done) => {
+test("able to recognized flanks", () => {
     const result1 = stringUtil_1.isFlanked("(abc)", "(", ")");
     expect(result1).toBeTruthy();
     const result2 = stringUtil_1.isFlanked("(abc", "(", ")");
@@ -194,9 +183,8 @@ it("able to recognized flanks", (done) => {
     expect(result3).toBeFalsy();
     const result4 = stringUtil_1.isFlanked("abc", "(", ")");
     expect(result4).toBeFalsy();
-    done();
 });
-it("able to remove parantheses", (done) => {
+test("able to remove parantheses", () => {
     const result1 = stringUtil_1.removeFlank("(abc)", "(", ")");
     expect(result1).toBe("abc");
     const result2 = stringUtil_1.removeFlank("(abc", "(", ")");
@@ -205,11 +193,9 @@ it("able to remove parantheses", (done) => {
     expect(result3).toBe("abc)");
     const result4 = stringUtil_1.removeFlank("abc", "(", ")");
     expect(result4).toBe("abc");
-    done();
 });
-it("able to double quote", (done) => {
+test("able to double quote", () => {
     const result1 = stringUtil_1.doubleQuote("System.out.println(\"Hello world\");");
     expect(result1).toBe("\"System.out.println(\\\"Hello world\\\");\"");
-    done();
 });
 //# sourceMappingURL=stringUtil.test.js.map

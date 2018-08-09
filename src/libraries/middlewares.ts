@@ -1,20 +1,20 @@
 import { existsSync as fsExistsSync } from "fs";
 import * as koaRoute from "koa-route";
 import * as pathToRegexp from "path-to-regexp";
-import {getChimlCompiledScriptPath} from "./cmd";
-import {readFromStream} from "./stream";
-import {execute} from "./tools";
+import { getChimlCompiledScriptPath } from "./cmd";
+import { readFromStream } from "./stream";
+import { execute } from "./tools";
 
-export function defaultOutProcessor(ctx: {[key: string]: any}, out: any): any {
+export function defaultOutProcessor(ctx: { [key: string]: any }, out: any): any {
     ctx.body = (ctx.body || "") + String(out);
 }
 
 enum JREC {
-    ParseError     = -32700,
+    ParseError = -32700,
     InvalidRequest = -32600,
     MethodNotFound = -32601,
-    InvalidParams  = -32602,
-    InternalError  = -32603,
+    InvalidParams = -32602,
+    InternalError = -32603,
 }
 
 const defaultRoles = ["loggedIn", "loggedOut"];
@@ -33,56 +33,56 @@ const defaultRouteConfig = {
     url: "/",
 };
 
-export function createAuthenticationMiddleware(config: {[key: string]: any}): (...ins: any[]) => any {
-    const normalizedConfig = Object.assign({}, {propagateContext: true}, config);
+export function createAuthenticationMiddleware(config: { [key: string]: any }): (...ins: any[]) => any {
+    const normalizedConfig = Object.assign({}, { propagateContext: true }, config);
     const handler = createHandler(normalizedConfig);
     return (ctx, next) => {
         return handler(ctx)
-        .then((out) => {
-            ctx.state = defineIfNotSet(ctx.state, {});
-            ctx.state.user = defineIfNotSet(ctx.state.user, out);
-            return next();
-        });
+            .then((out) => {
+                ctx.state = defineIfNotSet(ctx.state, {});
+                ctx.state.user = defineIfNotSet(ctx.state.user, out);
+                return next();
+            });
     };
 }
 
-export function createAuthorizationMiddleware(config: {[key: string]: any}): (...ins: any[]) => any {
-    const normalizedConfig = Object.assign({}, {propagateContext: true}, config);
+export function createAuthorizationMiddleware(config: { [key: string]: any }): (...ins: any[]) => any {
+    const normalizedConfig = Object.assign({}, { propagateContext: true }, config);
     const handler = createHandler(normalizedConfig);
     return (ctx, next) => {
         return handler(ctx)
-        .then((out) => {
-            let roles: string[] = [];
-            if (Array.isArray(out)) {
-                roles = out;
-            } else if (out !== null && typeof out !== "undefined") {
-                roles.push(out);
-            }
-            roles.push(ctx.state.user ? "loggedIn" : "loggedOut");
-            ctx.state = defineIfNotSet(ctx.state, {});
-            ctx.state.roles = defineIfNotSet(ctx.state.roles, []);
-            ctx.state.roles = ctx.state.roles.concat(
-                roles.filter((role) => ctx.state.roles.indexOf(role) === -1),
-            ).filter((role) => {
-                return (role === "loggedOut" && ctx.state.user) ? false : true;
+            .then((out) => {
+                let roles: string[] = [];
+                if (Array.isArray(out)) {
+                    roles = out;
+                } else if (out !== null && typeof out !== "undefined") {
+                    roles.push(out);
+                }
+                roles.push(ctx.state.user ? "loggedIn" : "loggedOut");
+                ctx.state = defineIfNotSet(ctx.state, {});
+                ctx.state.roles = defineIfNotSet(ctx.state.roles, []);
+                ctx.state.roles = ctx.state.roles.concat(
+                    roles.filter((role) => ctx.state.roles.indexOf(role) === -1),
+                ).filter((role) => {
+                    return (role === "loggedOut" && ctx.state.user) ? false : true;
+                });
+                return next();
             });
-            return next();
-        });
     };
 }
 
 export function createJsonRpcMiddleware(url: string, configs: any[], method: string = "all"): (...ins: any[]) => any {
     const normalizedConfigs = configs.map((config) => {
-        return Object.assign({}, {propagateContext: false, controller: (...ins) => ins}, config);
+        return Object.assign({}, { propagateContext: false, controller: (...ins) => ins }, config);
     });
     const handler = createJsonRpcHandler(normalizedConfigs);
     const middleware = koaRoute[method](url, handler);
     return middleware;
 }
 
-export function createRouteMiddleware(config: {[key: string]: any}): (...ins: any[]) => any {
+export function createRouteMiddleware(config: { [key: string]: any }): (...ins: any[]) => any {
     const routeConfig = Object.assign({}, defaultRouteConfig, config);
-    const {method, url} = routeConfig;
+    const { method, url } = routeConfig;
     const handler = createHandler(routeConfig);
     const middleware = koaRoute[method](url, handler);
     return createAuthorizedMiddleware(middleware, routeConfig);
@@ -90,9 +90,9 @@ export function createRouteMiddleware(config: {[key: string]: any}): (...ins: an
 
 export function createMiddleware(
     controller: any,
-    middlewareConfig: {[key: string]: any} = defaultMiddlewareConfig,
+    middlewareConfig: { [key: string]: any } = defaultMiddlewareConfig,
 ): (...ins: any[]) => any {
-    const config = Object.assign({}, middlewareConfig, {controller});
+    const config = Object.assign({}, middlewareConfig, { controller });
     const middleware = createHandler(config);
     return createAuthorizedMiddleware(middleware, config);
 }
@@ -101,18 +101,18 @@ function defineIfNotSet(obj: any, val: any): any {
     return obj || val;
 }
 
-function isRouteConfig(config: {[key: string]: any}): boolean {
-        return "method" in config && "url" in config;
+function isRouteConfig(config: { [key: string]: any }): boolean {
+    return "method" in config && "url" in config;
 }
 
-function isRouteMethodMatch(ctx: {[key: string]: any}, method: string) {
+function isRouteMethodMatch(ctx: { [key: string]: any }, method: string) {
     const upperCasedMethod = method.toUpperCase();
     return upperCasedMethod === "ALL" ||
         ctx.method === upperCasedMethod ||
         (upperCasedMethod === "GET" && ctx.method === "HEAD");
 }
 
-function isRouteMatch(ctx: {[key: string]: any}, config: {[key: string]: any}) {
+function isRouteMatch(ctx: { [key: string]: any }, config: { [key: string]: any }) {
     if (isRouteConfig(config) && isRouteMethodMatch(ctx, config.method)) {
         const re: RegExp = pathToRegexp(config.url);
         return re.exec(ctx.url) ? true : false;
@@ -121,8 +121,8 @@ function isRouteMatch(ctx: {[key: string]: any}, config: {[key: string]: any}) {
 }
 
 function createAuthorizedMiddleware(
-    middleware: (ctx: {[key: string]: any}, next: any) => any,
-    config: {[key: string]: any},
+    middleware: (ctx: { [key: string]: any }, next: any) => any,
+    config: { [key: string]: any },
 ): (ctx: any, next: any) => any {
     return (ctx: any, next: any) => {
         const routeMatch: boolean = isRouteMatch(ctx, config);
@@ -139,25 +139,25 @@ function createAuthorizedMiddleware(
     };
 }
 
-function isAuthorized(ctx: {[key: string]: any}, config: {[key: string]: string}): boolean {
-    const normalizedConfig = Object.assign({}, {roles: defaultRoles}, config);
+function isAuthorized(ctx: { [key: string]: any }, config: { [key: string]: string }): boolean {
+    const normalizedConfig = Object.assign({}, { roles: defaultRoles }, config);
     ctx.state = defineIfNotSet(ctx.state, {});
     ctx.state.roles = defineIfNotSet(ctx.state.roles, (ctx.state.user ? ["loggedIn"] : ["loggedOut"]));
     return ctx.state.roles.filter((role) => normalizedConfig.roles.indexOf(role) > -1).length > 0;
 }
 
-function createHandler(config: {[key: string]: any}): (...ins: any[]) => any {
+function createHandler(config: { [key: string]: any }): (...ins: any[]) => any {
     const normalizedConfig = Object.assign({}, defaultMiddlewareConfig, config);
-    const {controller, propagateContext, outProcessor} = normalizedConfig;
+    const { controller, propagateContext, outProcessor } = normalizedConfig;
     if (!propagateContext) {
         const subHandler = createHandler({
             controller,
             outProcessor,
             propagateContext: true,
         });
-        return (ctx: {[key: string]: any}, ...ins: any[]) => {
+        return (ctx: { [key: string]: any }, ...ins: any[]) => {
             return subHandler(...ins)
-            .then((out) => outProcessor(ctx, out));
+                .then((out) => outProcessor(ctx, out));
         };
     }
     if (typeof controller === "string") {
@@ -189,9 +189,9 @@ function createHandler(config: {[key: string]: any}): (...ins: any[]) => any {
     };
 }
 
-function jsonRpcErrorProcessor(ctx: {[key: string]: any}, errorObj: {[key: string]: any}): void {
-    const {id, code} = errorObj;
-    let {data, message} = errorObj;
+function jsonRpcErrorProcessor(ctx: { [key: string]: any }, errorObj: { [key: string]: any }): void {
+    const { id, code } = errorObj;
+    let { data, message } = errorObj;
     const jsonrpc = "2.0";
     switch (code) {
         case JREC.ParseError: data = "Parse Error"; break;
@@ -203,64 +203,76 @@ function jsonRpcErrorProcessor(ctx: {[key: string]: any}, errorObj: {[key: strin
     if (!message) {
         message = "";
     }
-    ctx.body = JSON.stringify({id, jsonrpc, error: {code, data, message}});
+    ctx.body = JSON.stringify({ id, jsonrpc, error: { code, data, message } });
 }
 
 function isValidJsonRpcId(id): boolean {
     return id === null || id === undefined || typeof id === "string" ||
-            (typeof id === "number" && Number.isSafeInteger(id));
+        (typeof id === "number" && Number.isSafeInteger(id));
 }
 
 function createJsonRpcHandler(configs: any[]): (...ins: any[]) => any {
-    return async (ctx: {[key: string]: any}, ...ins: any[]) => {
+    return async (ctx: { [key: string]: any }, ...ins: any[]) => {
         let jsonRequest;
         try {
             const request = await readFromStream(ctx.req);
             jsonRequest = JSON.parse(request);
         } catch (error) {
             console.log(error);
-            return jsonRpcErrorProcessor(ctx, {code: JREC.ParseError});
+            return jsonRpcErrorProcessor(ctx, { code: JREC.ParseError });
         }
-        const {id, jsonrpc, method, params} = jsonRequest;
+        const { id, jsonrpc, method, params } = jsonRequest;
         if (!isValidJsonRpcId(id)) {
-            return jsonRpcErrorProcessor(ctx, {code: JREC.InvalidRequest,
-                message: "id should be null, undefined, or interger"});
+            return jsonRpcErrorProcessor(ctx, {
+                code: JREC.InvalidRequest,
+                message: "id should be null, undefined, or interger",
+            });
         }
         if (jsonrpc !== "2.0") {
-            return jsonRpcErrorProcessor(ctx, {code: JREC.InvalidRequest,
-                message: 'jsonrpc must be exactly "2.0"'});
+            return jsonRpcErrorProcessor(ctx, {
+                code: JREC.InvalidRequest,
+                message: 'jsonrpc must be exactly "2.0"',
+            });
         }
         if (typeof method !== "string") {
-            return jsonRpcErrorProcessor(ctx, {code: JREC.InvalidRequest,
-                message: "method must be string"});
+            return jsonRpcErrorProcessor(ctx, {
+                code: JREC.InvalidRequest,
+                message: "method must be string",
+            });
         }
         if (!Array.isArray(params)) {
-            return jsonRpcErrorProcessor(ctx, {code: JREC.InvalidParams,
-                message: "invalid params"});
+            return jsonRpcErrorProcessor(ctx, {
+                code: JREC.InvalidParams,
+                message: "invalid params",
+            });
         }
         const matchedConfigs = configs.filter((config) => config.method === method);
         if (matchedConfigs.length < 1) {
-            return jsonRpcErrorProcessor(ctx, {code: JREC.MethodNotFound,
-                message: "method not found"});
+            return jsonRpcErrorProcessor(ctx, {
+                code: JREC.MethodNotFound,
+                message: "method not found",
+            });
         }
         try {
             const matchedConfig = matchedConfigs[0];
             if (!isAuthorized(ctx, matchedConfig)) {
-                return jsonRpcErrorProcessor(ctx, { code: JREC.MethodNotFound,
-         message: "unauthorized access"});
+                return jsonRpcErrorProcessor(ctx, {
+                    code: JREC.MethodNotFound,
+                    message: "unauthorized access",
+                });
             }
-            const {controller, propagateContext} = matchedConfig;
+            const { controller, propagateContext } = matchedConfig;
             const handler = createHandler({
                 controller,
                 outProcessor: (context, out) => {
-                    context.body = JSON.stringify({id, jsonrpc, result: out});
+                    context.body = JSON.stringify({ id, jsonrpc, result: out });
                 },
                 propagateContext,
             });
             return await handler(ctx, ...params);
         } catch (error) {
             console.log(error);
-            return jsonRpcErrorProcessor(ctx, {code: JREC.InternalError});
+            return jsonRpcErrorProcessor(ctx, { code: JREC.InternalError });
         }
     };
 }
