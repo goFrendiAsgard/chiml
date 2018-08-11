@@ -11,6 +11,6 @@ export declare function createJsonRpcMiddleware(url: string, configs: any[], met
 export declare function createRouteMiddleware(config: {
     [key: string]: any;
 }): (...ins: any[]) => any;
-export declare function createMiddleware(controller: any, middlewareConfig?: {
+export declare function createMiddleware(middlewareConfig?: {
     [key: string]: any;
 }): (...ins: any[]) => any;

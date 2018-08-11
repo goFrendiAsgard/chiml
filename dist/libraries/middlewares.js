@@ -8,6 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+// TODO: Refactor without change the API
 const fs_1 = require("fs");
 const koaRoute = require("koa-route");
 const pathToRegexp = require("path-to-regexp");
@@ -27,6 +28,7 @@ var JREC;
     JREC[JREC["InternalError"] = -32603] = "InternalError";
 })(JREC || (JREC = {}));
 const defaultRoles = ["loggedIn", "loggedOut"];
+// TODO: make the middleware take (ctx, ...args) instead of (ctx, next)
 function defaultAuthorizationWrapper(middleware, config) {
     return (ctx, next) => {
         const routeMatch = isRouteMatch(ctx, config);
@@ -58,9 +60,9 @@ const defaultRouteConfig = {
 };
 function createAuthenticationMiddleware(config) {
     const normalizedConfig = Object.assign({}, { propagateContext: true }, config);
-    const handler = createHandler(normalizedConfig);
+    const baseMiddleware = createMiddleware(normalizedConfig);
     return (ctx, next) => {
-        return handler(ctx)
+        return baseMiddleware(ctx)
             .then((out) => {
             ctx.state = defineIfNotSet(ctx.state, {});
             ctx.state.user = defineIfNotSet(ctx.state.user, out);
@@ -71,9 +73,9 @@ function createAuthenticationMiddleware(config) {
 exports.createAuthenticationMiddleware = createAuthenticationMiddleware;
 function createAuthorizationMiddleware(config) {
     const normalizedConfig = Object.assign({}, { propagateContext: true }, config);
-    const handler = createHandler(normalizedConfig);
+    const baseMiddleware = createMiddleware(normalizedConfig);
     return (ctx, next) => {
-        return handler(ctx)
+        return baseMiddleware(ctx)
             .then((out) => {
             let roles = [];
             if (Array.isArray(out)) {
@@ -105,13 +107,17 @@ exports.createJsonRpcMiddleware = createJsonRpcMiddleware;
 function createRouteMiddleware(config) {
     const normalizedRouteConfig = Object.assign({}, defaultRouteConfig, config);
     const { method, url } = normalizedRouteConfig;
+    /*
+    const middleware = createMiddleware(normalizedRouteConfig);
+    return koaRoute[method](url, middleware);
+    */
     const handler = createHandler(normalizedRouteConfig);
     const middleware = koaRoute[method](url, handler);
     return normalizedRouteConfig.authorizationWrapper(middleware, normalizedRouteConfig);
 }
 exports.createRouteMiddleware = createRouteMiddleware;
-function createMiddleware(controller, middlewareConfig = defaultMiddlewareConfig) {
-    const normalizedConfig = Object.assign({}, defaultMiddlewareConfig, middlewareConfig, { controller });
+function createMiddleware(middlewareConfig = {}) {
+    const normalizedConfig = Object.assign({}, defaultMiddlewareConfig, middlewareConfig); // , { controller });
     const middleware = createHandler(normalizedConfig);
     return normalizedConfig.authorizationWrapper(middleware, normalizedConfig);
 }

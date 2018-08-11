@@ -23,7 +23,7 @@ class WebApp extends Koa {
                 for (const eventListener of io.eventListeners) {
                     // get event and handler
                     const { event, controller } = eventListener;
-                    const handler = middlewares_1.createMiddleware(controller, { propagateContext: true });
+                    const handler = middlewares_1.createMiddleware({ controller, propagateContext: true });
                     // register event
                     socket.on(event, (...ins) => {
                         // inject fake ctx to socket
@@ -65,7 +65,7 @@ class WebApp extends Koa {
         }
     }
     addMiddleware(controller) {
-        this.use(middlewares_1.createMiddleware(controller));
+        this.use(middlewares_1.createMiddleware({ controller }));
     }
     addRoute(config) {
         this.use(middlewares_1.createRouteMiddleware(config));
