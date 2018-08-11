@@ -9,7 +9,7 @@ const addJsPath = pathResolve(cmdTestPath, "add.js");
 const helloJsPath = pathResolve(cmdTestPath, "hello.js");
 
 test("should able to run `node -e \"console.log('hello');\"`", () => {
-    cmd("node -e \"console.log('hello');\"")
+   return cmd("node -e \"console.log('hello');\"")
         .then((stdout) => {
             expect(stdout).toBe("hello\n");
         })
@@ -20,7 +20,7 @@ test("should able to run `node -e \"console.log('hello');\"`", () => {
 });
 
 test("should yield error when run `sendNukeToKrypton` (assuming that command is not exists)", () => {
-    cmd("sendNukeToKrypton")
+    return cmd("sendNukeToKrypton")
         .then((stdout) => {
             expect(stdout).toBeNull();
         })
@@ -30,7 +30,7 @@ test("should yield error when run `sendNukeToKrypton` (assuming that command is 
 });
 
 test("should able to run `node add.js` with input redirection", () => {
-    cmd(`(echo "2" && echo "3") | node ${addJsPath}`)
+    return cmd(`(echo "2" && echo "3") | node ${addJsPath}`)
         .then((stdout) => {
             expect(stdout).toBe("5\n");
         })
@@ -45,7 +45,7 @@ test("should able to compose command `node add.js` and run it", () => {
     const ins = [7, 4];
     const composedCommand = composeCommand(command, ins);
     expect(composedCommand).toBe(`(echo "7" && echo "4") | ${command} "7" "4"`);
-    cmdComposedCommand(command, ins)
+    return cmdComposedCommand(command, ins)
         .then((stdout) => {
             expect(stdout).toBe(11);
         })
@@ -59,7 +59,7 @@ test("should able to compose command `node hello.js` and run it", () => {
     const command = `node ${helloJsPath}`;
     const composedCommand = composeCommand(command);
     expect(composedCommand).toBe(`${command}`);
-    cmdComposedCommand(command)
+    return cmdComposedCommand(command)
         .then((stdout) => {
             expect(stdout).toBe("hello");
         })
@@ -73,7 +73,7 @@ test("should able to compose command `node hello.js` and run it", () => {
     const command = `node ${helloJsPath}`;
     const composedCommand = composeCommand(command);
     expect(composedCommand).toBe(`${command}`);
-    cmdComposedCommand(command, [], {}, true)
+    return cmdComposedCommand(command, [], {}, true)
         .then((stdout) => {
             expect(stdout).toBe("hello");
         })
@@ -88,7 +88,7 @@ test("should able to compose command `echo` and run it", () => {
     const ins = ["hello"];
     const composedCommand = composeCommand(command, ins);
     expect(composedCommand).toBe('(echo "hello") | echo "hello"');
-    cmdComposedCommand(command, ins)
+    return cmdComposedCommand(command, ins)
         .then((stdout) => {
             expect(stdout).toBe("hello");
         })
@@ -103,7 +103,7 @@ test("should able to compose command `echo abc` and run it", () => {
     const ins = [];
     const composedCommand = composeCommand(command, ins);
     expect(composedCommand).toBe("echo abc");
-    cmdComposedCommand(command, ins)
+    return cmdComposedCommand(command, ins)
         .then((stdout) => {
             expect(stdout).toBe("abc");
         })
@@ -117,7 +117,7 @@ test("should able to run composed command `chie uncompiled.chiml`", () => {
     const chimlPath = pathResolve(cmdTestPath, "uncompiled.chiml");
     const command = `chie ${chimlPath}`;
     const ins = ["hello"];
-    cmdComposedCommand(command, ins)
+    return cmdComposedCommand(command, ins)
         .then((stdout) => {
             expect(stdout).toBe("uncompiled hello");
         })
@@ -131,7 +131,7 @@ test("should able to run composed command `chie compiled.chiml`", () => {
     const chimlPath = pathResolve(cmdTestPath, "compiled.chiml");
     const command = `chie ${chimlPath}`;
     const ins = ["hello"];
-    cmdComposedCommand(command, ins, {}, true)
+    return cmdComposedCommand(command, ins, {}, true)
         .then((stdout) => {
             expect(stdout).toBe("compiled hello");
         })
@@ -141,14 +141,14 @@ test("should able to run composed command `chie compiled.chiml`", () => {
         });
 });
 
-it("compile test.chiml", (done) => {
+test("compile test.chiml", () => {
     const childChimlPath = pathResolve(nestedTestPath, "child.chiml");
     const parentChimlPath = pathResolve(nestedTestPath, "parent.chiml");
     const childJsPath = pathResolve(nestedTestPath, "child.js");
     const parentJsPath = pathResolve(nestedTestPath, "parent.js");
     const nodeModulePath = pathResolve(nestedTestPath, "node_modules");
     const cachePath = pathResolve(nestedTestPath, ".cache");
-    new Promise((resolve, reject) => {
+    return new Promise((resolve, reject) => {
         cmdComposedCommand("chie parent.chiml", [10, 8], { cwd: nestedTestPath }, true)
             .then((result) => {
                 expect(result).toBeNull();
@@ -180,14 +180,10 @@ it("compile test.chiml", (done) => {
                 fsRemove(cachePath),
                 fsRemove(childJsPath),
                 fsRemove(parentJsPath),
-            ])
-                .then(() => {
-                    done();
-                });
+            ]);
         })
         .catch((error) => {
             console.error(error);
             expect(error).toBeNull();
-            done();
         });
 }, 100000);

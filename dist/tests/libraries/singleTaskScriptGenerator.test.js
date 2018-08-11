@@ -31,107 +31,101 @@ function createScriptAndHandler(config) {
     const handler = sandbox.__main_0;
     return Promise.resolve({ script, handler });
 }
-it("cmd handler works `(a, b) -> node add.js`", (done) => {
+test("cmd handler works `(a, b) -> node add.js`", () => {
     const rootDirPath = path_1.dirname(path_1.dirname(path_1.dirname(__dirname)));
     const testProgramPath = path_1.resolve(rootDirPath, "testcase", "cmd", "add.js");
     const config = `(a, b) -> node ${testProgramPath}`;
-    createScriptAndHandler(config)
+    return createScriptAndHandler(config)
         .then(({ script, handler }) => {
         handler(4, 5)
             .then((result) => {
             expect(result).toBe(9);
-            done();
         });
     })
         .catch((error) => {
+        console.error(error);
         expect(error).toBeNull();
-        done();
     });
 });
-it("jsAsync handler works `(a,b) -> [(x, y, callback) => callback(null, x + y)]`", (done) => {
+test("jsAsync handler works `(a,b) -> [(x, y, callback) => callback(null, x + y)]`", () => {
     const config = "(a,b) -> [(x, y, callback) => callback(null, x + y)]";
-    createScriptAndHandler(config)
+    return createScriptAndHandler(config)
         .then(({ script, handler }) => {
         handler(4, 5)
             .then((result) => {
             expect(result).toBe(9);
-            done();
         });
     })
         .catch((error) => {
+        console.error(error);
         expect(error).toBeNull();
-        done();
     });
 });
-it("jsAsync handler works `() -> [(callback) => callback(null, 5)]`", (done) => {
+test("jsAsync handler works `() -> [(callback) => callback(null, 5)]`", () => {
     const config = "() -> [(callback) => callback(null, 5)]";
-    createScriptAndHandler(config)
+    return createScriptAndHandler(config)
         .then(({ script, handler }) => {
         handler()
             .then((result) => {
             expect(result).toBe(5);
-            done();
         });
     })
         .catch((error) => {
+        console.error(error);
         expect(error).toBeNull();
-        done();
     });
 });
-it("jsAsync handler works `() -> [(callback) => callback(null, 1, 2)]`", (done) => {
+test("jsAsync handler works `() -> [(callback) => callback(null, 1, 2)]`", () => {
     const config = "() -> [(callback) => callback(null, 1, 2)]";
-    createScriptAndHandler(config)
+    return createScriptAndHandler(config)
         .then(({ script, handler }) => {
         handler()
             .then((result) => {
             expect(result).toHaveLength(2);
             expect(result[0]).toBe(1);
             expect(result[1]).toBe(2);
-            done();
         });
     })
         .catch((error) => {
+        console.error(error);
         expect(error).toBeNull();
-        done();
     });
 });
-it("jsSync handler works `(a,b) -> (x, y) => x + y`", (done) => {
+test("jsSync handler works `(a,b) -> (x, y) => x + y`", () => {
     const config = "(a,b) -> (x, y) => x + y";
     createScriptAndHandler(config)
         .then(({ script, handler }) => {
         handler(4, 5)
             .then((result) => {
             expect(result).toBe(9);
-            done();
         });
     })
         .catch((error) => {
+        console.error(error);
         expect(error).toBeNull();
-        done();
     });
 });
-it("jsPromise handler works `(a,b) -> <Promise.resolve(a + b)>`", (done) => {
+test("jsPromise handler works `(a,b) -> <Promise.resolve(a + b)>`", () => {
     const config = "(a,b) -> <Promise.resolve(a + b)>";
-    createScriptAndHandler(config)
+    return createScriptAndHandler(config)
         .then(({ script, handler }) => {
         handler(4, 5)
             .then((result) => {
             expect(result).toBe(9);
-            done();
         });
     })
         .catch((error) => {
+        console.error(error);
         expect(error).toBeNull();
-        done();
     });
 });
-it("loop handler works", (done) => {
+test("loop handler works", () => {
     const config = {
         do: "(a) -> (x) => x + 1 -> a",
         if: "a < 5",
         while: "a < 10",
     };
-    createScriptAndHandler(config)
+    return createScriptAndHandler(config)
         .then(({ script, handler }) => {
         const promises = [handler(4), handler(8), handler(12)];
         Promise.all(promises)
@@ -139,19 +133,17 @@ it("loop handler works", (done) => {
             expect(results[0]).toBe(10);
             expect(results[1]).toBe(8);
             expect(results[2]).toBe(12);
-            done();
         })
             .catch((error) => {
             expect(error).toBeNull();
-            done();
         });
     })
         .catch((error) => {
+        console.error(error);
         expect(error).toBeNull();
-        done();
     });
 });
-it("series handler works", (done) => {
+test("series handler works", () => {
     const config = {
         do: [
             "(a) -> (x) => x + 1 -> b",
@@ -159,20 +151,19 @@ it("series handler works", (done) => {
         ],
         ins: "a",
     };
-    createScriptAndHandler(config)
+    return createScriptAndHandler(config)
         .then(({ script, handler }) => {
         handler(4)
             .then((result) => {
             expect(result).toBe(10);
-            done();
         });
     })
         .catch((error) => {
+        console.error(error);
         expect(error).toBeNull();
-        done();
     });
 });
-it("parallel handler works", (done) => {
+test("parallel handler works", () => {
     const config = {
         ins: "a",
         out: "b",
@@ -182,27 +173,26 @@ it("parallel handler works", (done) => {
         ],
         vars: { b: [] },
     };
-    createScriptAndHandler(config)
+    return createScriptAndHandler(config)
         .then(({ script, handler }) => {
         handler(4)
             .then((result) => {
             expect(result[0]).toBe(5);
             expect(result[1]).toBe(8);
-            done();
         });
     })
         .catch((error) => {
+        console.error(error);
         expect(error).toBeNull();
-        done();
     });
 });
-it("map handler works", (done) => {
+test("map handler works", () => {
     const config = {
         do: "(n) -> (x) => x * x",
         into: "y",
         map: "x",
     };
-    createScriptAndHandler(config)
+    return createScriptAndHandler(config)
         .then(({ script, handler }) => {
         handler([1, 2, 3, 4])
             .then((result) => {
@@ -211,55 +201,52 @@ it("map handler works", (done) => {
             expect(result[1]).toBe(4);
             expect(result[2]).toBe(9);
             expect(result[3]).toBe(16);
-            done();
         });
     })
         .catch((error) => {
+        console.error(error);
         expect(error).toBeNull();
-        done();
     });
 });
-it("filter handler works", (done) => {
+test("filter handler works", () => {
     const config = {
         do: "(n) -> (x) => x % 2 === 0",
         filter: "x",
         into: "y",
     };
-    createScriptAndHandler(config)
+    return createScriptAndHandler(config)
         .then(({ script, handler }) => {
         handler([1, 2, 3, 4])
             .then((result) => {
             expect(result.length).toBe(2);
             expect(result[0]).toBe(2);
             expect(result[1]).toBe(4);
-            done();
         });
     })
         .catch((error) => {
+        console.error(error);
         expect(error).toBeNull();
-        done();
     });
 });
-it("reduce handler works", (done) => {
+test("reduce handler works", () => {
     const config = {
         do: "(n, total) -> (x, acc) => x + acc",
         into: "y",
         reduce: "x",
     };
-    createScriptAndHandler(config)
+    return createScriptAndHandler(config)
         .then(({ script, handler }) => {
         handler([1, 2, 3, 4])
             .then((result) => {
             expect(result).toBe(10);
-            done();
         });
     })
         .catch((error) => {
+        console.error(error);
         expect(error).toBeNull();
-        done();
     });
 });
-it("complex handler works", (done) => {
+test("complex handler works", () => {
     const config = {
         do: [
             {
@@ -296,7 +283,7 @@ it("complex handler works", (done) => {
         ins: "input",
         out: "output",
     };
-    createScriptAndHandler(config)
+    return createScriptAndHandler(config)
         .then(({ script, handler }) => {
         handler([1, 2, 3, 4])
             .then((result) => {
@@ -312,22 +299,21 @@ it("complex handler works", (done) => {
             expect(result.squares).toMatchObject([1, 4, 9, 16]);
             expect(result.sum).toBe(10);
             expect(result.n).toBe(73);
-            done();
         });
     })
         .catch((error) => {
+        console.error(error);
         expect(error).toBeNull();
-        done();
     });
 });
-it("default variable works", (done) => {
+test("default variable works", () => {
     const config = {
         do: "(a) -> (x) => x + 1",
         ins: ["a"],
         vars: { a: 1 },
     };
     let programHandler = null;
-    createScriptAndHandler(config)
+    return createScriptAndHandler(config)
         .then(({ script, handler }) => {
         programHandler = handler;
     })
@@ -342,12 +328,10 @@ it("default variable works", (done) => {
     })
         .then((result) => {
         expect(result).toBe(2);
-        done();
     })
         .catch((error) => {
         console.error(error);
         expect(error).toBeUndefined();
-        done();
     });
 });
 //# sourceMappingURL=singleTaskScriptGenerator.test.js.map

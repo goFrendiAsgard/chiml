@@ -13,7 +13,7 @@ const url = `http://localhost:${port}`;
 const app = new WebApp();
 let server;
 
-it("able to add routes before middlewares", (done) => {
+test("able to add routes before middlewares", (done) => {
     const routes = [
         // function
         { url: "/first", controller: () => "Roses are red" },
@@ -40,7 +40,7 @@ it("able to add routes before middlewares", (done) => {
     done();
 });
 
-it("able to add authentication, authorization, and authorized routes", (done) => {
+test("able to add authentication, authorization, and authorized routes", (done) => {
     // authentication
     app.addAuthentication({
         controller: (ctx) => {
@@ -75,7 +75,7 @@ it("able to add authentication, authorization, and authorized routes", (done) =>
     done();
 });
 
-it("able to add jsonRpc middleware", (done) => {
+test("able to add jsonRpc middleware", (done) => {
     const configs = [
         { method: "add", controller: pathResolve(testcaseDirPath, "compiled-page.chiml") },
         { method: "plus", controller: pathResolve(testcaseDirPath, "compiled-page.chiml"), roles: ["admin"] },
@@ -85,7 +85,7 @@ it("able to add jsonRpc middleware", (done) => {
     done();
 });
 
-it("able to add middlewares", (done) => {
+test("able to add middlewares", (done) => {
     const configs = [
         // function
         async (ctx, next) => {
@@ -102,7 +102,7 @@ it("able to add middlewares", (done) => {
     done();
 });
 
-it("able to add pages after middlewares", (done) => {
+test("able to add pages after middlewares", (done) => {
     const propagateContext = true;
     const configs = [
         // function
@@ -126,14 +126,14 @@ it("able to add pages after middlewares", (done) => {
     done();
 });
 
-it("able to create http server and run it", (done) => {
+test("able to create http server and run it", (done) => {
     server = app.createServer();
     server.listen(port);
     expect(server.listening).toBeTruthy();
     done();
 });
 
-it("able to create io", (done) => {
+test("able to create io", (done) => {
     const configs = [
         {
             controller: (socket, message) => {

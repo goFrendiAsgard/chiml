@@ -27,13 +27,30 @@ var JREC;
     JREC[JREC["InternalError"] = -32603] = "InternalError";
 })(JREC || (JREC = {}));
 const defaultRoles = ["loggedIn", "loggedOut"];
+function defaultAuthorizationWrapper(middleware, config) {
+    return (ctx, next) => {
+        const routeMatch = isRouteMatch(ctx, config);
+        if (isAuthorized(ctx, config)) {
+            if (routeMatch) {
+                ctx.status = 200;
+            }
+            return middleware(ctx, next);
+        }
+        if (routeMatch) {
+            ctx.status = 401;
+        }
+        return next();
+    };
+}
 const defaultMiddlewareConfig = {
+    authorizationWrapper: defaultAuthorizationWrapper,
     controller: (...ins) => ins.slice(0, -1).join(""),
     outProcessor: defaultOutProcessor,
     propagateContext: true,
     roles: defaultRoles,
 };
 const defaultRouteConfig = {
+    authorizationWrapper: defaultAuthorizationWrapper,
     method: "all",
     propagateContext: false,
     roles: defaultRoles,
@@ -86,17 +103,17 @@ function createJsonRpcMiddleware(url, configs, method = "all") {
 }
 exports.createJsonRpcMiddleware = createJsonRpcMiddleware;
 function createRouteMiddleware(config) {
-    const routeConfig = Object.assign({}, defaultRouteConfig, config);
-    const { method, url } = routeConfig;
-    const handler = createHandler(routeConfig);
+    const normalizedRouteConfig = Object.assign({}, defaultRouteConfig, config);
+    const { method, url } = normalizedRouteConfig;
+    const handler = createHandler(normalizedRouteConfig);
     const middleware = koaRoute[method](url, handler);
-    return createAuthorizedMiddleware(middleware, routeConfig);
+    return normalizedRouteConfig.authorizationWrapper(middleware, normalizedRouteConfig);
 }
 exports.createRouteMiddleware = createRouteMiddleware;
 function createMiddleware(controller, middlewareConfig = defaultMiddlewareConfig) {
-    const config = Object.assign({}, middlewareConfig, { controller });
-    const middleware = createHandler(config);
-    return createAuthorizedMiddleware(middleware, config);
+    const normalizedConfig = Object.assign({}, defaultMiddlewareConfig, middlewareConfig, { controller });
+    const middleware = createHandler(normalizedConfig);
+    return normalizedConfig.authorizationWrapper(middleware, normalizedConfig);
 }
 exports.createMiddleware = createMiddleware;
 function defineIfNotSet(obj, val) {
@@ -117,21 +134,6 @@ function isRouteMatch(ctx, config) {
         return re.exec(ctx.url) ? true : false;
     }
     return false;
-}
-function createAuthorizedMiddleware(middleware, config) {
-    return (ctx, next) => {
-        const routeMatch = isRouteMatch(ctx, config);
-        if (isAuthorized(ctx, config)) {
-            if (routeMatch) {
-                ctx.status = 200;
-            }
-            return middleware(ctx, next);
-        }
-        if (routeMatch) {
-            ctx.status = 401;
-        }
-        return next();
-    };
 }
 function isAuthorized(ctx, config) {
     const normalizedConfig = Object.assign({}, { roles: defaultRoles }, config);

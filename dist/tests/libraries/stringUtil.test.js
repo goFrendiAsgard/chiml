@@ -119,7 +119,7 @@ test("able to turn chiml file and chiml script into config", () => {
     const p1 = stringUtil_1.chimlToConfig(path_1.resolve(testDirPath, "stringUtil", "sample.chiml"));
     const p2 = stringUtil_1.chimlToConfig(chimlSample1);
     const p3 = stringUtil_1.chimlToConfig(path_1.resolve(testDirPath, "stringUtil", "test.chiml"));
-    Promise.all([p1, p2, p3])
+    return Promise.all([p1, p2, p3])
         .then(([result1, result2, result3]) => {
         expect(result1).toMatchObject(result2);
         expect(result3.commandList.length).toBe(2);
@@ -132,7 +132,7 @@ test("able to turn chiml file and chiml script into config", () => {
     });
 });
 test("able to turn nonexisting chiml file into config", () => {
-    stringUtil_1.chimlToConfig("nonexists.chiml")
+    return stringUtil_1.chimlToConfig("nonexists.chiml")
         .then((result) => {
         expect(result.__isNormal).toBeTruthy();
         expect(result.command).toBe("nonexists.chiml");
@@ -143,7 +143,7 @@ test("able to turn nonexisting chiml file into config", () => {
 });
 test("able to turn json-string into config", () => {
     const json = { vars: { a: 5, b: 7 }, ins: "x, y" };
-    stringUtil_1.chimlToConfig(JSON.stringify(json))
+    return stringUtil_1.chimlToConfig(JSON.stringify(json))
         .then((result) => {
         expect(result.vars).toMatchObject(json.vars);
         expect(result.ins.length).toBe(2);
@@ -156,7 +156,7 @@ test("able to turn json-string into config", () => {
     });
 });
 test("should fail to parse invalid yaml", () => {
-    stringUtil_1.chimlToConfig("key: val\n   misindentKey: otherVal")
+    return stringUtil_1.chimlToConfig("key: val\n   misindentKey: otherVal")
         .then((result) => {
         expect(result).toBeUndefined();
     })

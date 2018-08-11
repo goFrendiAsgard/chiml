@@ -41,7 +41,7 @@ do:
     # static files
     - map: config.statics
       ins: staticPath
-      do: 
+      do:
           - (staticPath) -> {require(__dirname + '/node_modules/koa-static')} -> middleware
           - (middleware) -> {app.use}
 
@@ -65,7 +65,7 @@ do:
     # create and run io
     - (server) -> {app.createIo} -> io
     - (config.socketEvents) -> {io.addEventListeners}
-    - () -> {io.applyEventListeners} 
+    - () -> {io.applyEventListeners}
 
     # show message
     - (`Run server on port ${config.server.port}. Press ctrl + c to stop`) --> output

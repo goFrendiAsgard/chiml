@@ -21,7 +21,7 @@ const port = 3010;
 const url = `http://localhost:${port}`;
 const app = new WebApp_1.WebApp();
 let server;
-it("able to add routes before middlewares", (done) => {
+test("able to add routes before middlewares", (done) => {
     const routes = [
         // function
         { url: "/first", controller: () => "Roses are red" },
@@ -47,7 +47,7 @@ it("able to add routes before middlewares", (done) => {
     app.addRoutes(routes);
     done();
 });
-it("able to add authentication, authorization, and authorized routes", (done) => {
+test("able to add authentication, authorization, and authorized routes", (done) => {
     // authentication
     app.addAuthentication({
         controller: (ctx) => {
@@ -81,7 +81,7 @@ it("able to add authentication, authorization, and authorized routes", (done) =>
     app.addRoutes(routes);
     done();
 });
-it("able to add jsonRpc middleware", (done) => {
+test("able to add jsonRpc middleware", (done) => {
     const configs = [
         { method: "add", controller: path_1.resolve(testcaseDirPath, "compiled-page.chiml") },
         { method: "plus", controller: path_1.resolve(testcaseDirPath, "compiled-page.chiml"), roles: ["admin"] },
@@ -90,7 +90,7 @@ it("able to add jsonRpc middleware", (done) => {
     app.addJsonRpc("/jsonrpc", configs);
     done();
 });
-it("able to add middlewares", (done) => {
+test("able to add middlewares", (done) => {
     const configs = [
         // function
         (ctx, next) => __awaiter(this, void 0, void 0, function* () {
@@ -106,7 +106,7 @@ it("able to add middlewares", (done) => {
     app.addMiddlewares(configs);
     done();
 });
-it("able to add pages after middlewares", (done) => {
+test("able to add pages after middlewares", (done) => {
     const propagateContext = true;
     const configs = [
         // function
@@ -129,13 +129,13 @@ it("able to add pages after middlewares", (done) => {
     app.addRoutes(configs);
     done();
 });
-it("able to create http server and run it", (done) => {
+test("able to create http server and run it", (done) => {
     server = app.createServer();
     server.listen(port);
     expect(server.listening).toBeTruthy();
     done();
 });
-it("able to create io", (done) => {
+test("able to create io", (done) => {
     const configs = [
         {
             controller: (socket, message) => {
