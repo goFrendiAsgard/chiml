@@ -6,10 +6,6 @@ import { getChimlCompiledScriptPath } from "./cmd";
 import { readFromStream } from "./stream";
 import { execute } from "./tools";
 
-export function defaultOutProcessor(ctx: { [key: string]: any }, out: any): any {
-    ctx.body = (ctx.body || "") + String(out);
-}
-
 enum JREC {
     ParseError = -32700,
     InvalidRequest = -32600,
@@ -20,22 +16,26 @@ enum JREC {
 
 const defaultRoles = ["loggedIn", "loggedOut"];
 
-// TODO: make the middleware take (ctx, ...args) instead of (ctx, next)
+function defaultOutProcessor(ctx: { [key: string]: any }, out: any): any {
+    ctx.body = (ctx.body || "") + String(out);
+}
+
 function defaultAuthorizationWrapper(
-    middleware: (ctx: { [key: string]: any }, next: any) => any,
+    middleware: (ctx: { [key: string]: any }, ...args: any[]) => any,
     config: { [key: string]: any },
-): (ctx: any, next: any) => any {
-    return (ctx: any, next: any) => {
+): (ctx: any, ...args: any[]) => any {
+    return (ctx: any, ...args: any[]) => {
         const routeMatch: boolean = isRouteMatch(ctx, config);
         if (isAuthorized(ctx, config)) {
             if (routeMatch) {
                 ctx.status = 200;
             }
-            return middleware(ctx, next);
+            return middleware(ctx, ...args);
         }
         if (routeMatch) {
             ctx.status = 401;
         }
+        const next = args[args.length - 1];
         return next();
     };
 }
@@ -106,19 +106,27 @@ export function createJsonRpcMiddleware(url: string, configs: any[], method: str
 export function createRouteMiddleware(config: { [key: string]: any }): (...ins: any[]) => any {
     const normalizedRouteConfig = Object.assign({}, defaultRouteConfig, config);
     const { method, url } = normalizedRouteConfig;
-    /*
     const middleware = createMiddleware(normalizedRouteConfig);
     return koaRoute[method](url, middleware);
-    */
-    const handler = createHandler(normalizedRouteConfig);
-    const middleware = koaRoute[method](url, handler);
-    return normalizedRouteConfig.authorizationWrapper(middleware, normalizedRouteConfig);
 }
 
-export function createMiddleware(middlewareConfig: { [key: string]: any } = {}): (...ins: any[]) => any {
-    const normalizedConfig = Object.assign({}, defaultMiddlewareConfig, middlewareConfig); // , { controller });
+export function createMiddleware(middlewareConfig: any = {}): (...ins: any[]) => any {
+    const normalizedMiddlewareConfig = isController(middlewareConfig) ?
+        { controller: middlewareConfig } : middlewareConfig;
+    const normalizedConfig = Object.assign({}, defaultMiddlewareConfig, normalizedMiddlewareConfig);
     const middleware = createHandler(normalizedConfig);
     return normalizedConfig.authorizationWrapper(middleware, normalizedConfig);
+}
+
+function isController(config: any): boolean {
+    const routeMiddlewareKeys: string[] = Object.keys(defaultRouteConfig);
+    const middlewareKeys: string[] = Object.keys(defaultMiddlewareConfig);
+    const keys: string[] = routeMiddlewareKeys.concat(middlewareKeys);
+    if (config && typeof config === "object") {
+        const existingKeys = Object.keys(config).filter((key) => keys.indexOf(key) > -1);
+        return existingKeys.length === 0;
+    }
+    return true;
 }
 
 function defineIfNotSet(obj: any, val: any): any {

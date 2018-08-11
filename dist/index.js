@@ -29,7 +29,6 @@ exports.createAuthorizationMiddleware = middlewares_1.createAuthorizationMiddlew
 exports.createJsonRpcMiddleware = middlewares_1.createJsonRpcMiddleware;
 exports.createMiddleware = middlewares_1.createMiddleware;
 exports.createRouteMiddleware = middlewares_1.createRouteMiddleware;
-exports.defaultOutProcessor = middlewares_1.defaultOutProcessor;
 const sandbox_1 = require("./libraries/sandbox");
 exports.createSandbox = sandbox_1.createSandbox;
 const scriptTransform_1 = require("./libraries/scriptTransform");

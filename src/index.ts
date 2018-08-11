@@ -13,7 +13,7 @@ import { createPrompt, print } from "./libraries/inputOutput";
 import {
     createAuthenticationMiddleware, createAuthorizationMiddleware,
     createJsonRpcMiddleware, createMiddleware,
-    createRouteMiddleware, defaultOutProcessor,
+    createRouteMiddleware,
 } from "./libraries/middlewares";
 import { createSandbox } from "./libraries/sandbox";
 import { tsToJs } from "./libraries/scriptTransform";
@@ -55,7 +55,6 @@ export {
     createRouteMiddleware,
     createPrompt,
     createSandbox,
-    defaultOutProcessor,
     doubleQuote,
     execute,
     getChimlCompiledScriptPath,

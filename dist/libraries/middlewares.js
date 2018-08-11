@@ -15,10 +15,6 @@ const pathToRegexp = require("path-to-regexp");
 const cmd_1 = require("./cmd");
 const stream_1 = require("./stream");
 const tools_1 = require("./tools");
-function defaultOutProcessor(ctx, out) {
-    ctx.body = (ctx.body || "") + String(out);
-}
-exports.defaultOutProcessor = defaultOutProcessor;
 var JREC;
 (function (JREC) {
     JREC[JREC["ParseError"] = -32700] = "ParseError";
@@ -28,19 +24,22 @@ var JREC;
     JREC[JREC["InternalError"] = -32603] = "InternalError";
 })(JREC || (JREC = {}));
 const defaultRoles = ["loggedIn", "loggedOut"];
-// TODO: make the middleware take (ctx, ...args) instead of (ctx, next)
+function defaultOutProcessor(ctx, out) {
+    ctx.body = (ctx.body || "") + String(out);
+}
 function defaultAuthorizationWrapper(middleware, config) {
-    return (ctx, next) => {
+    return (ctx, ...args) => {
         const routeMatch = isRouteMatch(ctx, config);
         if (isAuthorized(ctx, config)) {
             if (routeMatch) {
                 ctx.status = 200;
             }
-            return middleware(ctx, next);
+            return middleware(ctx, ...args);
         }
         if (routeMatch) {
             ctx.status = 401;
         }
+        const next = args[args.length - 1];
         return next();
     };
 }
@@ -107,21 +106,28 @@ exports.createJsonRpcMiddleware = createJsonRpcMiddleware;
 function createRouteMiddleware(config) {
     const normalizedRouteConfig = Object.assign({}, defaultRouteConfig, config);
     const { method, url } = normalizedRouteConfig;
-    /*
     const middleware = createMiddleware(normalizedRouteConfig);
     return koaRoute[method](url, middleware);
-    */
-    const handler = createHandler(normalizedRouteConfig);
-    const middleware = koaRoute[method](url, handler);
-    return normalizedRouteConfig.authorizationWrapper(middleware, normalizedRouteConfig);
 }
 exports.createRouteMiddleware = createRouteMiddleware;
 function createMiddleware(middlewareConfig = {}) {
-    const normalizedConfig = Object.assign({}, defaultMiddlewareConfig, middlewareConfig); // , { controller });
+    const normalizedMiddlewareConfig = isController(middlewareConfig) ?
+        { controller: middlewareConfig } : middlewareConfig;
+    const normalizedConfig = Object.assign({}, defaultMiddlewareConfig, normalizedMiddlewareConfig);
     const middleware = createHandler(normalizedConfig);
     return normalizedConfig.authorizationWrapper(middleware, normalizedConfig);
 }
 exports.createMiddleware = createMiddleware;
+function isController(config) {
+    const routeMiddlewareKeys = Object.keys(defaultRouteConfig);
+    const middlewareKeys = Object.keys(defaultMiddlewareConfig);
+    const keys = routeMiddlewareKeys.concat(middlewareKeys);
+    if (config && typeof config === "object") {
+        const existingKeys = Object.keys(config).filter((key) => keys.indexOf(key) > -1);
+        return existingKeys.length === 0;
+    }
+    return true;
+}
 function defineIfNotSet(obj, val) {
     return obj || val;
 }
