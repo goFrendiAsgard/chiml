@@ -1,7 +1,7 @@
 import { remove as fsRemove } from "fs-extra";
 import { dirname as pathDirName, resolve as pathResolve } from "path";
 import { cmdComposedCommand } from "../../libraries/cmd";
-import { compile, execute, getCompiledScript, getFiles } from "../../libraries/tools";
+import { compile, copyMultiDirs, execute, getCompiledScript, getFiles } from "../../libraries/tools";
 
 const rootDirPath = pathDirName(pathDirName(pathDirName(__dirname)));
 const testDirPath = pathResolve(rootDirPath, "testcase", "compile");
@@ -84,7 +84,7 @@ test("compile test.chiml", () => {
         });
 }, 100000);
 
-test("read file recursively", () => {
+test("get files recursively", () => {
     return getFiles(pathResolve(rootDirPath, "src"))
         .then((result) => {
             expect(result).toContain(pathResolve(rootDirPath, "src", "tools", "chic.ts"));
@@ -97,10 +97,21 @@ test("read file recursively", () => {
         });
 }, 20000);
 
-test("throws error when read file recursively from nonexistent directory", () => {
-    getFiles("/dev/null/oraono")
+test("get files from non-exist path", () => {
+    return getFiles("/dev/null/oraono")
         .then((result) => {
-            expect(result).toBeUndefined();
+            expect(result).toBeNull();
+        })
+        .catch((error) => {
+            console.error(error);
+            expect(error).toBeDefined();
+        });
+}, 20000);
+
+test("copy non-exists path", () => {
+    return copyMultiDirs([["/dev/null/oraono", "/dev/null/oraoni"]])
+        .then((result) => {
+            expect(result).toBeNull();
         })
         .catch((error) => {
             console.error(error);

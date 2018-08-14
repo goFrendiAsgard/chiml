@@ -8,7 +8,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-// TODO: Refactor without change the API
 const fs_1 = require("fs");
 const koaRoute = require("koa-route");
 const pathToRegexp = require("path-to-regexp");
@@ -43,6 +42,17 @@ function defaultAuthorizationWrapper(middleware, config) {
         return next();
     };
 }
+function jsonRpcAuthorizationWrapper(middleware, config) {
+    return (ctx, ...args) => {
+        if (!isAuthorized(ctx, config)) {
+            return jsonRpcErrorProcessor(ctx, {
+                code: JREC.MethodNotFound,
+                message: "unauthorized access",
+            });
+        }
+        return middleware(ctx, ...args);
+    };
+}
 const defaultMiddlewareConfig = {
     authorizationWrapper: defaultAuthorizationWrapper,
     controller: (...ins) => ins.slice(0, -1).join(""),
@@ -63,8 +73,8 @@ function createAuthenticationMiddleware(config) {
     return (ctx, next) => {
         return baseMiddleware(ctx)
             .then((out) => {
-            ctx.state = defineIfNotSet(ctx.state, {});
-            ctx.state.user = defineIfNotSet(ctx.state.user, out);
+            ctx.state = ctx.state || {};
+            ctx.state.user = ctx.state.user || out;
             return next();
         });
     };
@@ -80,12 +90,12 @@ function createAuthorizationMiddleware(config) {
             if (Array.isArray(out)) {
                 roles = out;
             }
-            else if (out !== null && typeof out !== "undefined") {
+            else if (out) {
                 roles.push(out);
             }
             roles.push(ctx.state.user ? "loggedIn" : "loggedOut");
-            ctx.state = defineIfNotSet(ctx.state, {});
-            ctx.state.roles = defineIfNotSet(ctx.state.roles, []);
+            ctx.state = ctx.state || {};
+            ctx.state.roles = ctx.state.roles || [];
             ctx.state.roles = ctx.state.roles.concat(roles.filter((role) => ctx.state.roles.indexOf(role) === -1)).filter((role) => {
                 return (role === "loggedOut" && ctx.state.user) ? false : true;
             });
@@ -98,9 +108,8 @@ function createJsonRpcMiddleware(url, configs, method = "all") {
     const normalizedConfigs = configs.map((config) => {
         return Object.assign({}, { propagateContext: false, controller: (...ins) => ins }, config);
     });
-    const handler = createJsonRpcHandler(normalizedConfigs);
-    const middleware = koaRoute[method](url, handler);
-    return middleware;
+    const middleware = createJsonRpcBaseMiddleware(normalizedConfigs);
+    return koaRoute[method](url, middleware);
 }
 exports.createJsonRpcMiddleware = createJsonRpcMiddleware;
 function createRouteMiddleware(config) {
@@ -110,7 +119,7 @@ function createRouteMiddleware(config) {
     return koaRoute[method](url, middleware);
 }
 exports.createRouteMiddleware = createRouteMiddleware;
-function createMiddleware(middlewareConfig = {}) {
+function createMiddleware(middlewareConfig) {
     const normalizedMiddlewareConfig = isController(middlewareConfig) ?
         { controller: middlewareConfig } : middlewareConfig;
     const normalizedConfig = Object.assign({}, defaultMiddlewareConfig, normalizedMiddlewareConfig);
@@ -127,9 +136,6 @@ function isController(config) {
         return existingKeys.length === 0;
     }
     return true;
-}
-function defineIfNotSet(obj, val) {
-    return obj || val;
 }
 function isRouteConfig(config) {
     return "method" in config && "url" in config;
@@ -149,8 +155,8 @@ function isRouteMatch(ctx, config) {
 }
 function isAuthorized(ctx, config) {
     const normalizedConfig = Object.assign({}, { roles: defaultRoles }, config);
-    ctx.state = defineIfNotSet(ctx.state, {});
-    ctx.state.roles = defineIfNotSet(ctx.state.roles, (ctx.state.user ? ["loggedIn"] : ["loggedOut"]));
+    ctx.state = ctx.state || {};
+    ctx.state.roles = ctx.state.roles || (ctx.state.user ? ["loggedIn"] : ["loggedOut"]);
     return ctx.state.roles.filter((role) => normalizedConfig.roles.indexOf(role) > -1).length > 0;
 }
 function createHandler(config) {
@@ -217,16 +223,14 @@ function jsonRpcErrorProcessor(ctx, errorObj) {
             data = "Internal Error";
             break;
     }
-    if (!message) {
-        message = "";
-    }
+    message = message || "";
     ctx.body = JSON.stringify({ id, jsonrpc, error: { code, data, message } });
 }
 function isValidJsonRpcId(id) {
     return id === null || id === undefined || typeof id === "string" ||
         (typeof id === "number" && Number.isSafeInteger(id));
 }
-function createJsonRpcHandler(configs) {
+function createJsonRpcBaseMiddleware(configs) {
     return (ctx, ...ins) => __awaiter(this, void 0, void 0, function* () {
         let jsonRequest;
         try {
@@ -234,7 +238,7 @@ function createJsonRpcHandler(configs) {
             jsonRequest = JSON.parse(request);
         }
         catch (error) {
-            console.log(error);
+            console.error(error);
             return jsonRpcErrorProcessor(ctx, { code: JREC.ParseError });
         }
         const { id, jsonrpc, method, params } = jsonRequest;
@@ -270,22 +274,16 @@ function createJsonRpcHandler(configs) {
             });
         }
         try {
-            const matchedConfig = matchedConfigs[0];
-            if (!isAuthorized(ctx, matchedConfig)) {
-                return jsonRpcErrorProcessor(ctx, {
-                    code: JREC.MethodNotFound,
-                    message: "unauthorized access",
-                });
-            }
-            const { controller, propagateContext } = matchedConfig;
-            const handler = createHandler({
-                controller,
-                outProcessor: (context, out) => {
-                    context.body = JSON.stringify({ id, jsonrpc, result: out });
-                },
-                propagateContext,
+            const authorizationWrapper = jsonRpcAuthorizationWrapper;
+            const outProcessor = (context, out) => {
+                context.body = JSON.stringify({ id, jsonrpc, result: out });
+            };
+            const matchedConfig = Object.assign({}, matchedConfigs[0], {
+                authorizationWrapper,
+                outProcessor,
             });
-            return yield handler(ctx, ...params);
+            const middleware = createMiddleware(matchedConfig);
+            return yield middleware(ctx, ...params);
         }
         catch (error) {
             console.log(error);

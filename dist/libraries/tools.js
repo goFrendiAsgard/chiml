@@ -90,7 +90,7 @@ function getFiles(dir) {
             return files.reduce((a, f) => a.concat(f), []);
         }
         catch (error) {
-            return error;
+            return Promise.reject(error);
         }
     });
 }
@@ -110,7 +110,7 @@ function createSingleNodeModule(targetDirPath) {
         ], options);
     });
 }
-function copyMultiDirs(configs, options) {
+function copyMultiDirs(configs, options = {}) {
     const commandList = configs.map((config) => {
         const source = config[0];
         const destination = config[1];
@@ -131,6 +131,7 @@ function copyMultiDirs(configs, options) {
         });
     });
 }
+exports.copyMultiDirs = copyMultiDirs;
 function createCopyCommand(source, destination) {
     const quotedSource = stringUtil_1.doubleQuote(source);
     const quotedDestination = stringUtil_1.doubleQuote(destination);

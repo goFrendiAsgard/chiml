@@ -80,7 +80,7 @@ export async function getFiles(dir: string): Promise<any> {
         }));
         return files.reduce((a, f) => a.concat(f), []);
     } catch (error) {
-        return error;
+        return Promise.reject(error);
     }
 }
 
@@ -100,7 +100,7 @@ function createSingleNodeModule(targetDirPath: string): Promise<any> {
         });
 }
 
-function copyMultiDirs(configs: string[][], options: { [key: string]: any }): Promise<any> {
+export function copyMultiDirs(configs: string[][], options: { [key: string]: any } = {}): Promise<any> {
     const commandList = configs.map((config) => {
         const source = config[0];
         const destination = config[1];

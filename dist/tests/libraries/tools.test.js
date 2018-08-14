@@ -78,7 +78,7 @@ test("compile test.chiml", () => {
         expect(error).toBeUndefined();
     });
 }, 100000);
-test("read file recursively", () => {
+test("get files recursively", () => {
     return tools_1.getFiles(path_1.resolve(rootDirPath, "src"))
         .then((result) => {
         expect(result).toContain(path_1.resolve(rootDirPath, "src", "tools", "chic.ts"));
@@ -90,10 +90,20 @@ test("read file recursively", () => {
         expect(error).toBeUndefined();
     });
 }, 20000);
-test("throws error when read file recursively from nonexistent directory", () => {
-    tools_1.getFiles("/dev/null/oraono")
+test("get files from non-exist path", () => {
+    return tools_1.getFiles("/dev/null/oraono")
         .then((result) => {
-        expect(result).toBeUndefined();
+        expect(result).toBeNull();
+    })
+        .catch((error) => {
+        console.error(error);
+        expect(error).toBeDefined();
+    });
+}, 20000);
+test("copy non-exists path", () => {
+    return tools_1.copyMultiDirs([["/dev/null/oraono", "/dev/null/oraoni"]])
+        .then((result) => {
+        expect(result).toBeNull();
     })
         .catch((error) => {
         console.error(error);

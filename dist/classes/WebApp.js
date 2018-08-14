@@ -65,7 +65,7 @@ class WebApp extends Koa {
         }
     }
     addMiddleware(controller) {
-        this.use(middlewares_1.createMiddleware({ controller }));
+        this.use(middlewares_1.createMiddleware(controller));
     }
     addRoute(config) {
         this.use(middlewares_1.createRouteMiddleware(config));

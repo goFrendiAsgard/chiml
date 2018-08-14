@@ -1,4 +1,3 @@
-// TODO: Refactor without change the API
 import { existsSync as fsExistsSync } from "fs";
 import * as koaRoute from "koa-route";
 import * as pathToRegexp from "path-to-regexp";
@@ -40,6 +39,21 @@ function defaultAuthorizationWrapper(
     };
 }
 
+function jsonRpcAuthorizationWrapper(
+    middleware: (ctx: { [key: string]: any }, ...args: any[]) => any,
+    config: { [key: string]: any },
+): (ctx: any, ...args: any[]) => any {
+    return (ctx: any, ...args: any[]) => {
+        if (!isAuthorized(ctx, config)) {
+            return jsonRpcErrorProcessor(ctx, {
+                code: JREC.MethodNotFound,
+                message: "unauthorized access",
+            });
+        }
+        return middleware(ctx, ...args);
+    };
+}
+
 const defaultMiddlewareConfig = {
     authorizationWrapper: defaultAuthorizationWrapper,
     controller: (...ins) => ins.slice(0, -1).join(""),
@@ -62,8 +76,8 @@ export function createAuthenticationMiddleware(config: { [key: string]: any }): 
     return (ctx, next) => {
         return baseMiddleware(ctx)
             .then((out) => {
-                ctx.state = defineIfNotSet(ctx.state, {});
-                ctx.state.user = defineIfNotSet(ctx.state.user, out);
+                ctx.state = ctx.state || {};
+                ctx.state.user = ctx.state.user || out;
                 return next();
             });
     };
@@ -78,12 +92,12 @@ export function createAuthorizationMiddleware(config: { [key: string]: any }): (
                 let roles: string[] = [];
                 if (Array.isArray(out)) {
                     roles = out;
-                } else if (out !== null && typeof out !== "undefined") {
+                } else if (out) {
                     roles.push(out);
                 }
                 roles.push(ctx.state.user ? "loggedIn" : "loggedOut");
-                ctx.state = defineIfNotSet(ctx.state, {});
-                ctx.state.roles = defineIfNotSet(ctx.state.roles, []);
+                ctx.state = ctx.state || {};
+                ctx.state.roles = ctx.state.roles || [];
                 ctx.state.roles = ctx.state.roles.concat(
                     roles.filter((role) => ctx.state.roles.indexOf(role) === -1),
                 ).filter((role) => {
@@ -98,9 +112,8 @@ export function createJsonRpcMiddleware(url: string, configs: any[], method: str
     const normalizedConfigs = configs.map((config) => {
         return Object.assign({}, { propagateContext: false, controller: (...ins) => ins }, config);
     });
-    const handler = createJsonRpcHandler(normalizedConfigs);
-    const middleware = koaRoute[method](url, handler);
-    return middleware;
+    const middleware = createJsonRpcBaseMiddleware(normalizedConfigs);
+    return koaRoute[method](url, middleware);
 }
 
 export function createRouteMiddleware(config: { [key: string]: any }): (...ins: any[]) => any {
@@ -110,7 +123,7 @@ export function createRouteMiddleware(config: { [key: string]: any }): (...ins: 
     return koaRoute[method](url, middleware);
 }
 
-export function createMiddleware(middlewareConfig: any = {}): (...ins: any[]) => any {
+export function createMiddleware(middlewareConfig: any): (...ins: any[]) => any {
     const normalizedMiddlewareConfig = isController(middlewareConfig) ?
         { controller: middlewareConfig } : middlewareConfig;
     const normalizedConfig = Object.assign({}, defaultMiddlewareConfig, normalizedMiddlewareConfig);
@@ -127,10 +140,6 @@ function isController(config: any): boolean {
         return existingKeys.length === 0;
     }
     return true;
-}
-
-function defineIfNotSet(obj: any, val: any): any {
-    return obj || val;
 }
 
 function isRouteConfig(config: { [key: string]: any }): boolean {
@@ -154,8 +163,8 @@ function isRouteMatch(ctx: { [key: string]: any }, config: { [key: string]: any 
 
 function isAuthorized(ctx: { [key: string]: any }, config: { [key: string]: string }): boolean {
     const normalizedConfig = Object.assign({}, { roles: defaultRoles }, config);
-    ctx.state = defineIfNotSet(ctx.state, {});
-    ctx.state.roles = defineIfNotSet(ctx.state.roles, (ctx.state.user ? ["loggedIn"] : ["loggedOut"]));
+    ctx.state = ctx.state || {};
+    ctx.state.roles = ctx.state.roles || (ctx.state.user ? ["loggedIn"] : ["loggedOut"]);
     return ctx.state.roles.filter((role) => normalizedConfig.roles.indexOf(role) > -1).length > 0;
 }
 
@@ -213,9 +222,7 @@ function jsonRpcErrorProcessor(ctx: { [key: string]: any }, errorObj: { [key: st
         case JREC.InvalidParams: data = "Invalid Params"; break;
         case JREC.InternalError: data = "Internal Error"; break;
     }
-    if (!message) {
-        message = "";
-    }
+    message = message || "";
     ctx.body = JSON.stringify({ id, jsonrpc, error: { code, data, message } });
 }
 
@@ -224,14 +231,14 @@ function isValidJsonRpcId(id): boolean {
         (typeof id === "number" && Number.isSafeInteger(id));
 }
 
-function createJsonRpcHandler(configs: any[]): (...ins: any[]) => any {
+function createJsonRpcBaseMiddleware(configs: any[]): (...ins: any[]) => any {
     return async (ctx: { [key: string]: any }, ...ins: any[]) => {
         let jsonRequest;
         try {
             const request = await readFromStream(ctx.req);
             jsonRequest = JSON.parse(request);
         } catch (error) {
-            console.log(error);
+            console.error(error);
             return jsonRpcErrorProcessor(ctx, { code: JREC.ParseError });
         }
         const { id, jsonrpc, method, params } = jsonRequest;
@@ -267,22 +274,16 @@ function createJsonRpcHandler(configs: any[]): (...ins: any[]) => any {
             });
         }
         try {
-            const matchedConfig = matchedConfigs[0];
-            if (!isAuthorized(ctx, matchedConfig)) {
-                return jsonRpcErrorProcessor(ctx, {
-                    code: JREC.MethodNotFound,
-                    message: "unauthorized access",
-                });
-            }
-            const { controller, propagateContext } = matchedConfig;
-            const handler = createHandler({
-                controller,
-                outProcessor: (context, out) => {
-                    context.body = JSON.stringify({ id, jsonrpc, result: out });
-                },
-                propagateContext,
+            const authorizationWrapper = jsonRpcAuthorizationWrapper;
+            const outProcessor = (context, out) => {
+                context.body = JSON.stringify({ id, jsonrpc, result: out });
+            };
+            const matchedConfig = Object.assign({}, matchedConfigs[0], {
+                authorizationWrapper,
+                outProcessor,
             });
-            return await handler(ctx, ...params);
+            const middleware = createMiddleware(matchedConfig);
+            return await middleware(ctx, ...params);
         } catch (error) {
             console.log(error);
             return jsonRpcErrorProcessor(ctx, { code: JREC.InternalError });

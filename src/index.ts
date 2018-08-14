@@ -27,7 +27,7 @@ import {
     chimlToConfig, chimlToYaml, doubleQuote, isFlanked,
     parseStringArray, removeFlank, smartSplit,
 } from "./libraries/stringUtil";
-import { compile, execute, getCompiledScript, getFiles } from "./libraries/tools";
+import { compile, copyMultiDirs, execute, getCompiledScript, getFiles } from "./libraries/tools";
 import { __cmd, __parseIns, sys } from "./libraries/utilities";
 
 export {
