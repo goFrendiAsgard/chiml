@@ -35,7 +35,7 @@ function wrapJsSyncFunction(task, spaceCount) {
     ].join("\n");
     return renderTemplate(template, { task, ins }, spaceCount);
 }
-function wrapJsAsyncFunction(task, spaceCount) {
+function wrapJsFunctionWithCallback(task, spaceCount) {
     const ins = task.ins.length === 0 ? "" : task.ins.join(", ") + ", ";
     const template = [
         "const __promise<%- task.id %> = new Promise((__resolve, __reject) => {",
@@ -45,11 +45,13 @@ function wrapJsAsyncFunction(task, spaceCount) {
         "    }",
         "    if (__result.length === 0) {",
         "      <%- task.out %> = undefined;",
-        "    } else if (__result.length === 1) {",
-        "      <%- task.out %> = __result[0];",
-        "    } else {",
-        "      <%- task.out %> = __result;",
+        "      return __resolve(true);",
         "    }",
+        "    if (__result.length === 1) {",
+        "      <%- task.out %> = __result[0];",
+        "      return __resolve(true);",
+        "    }",
+        "      <%- task.out %> = __result;",
         "    return __resolve(true);",
         "  });",
         "});",
@@ -101,7 +103,7 @@ function getWrapper(task) {
         case singleTaskProperty_1.Mode.single:
             switch (task.commandType) {
                 case singleTaskProperty_1.CommandType.cmd: return wrapCmd;
-                case singleTaskProperty_1.CommandType.jsAsyncFunction: return wrapJsAsyncFunction;
+                case singleTaskProperty_1.CommandType.jsFunctionWithCallback: return wrapJsFunctionWithCallback;
                 case singleTaskProperty_1.CommandType.jsSyncFunction: return wrapJsSyncFunction;
                 case singleTaskProperty_1.CommandType.jsPromise: return wrapJsPromise;
             }
@@ -239,4 +241,3 @@ function getLocalScopeVariables(task) {
     }
     return vars;
 }
-//# sourceMappingURL=singleTaskScriptGenerator.js.map

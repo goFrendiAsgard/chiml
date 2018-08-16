@@ -16,7 +16,7 @@ var FunctionalMode;
 var CommandType;
 (function (CommandType) {
     CommandType[CommandType["cmd"] = 0] = "cmd";
-    CommandType[CommandType["jsAsyncFunction"] = 1] = "jsAsyncFunction";
+    CommandType[CommandType["jsFunctionWithCallback"] = 1] = "jsFunctionWithCallback";
     CommandType[CommandType["jsSyncFunction"] = 2] = "jsSyncFunction";
     CommandType[CommandType["jsPromise"] = 3] = "jsPromise";
 })(CommandType = exports.CommandType || (exports.CommandType = {}));

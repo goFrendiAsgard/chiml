@@ -36,16 +36,12 @@ function normalizeRawConfig(rawConfig) {
 }
 exports.normalizeRawConfig = normalizeRawConfig;
 function strToRawConfig(str) {
-    let config = {};
     const longArrowParts = splitByLongArrow(str);
     if (longArrowParts.length === 2) {
-        config = longArrowPartsToConfig(longArrowParts);
+        return longArrowPartsToConfig(longArrowParts);
     }
-    else {
-        const shortArrowParts = splitByShortArrow(str);
-        config = shortArrowPartsToConfig(shortArrowParts);
-    }
-    return config;
+    const shortArrowParts = splitByShortArrow(str);
+    return shortArrowPartsToConfig(shortArrowParts);
 }
 exports.strToRawConfig = strToRawConfig;
 function longArrowPartsToConfig(longArrowParts) {
@@ -62,23 +58,22 @@ function shortArrowPartsToConfig(shortArrowParts) {
         config.ins = stringUtil_1.smartSplit(stringUtil_1.removeFlank(shortArrowParts[0], "(", ")"), ",");
         config.do = shortArrowParts[1];
         config.out = shortArrowParts[2];
+        return config;
     }
-    else if (shortArrowParts.length === 2) {
+    if (shortArrowParts.length === 2) {
         if (stringUtil_1.isFlanked(shortArrowParts[0], "(", ")")) {
             // `(ins) -> do`
             config.ins = stringUtil_1.smartSplit(stringUtil_1.removeFlank(shortArrowParts[0], "(", ")"), ",");
             config.do = shortArrowParts[1];
+            return config;
         }
-        else {
-            // `do -> out`
-            config.do = shortArrowParts[0];
-            config.out = shortArrowParts[1];
-        }
-    }
-    else {
-        // `do`
+        // `do -> out`
         config.do = shortArrowParts[0];
+        config.out = shortArrowParts[1];
+        return config;
     }
+    // `do`
+    config.do = shortArrowParts[0];
     return config;
 }
 function splitByShortArrow(str) {
@@ -96,22 +91,20 @@ function splitBy(str, splitter, reverseSplitter) {
 }
 function preprocessRawConfigShorthand(config) {
     if (!config) {
-        config = { do: null };
+        return { do: null };
     }
-    if (config && "do" in config && typeof config.do === "string") {
+    if (typeof config.do === "string") {
         const tmpConfig = strToRawConfig(config.do);
         if (tmpConfig && tmpConfig.do !== config.do) {
-            if (tmpConfig && "ins" in tmpConfig) {
-                config.ins = tmpConfig.ins;
-            }
-            if (tmpConfig && "out" in tmpConfig) {
-                config.out = tmpConfig.out;
-            }
-            if (tmpConfig && "do" in tmpConfig) {
+            delete config.do;
+            if ("do" in tmpConfig) {
                 config.do = tmpConfig.do;
             }
-            else {
-                delete config.do;
+            if ("ins" in tmpConfig) {
+                config.ins = tmpConfig.ins;
+            }
+            if ("out" in tmpConfig) {
+                config.out = tmpConfig.out;
             }
         }
     }
@@ -126,15 +119,12 @@ function parseCommand(normalizedConfig, config) {
 function getNormalIns(ins) {
     if (typeof ins === "string") {
         const newIns = stringUtil_1.smartSplit(ins, ",");
-        if (newIns.length === 1 && newIns[0] === "") {
-            return [];
-        }
-        return newIns;
+        return getInsOrEmptyArray(newIns);
     }
-    else if (ins === null || ins === undefined) {
-        return [];
-    }
-    if (ins.length === 1 && ins[0] === "") {
+    return getInsOrEmptyArray(ins);
+}
+function getInsOrEmptyArray(ins) {
+    if (ins === null || ins === undefined || (ins.length === 1 && ins[0] === "")) {
         return [];
     }
     return ins;
@@ -142,29 +132,29 @@ function getNormalIns(ins) {
 function parseSingleCommand(normalizedConfig, config) {
     if (config && "do" in config && typeof config.do === "string") {
         normalizedConfig.command = config.do ? config.do : "(x) => x";
+        normalizedConfig.mode = singleTaskProperty_1.Mode.single;
         if (stringUtil_1.isFlanked(normalizedConfig.command, "{", "}")) {
             normalizedConfig.command = stringUtil_1.removeFlank(normalizedConfig.command, "{", "}");
             normalizedConfig.commandType = singleTaskProperty_1.CommandType.jsSyncFunction;
+            return normalizedConfig;
         }
-        else if (stringUtil_1.isFlanked(normalizedConfig.command, "<", ">")) {
+        if (stringUtil_1.isFlanked(normalizedConfig.command, "<", ">")) {
             normalizedConfig.command = stringUtil_1.removeFlank(normalizedConfig.command, "<", ">");
             normalizedConfig.commandType = singleTaskProperty_1.CommandType.jsPromise;
+            return normalizedConfig;
         }
-        else if (stringUtil_1.isFlanked(normalizedConfig.command, "[", "]")) {
+        if (stringUtil_1.isFlanked(normalizedConfig.command, "[", "]")) {
             normalizedConfig.command = stringUtil_1.removeFlank(normalizedConfig.command, "[", "]");
-            normalizedConfig.commandType = singleTaskProperty_1.CommandType.jsAsyncFunction;
+            normalizedConfig.commandType = singleTaskProperty_1.CommandType.jsFunctionWithCallback;
+            return normalizedConfig;
         }
-        else {
-            const command = normalizedConfig.command;
-            if (command.match(jsArrowFunctionPattern) ||
-                command.match(jsFunctionPattern) || command.match(jsAsyncPattern)) {
-                normalizedConfig.commandType = singleTaskProperty_1.CommandType.jsSyncFunction;
-            }
-            else {
-                normalizedConfig.commandType = singleTaskProperty_1.CommandType.cmd;
-            }
+        const command = normalizedConfig.command;
+        if (command.match(jsArrowFunctionPattern) ||
+            command.match(jsFunctionPattern) || command.match(jsAsyncPattern)) {
+            normalizedConfig.commandType = singleTaskProperty_1.CommandType.jsSyncFunction;
+            return normalizedConfig;
         }
-        normalizedConfig.mode = singleTaskProperty_1.Mode.single;
+        normalizedConfig.commandType = singleTaskProperty_1.CommandType.cmd;
     }
     return normalizedConfig;
 }
@@ -172,16 +162,19 @@ function parseNestedCommand(normalizedConfig, config) {
     if (config && "do" in config && Array.isArray(config.do)) {
         normalizedConfig.commandList = config.do;
         normalizedConfig.mode = singleTaskProperty_1.Mode.series;
+        return normalizedConfig;
     }
-    else if (config && "series" in config) {
+    if (config && "series" in config) {
         normalizedConfig.commandList = config.series;
         normalizedConfig.mode = singleTaskProperty_1.Mode.series;
+        return normalizedConfig;
     }
-    else if (config && "parallel" in config) {
+    if (config && "parallel" in config) {
         normalizedConfig.commandList = config.parallel;
         normalizedConfig.mode = singleTaskProperty_1.Mode.parallel;
+        return normalizedConfig;
     }
-    else if (config && !normalizedConfig.command) {
+    if (config && !normalizedConfig.command) {
         normalizedConfig.command = "(x) => x";
         normalizedConfig.commandType = singleTaskProperty_1.CommandType.jsSyncFunction;
         normalizedConfig.mode = singleTaskProperty_1.Mode.single;
@@ -189,22 +182,27 @@ function parseNestedCommand(normalizedConfig, config) {
     return normalizedConfig;
 }
 function parseFunctionalCommand(normalizedConfig, config) {
-    if (config && ("map" in config || "filter" in config || "reduce" in config)) {
-        if ("map" in config) { // map
+    if (config) {
+        // map
+        if ("map" in config) {
             normalizedConfig.src = getNormalSrc(config.map);
             normalizedConfig.functionalMode = singleTaskProperty_1.FunctionalMode.map;
             if (normalizedConfig.ins.length < 1) {
                 normalizedConfig.ins = ["__el"];
             }
+            return normalizedConfig;
         }
-        else if ("filter" in config) { // filter
+        // filter
+        if ("filter" in config) {
             normalizedConfig.src = getNormalSrc(config.filter);
             normalizedConfig.functionalMode = singleTaskProperty_1.FunctionalMode.filter;
             if (normalizedConfig.ins.length < 1) {
                 normalizedConfig.ins = ["__el"];
             }
+            return normalizedConfig;
         }
-        else { // reduce
+        // reduce
+        if ("reduce" in config) {
             normalizedConfig.src = getNormalSrc(config.reduce);
             normalizedConfig.functionalMode = singleTaskProperty_1.FunctionalMode.reduce;
             if (normalizedConfig.ins.length < 2) {

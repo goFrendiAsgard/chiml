@@ -87,11 +87,8 @@ function createAuthorizationMiddleware(config) {
         return baseMiddleware(ctx)
             .then((out) => {
             let roles = [];
-            if (Array.isArray(out)) {
-                roles = out;
-            }
-            else if (out) {
-                roles.push(out);
+            if (out) {
+                roles = Array.isArray(out) ? out : [out];
             }
             roles.push(ctx.state.user ? "loggedIn" : "loggedOut");
             ctx.state = ctx.state || {};
@@ -124,7 +121,10 @@ function createMiddleware(middlewareConfig) {
         { controller: middlewareConfig } : middlewareConfig;
     const normalizedConfig = Object.assign({}, defaultMiddlewareConfig, normalizedMiddlewareConfig);
     const middleware = createHandler(normalizedConfig);
-    return normalizedConfig.authorizationWrapper(middleware, normalizedConfig);
+    if ("authorizationWrapper" in normalizedConfig && normalizedConfig.authorizationWrapper) {
+        return normalizedConfig.authorizationWrapper(middleware, normalizedConfig);
+    }
+    return middleware;
 }
 exports.createMiddleware = createMiddleware;
 function isController(config) {

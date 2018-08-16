@@ -1,4 +1,5 @@
 import { existsSync as fsExistsSync } from "fs";
+import * as Koa from "koa";
 import * as koaRoute from "koa-route";
 import * as pathToRegexp from "path-to-regexp";
 import { getChimlCompiledScriptPath } from "./cmd";
@@ -20,10 +21,10 @@ function defaultOutProcessor(ctx: { [key: string]: any }, out: any): any {
 }
 
 function defaultAuthorizationWrapper(
-    middleware: (ctx: { [key: string]: any }, ...args: any[]) => any,
+    middleware: (ctx: Koa.Context, ...args: any[]) => any,
     config: { [key: string]: any },
-): (ctx: any, ...args: any[]) => any {
-    return (ctx: any, ...args: any[]) => {
+): (ctx: Koa.Context, ...args: any[]) => any {
+    return (ctx: Koa.Context, ...args: any[]) => {
         const routeMatch: boolean = isRouteMatch(ctx, config);
         if (isAuthorized(ctx, config)) {
             if (routeMatch) {
@@ -40,10 +41,10 @@ function defaultAuthorizationWrapper(
 }
 
 function jsonRpcAuthorizationWrapper(
-    middleware: (ctx: { [key: string]: any }, ...args: any[]) => any,
+    middleware: (ctx: Koa.Context, ...args: any[]) => any,
     config: { [key: string]: any },
-): (ctx: any, ...args: any[]) => any {
-    return (ctx: any, ...args: any[]) => {
+): (ctx: Koa.Context, ...args: any[]) => any {
+    return (ctx: Koa.Context, ...args: any[]) => {
         if (!isAuthorized(ctx, config)) {
             return jsonRpcErrorProcessor(ctx, {
                 code: JREC.MethodNotFound,
@@ -73,7 +74,7 @@ const defaultRouteConfig = {
 export function createAuthenticationMiddleware(config: { [key: string]: any }): (...ins: any[]) => any {
     const normalizedConfig = Object.assign({}, { propagateContext: true }, config);
     const baseMiddleware = createMiddleware(normalizedConfig);
-    return (ctx, next) => {
+    return (ctx: Koa.Context, next) => {
         return baseMiddleware(ctx)
             .then((out) => {
                 ctx.state = ctx.state || {};
@@ -86,14 +87,12 @@ export function createAuthenticationMiddleware(config: { [key: string]: any }): 
 export function createAuthorizationMiddleware(config: { [key: string]: any }): (...ins: any[]) => any {
     const normalizedConfig = Object.assign({}, { propagateContext: true }, config);
     const baseMiddleware = createMiddleware(normalizedConfig);
-    return (ctx, next) => {
+    return (ctx: Koa.Context, next) => {
         return baseMiddleware(ctx)
             .then((out) => {
                 let roles: string[] = [];
-                if (Array.isArray(out)) {
-                    roles = out;
-                } else if (out) {
-                    roles.push(out);
+                if (out) {
+                    roles = Array.isArray(out) ? out : [out];
                 }
                 roles.push(ctx.state.user ? "loggedIn" : "loggedOut");
                 ctx.state = ctx.state || {};
@@ -128,7 +127,10 @@ export function createMiddleware(middlewareConfig: any): (...ins: any[]) => any 
         { controller: middlewareConfig } : middlewareConfig;
     const normalizedConfig = Object.assign({}, defaultMiddlewareConfig, normalizedMiddlewareConfig);
     const middleware = createHandler(normalizedConfig);
-    return normalizedConfig.authorizationWrapper(middleware, normalizedConfig);
+    if ("authorizationWrapper" in normalizedConfig && normalizedConfig.authorizationWrapper) {
+        return normalizedConfig.authorizationWrapper(middleware, normalizedConfig);
+    }
+    return middleware;
 }
 
 function isController(config: any): boolean {
@@ -146,14 +148,14 @@ function isRouteConfig(config: { [key: string]: any }): boolean {
     return "method" in config && "url" in config;
 }
 
-function isRouteMethodMatch(ctx: { [key: string]: any }, method: string) {
+function isRouteMethodMatch(ctx: Koa.Context, method: string) {
     const upperCasedMethod = method.toUpperCase();
     return upperCasedMethod === "ALL" ||
         ctx.method === upperCasedMethod ||
         (upperCasedMethod === "GET" && ctx.method === "HEAD");
 }
 
-function isRouteMatch(ctx: { [key: string]: any }, config: { [key: string]: any }) {
+function isRouteMatch(ctx: Koa.Context, config: { [key: string]: any }) {
     if (isRouteConfig(config) && isRouteMethodMatch(ctx, config.method)) {
         const re: RegExp = pathToRegexp(config.url);
         return re.exec(ctx.url) ? true : false;
@@ -161,7 +163,7 @@ function isRouteMatch(ctx: { [key: string]: any }, config: { [key: string]: any 
     return false;
 }
 
-function isAuthorized(ctx: { [key: string]: any }, config: { [key: string]: string }): boolean {
+function isAuthorized(ctx: Koa.Context, config: { [key: string]: string }): boolean {
     const normalizedConfig = Object.assign({}, { roles: defaultRoles }, config);
     ctx.state = ctx.state || {};
     ctx.state.roles = ctx.state.roles || (ctx.state.user ? ["loggedIn"] : ["loggedOut"]);
@@ -211,7 +213,7 @@ function createHandler(config: { [key: string]: any }): (...ins: any[]) => any {
     };
 }
 
-function jsonRpcErrorProcessor(ctx: { [key: string]: any }, errorObj: { [key: string]: any }): void {
+function jsonRpcErrorProcessor(ctx: Koa.Context, errorObj: { [key: string]: any }): void {
     const { id, code } = errorObj;
     let { data, message } = errorObj;
     const jsonrpc = "2.0";
@@ -232,7 +234,7 @@ function isValidJsonRpcId(id): boolean {
 }
 
 function createJsonRpcBaseMiddleware(configs: any[]): (...ins: any[]) => any {
-    return async (ctx: { [key: string]: any }, ...ins: any[]) => {
+    return async (ctx: Koa.Context, ...ins: any[]) => {
         let jsonRequest;
         try {
             const request = await readFromStream(ctx.req);
@@ -241,6 +243,7 @@ function createJsonRpcBaseMiddleware(configs: any[]): (...ins: any[]) => any {
             console.error(error);
             return jsonRpcErrorProcessor(ctx, { code: JREC.ParseError });
         }
+
         const { id, jsonrpc, method, params } = jsonRequest;
         if (!isValidJsonRpcId(id)) {
             return jsonRpcErrorProcessor(ctx, {
@@ -266,6 +269,7 @@ function createJsonRpcBaseMiddleware(configs: any[]): (...ins: any[]) => any {
                 message: "invalid params",
             });
         }
+
         const matchedConfigs = configs.filter((config) => config.method === method);
         if (matchedConfigs.length < 1) {
             return jsonRpcErrorProcessor(ctx, {
@@ -273,6 +277,7 @@ function createJsonRpcBaseMiddleware(configs: any[]): (...ins: any[]) => any {
                 message: "method not found",
             });
         }
+
         try {
             const authorizationWrapper = jsonRpcAuthorizationWrapper;
             const outProcessor = (context, out) => {

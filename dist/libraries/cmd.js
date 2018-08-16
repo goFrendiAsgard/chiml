@@ -4,6 +4,7 @@ const child_process_1 = require("child_process");
 const path_1 = require("path");
 const stringUtil_1 = require("./stringUtil");
 function cmd(command, options) {
+    const customConsole = options && "console" in options ? options.console : console;
     return new Promise((resolve, reject) => {
         const subProcess = child_process_1.exec(command, options, (error, stdout, stderr) => {
             if (error) {
@@ -23,8 +24,8 @@ function cmd(command, options) {
             process.stdin.removeListener("data", stdinListener);
             process.stdin.end();
         });
-        subProcess.stdin.on("error", (error) => console.error(error));
-        process.stdin.on("error", (error) => console.error(error));
+        subProcess.stdin.on("error", (error) => customConsole.error(error));
+        process.stdin.on("error", (error) => customConsole.error(error));
     });
 }
 exports.cmd = cmd;

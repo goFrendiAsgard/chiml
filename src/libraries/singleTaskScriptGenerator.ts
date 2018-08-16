@@ -37,7 +37,7 @@ function wrapJsSyncFunction(task: ISingleTask, spaceCount: number): string {
     return renderTemplate(template, { task, ins }, spaceCount);
 }
 
-function wrapJsAsyncFunction(task: ISingleTask, spaceCount: number): string {
+function wrapJsFunctionWithCallback(task: ISingleTask, spaceCount: number): string {
     const ins = task.ins.length === 0 ? "" : task.ins.join(", ") + ", ";
     const template = [
         "const __promise<%- task.id %> = new Promise((__resolve, __reject) => {",
@@ -47,11 +47,13 @@ function wrapJsAsyncFunction(task: ISingleTask, spaceCount: number): string {
         "    }",
         "    if (__result.length === 0) {",
         "      <%- task.out %> = undefined;",
-        "    } else if (__result.length === 1) {",
-        "      <%- task.out %> = __result[0];",
-        "    } else {",
-        "      <%- task.out %> = __result;",
+        "      return __resolve(true);",
         "    }",
+        "    if (__result.length === 1) {",
+        "      <%- task.out %> = __result[0];",
+        "      return __resolve(true);",
+        "    }",
+        "      <%- task.out %> = __result;",
         "    return __resolve(true);",
         "  });",
         "});",
@@ -110,7 +112,7 @@ function getWrapper(task: ISingleTask): (task: ISingleTask, spaceCount: number) 
         case Mode.single:
             switch (task.commandType) {
                 case CommandType.cmd: return wrapCmd;
-                case CommandType.jsAsyncFunction: return wrapJsAsyncFunction;
+                case CommandType.jsFunctionWithCallback: return wrapJsFunctionWithCallback;
                 case CommandType.jsSyncFunction: return wrapJsSyncFunction;
                 case CommandType.jsPromise: return wrapJsPromise;
             }

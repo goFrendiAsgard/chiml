@@ -3,6 +3,7 @@ import { isAbsolute as isAbsolutePath, resolve as pathResolve } from "path";
 import { doubleQuote, smartSplit } from "./stringUtil";
 
 export function cmd(command: string, options?: { [key: string]: any }): Promise<string> {
+    const customConsole: Console = options && "console" in options ? options.console : console;
     return new Promise((resolve, reject) => {
         const subProcess = exec(command, options, (error, stdout, stderr) => {
             if (error) {
@@ -26,8 +27,8 @@ export function cmd(command: string, options?: { [key: string]: any }): Promise<
             process.stdin.removeListener("data", stdinListener);
             process.stdin.end();
         });
-        subProcess.stdin.on("error", (error) => console.error(error));
-        process.stdin.on("error", (error) => console.error(error));
+        subProcess.stdin.on("error", (error) => customConsole.error(error));
+        process.stdin.on("error", (error) => customConsole.error(error));
 
     });
 }

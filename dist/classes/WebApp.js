@@ -23,7 +23,9 @@ class WebApp extends Koa {
                 for (const eventListener of io.eventListeners) {
                     // get event and handler
                     const { event, controller } = eventListener;
-                    const handler = middlewares_1.createMiddleware({ controller, propagateContext: true });
+                    const handler = middlewares_1.createMiddleware({
+                        authorizationWrapper: null, controller, propagateContext: true,
+                    });
                     // register event
                     socket.on(event, (...ins) => {
                         // inject fake ctx to socket

@@ -18,22 +18,25 @@ export class WebApp extends Koa {
 
     public createIo(server: http.Server | https.Server): ISocketIoServer {
         const self = this;
-        const io = socketIo(server) as ISocketIoServer;
+        const io: ISocketIoServer = socketIo(server) as ISocketIoServer;
         io.eventListeners = [];
         io.addEventListener = (config: ISocketIoEventListener) => io.eventListeners.push(config);
         io.addEventListeners = (configs: ISocketIoEventListener[]) => {
             configs.forEach((config) => io.addEventListener(config));
         };
         io.applyEventListeners = () => {
-            io.on("connection", (socket) => {
+            io.on("connection", (socket: socketIo.Socket) => {
                 for (const eventListener of io.eventListeners) {
                     // get event and handler
                     const { event, controller } = eventListener;
-                    const handler = createMiddleware({ controller, propagateContext: true });
+                    const handler = createMiddleware({
+                        authorizationWrapper: null, controller, propagateContext: true,
+                    });
                     // register event
                     socket.on(event, (...ins: any[]) => {
                         // inject fake ctx to socket
-                        const ctx = self.createContext(socket.request, new http.ServerResponse(socket.request));
+                        const ctx: Koa.Context = self.createContext(
+                            socket.request, new http.ServerResponse(socket.request));
                         Object.defineProperty(socket, "ctx", { value: ctx, writable: false, configurable: true });
                         // execute handler
                         handler(socket, ...ins).catch((error) => {

@@ -2,8 +2,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const index_1 = require("../index");
-if (require.main === module) {
-    const args = process.argv.slice(2);
+function main(args) {
     const fileGetter = args.length < 1 ? index_1.getFiles(".") : Promise.resolve(args);
     fileGetter
         .then((files) => {
@@ -18,5 +17,9 @@ if (require.main === module) {
         .catch((error) => {
         console.error(error);
     });
+}
+if (require.main === module) {
+    const args = process.argv.slice(2);
+    main(args);
 }
 //# sourceMappingURL=chic.js.map

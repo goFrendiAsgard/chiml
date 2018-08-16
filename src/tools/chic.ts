@@ -1,8 +1,7 @@
 #! /usr/bin/env node
 import { compile, getFiles } from "../index";
 
-if (require.main === module) {
-    const args = process.argv.slice(2);
+function main(args: any[]) {
     const fileGetter = args.length < 1 ? getFiles(".") : Promise.resolve(args);
     fileGetter
         .then((files) => {
@@ -17,4 +16,9 @@ if (require.main === module) {
         .catch((error) => {
             console.error(error);
         });
+}
+
+if (require.main === module) {
+    const args = process.argv.slice(2);
+    main(args);
 }

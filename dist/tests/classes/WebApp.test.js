@@ -184,11 +184,10 @@ for (const subUrl in unauthorizedTest) {
             http_1.httpRequest(`${url}/${subUrl}`, (error, body) => {
                 if (unauthorizedTest[subUrl]) {
                     expect(body).toMatch(/^.+\sPage$/g);
+                    return done();
                 }
-                else {
-                    expect(body.match(/^.+\sPage$/g)).toBeFalsy();
-                }
-                done();
+                expect(body.match(/^.+\sPage$/g)).toBeFalsy();
+                return done();
             });
         });
     }
@@ -230,11 +229,10 @@ for (const user in authorizedTest) {
                     http_1.httpRequest(`${url}/${subUrl}?user=${user}`, (error, body) => {
                         if (authorizedTest[user][subUrl]) {
                             expect(body).toMatch(/^.+\sPage$/g);
+                            return done();
                         }
-                        else {
-                            expect(body.match(/^.+\sPage$/g)).toBeFalsy();
-                        }
-                        done();
+                        expect(body.match(/^.+\sPage$/g)).toBeFalsy();
+                        return done();
                     });
                 });
             }

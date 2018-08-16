@@ -13,7 +13,7 @@ export enum FunctionalMode {
 
 export enum CommandType {
     cmd,
-    jsAsyncFunction,
+    jsFunctionWithCallback,
     jsSyncFunction,
     jsPromise,
 }

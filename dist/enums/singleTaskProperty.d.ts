@@ -11,7 +11,7 @@ export declare enum FunctionalMode {
 }
 export declare enum CommandType {
     cmd = 0,
-    jsAsyncFunction = 1,
+    jsFunctionWithCallback = 1,
     jsSyncFunction = 2,
     jsPromise = 3
 }

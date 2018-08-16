@@ -91,7 +91,7 @@ test("normalizeRawConfig works with config object where command is flanked with 
     expect(config.ins[1]).toBe("b");
     expect(config.out).toBe("c");
     expect(config.command).toBe("function (x,y, callback) {callback(x+y)");
-    expect(config.commandType).toBe(CommandType.jsAsyncFunction);
+    expect(config.commandType).toBe(CommandType.jsFunctionWithCallback);
     expect(config.mode).toBe(Mode.single);
     expect(config.branchCondition).toBe("true");
     expect(config.loopCondition).toBe("false");

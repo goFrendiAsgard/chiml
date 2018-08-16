@@ -102,14 +102,13 @@ export function smartSplit(str: string, delimiter: string): string[] {
             data.push(word.trim());
             i += delimiter.length - 1;
             word = "";
-        } else {
-            if (chr === "'") {
-                evenSingleQuoteCount = !evenSingleQuoteCount;
-            } else if (chr === '"') {
-                evenDoubleQuoteCount = !evenDoubleQuoteCount;
-            }
-            word += chr;
+            continue;
         }
+        switch (chr) {
+            case "'" : evenSingleQuoteCount = !evenSingleQuoteCount; break;
+            case '"' : evenDoubleQuoteCount = !evenDoubleQuoteCount; break;
+        }
+        word += chr;
     }
     data.push(word.trim());
     return data;
@@ -133,29 +132,31 @@ function normalizeInlineBlockDelimiter(chiml: string) {
 }
 
 function getChimlLineState(line: string): ILineState {
+    const result: ILineState = {
+        isMap: false,
+        isSequence: false,
+        key: "",
+        spaces1: "",
+        spaces2: "",
+        val: "",
+    };
     const mapMatches = new RegExp(CHIML_MAP_ITEM_LINE).exec(line);
-    let spaces1: string = "";
-    let spaces2: string = "";
-    let isMap: boolean = false;
-    let isSequence: boolean = false;
-    let key: string = "";
-    let val: string = "";
     if (mapMatches) {
-        spaces1 = mapMatches[1];
-        isSequence = mapMatches[2] === "-";
-        spaces2 = mapMatches[3];
-        key = mapMatches[4];
-        val = mapMatches[5];
-        isMap = true;
-    } else {
-        const sequenceMatches = new RegExp(CHIML_SEQUENCE_ITEM_LINE).exec(line);
-        if (sequenceMatches) {
-            spaces1 = sequenceMatches[1];
-            val = sequenceMatches[2];
-            isSequence = true;
-        }
+        result.spaces1 = mapMatches[1];
+        result.isSequence = mapMatches[2] === "-";
+        result.spaces2 = mapMatches[3];
+        result.key = mapMatches[4];
+        result.val = mapMatches[5];
+        result.isMap = true;
+        return result;
     }
-    return { spaces1, spaces2, isMap, isSequence, key, val };
+    const sequenceMatches = new RegExp(CHIML_SEQUENCE_ITEM_LINE).exec(line);
+    if (sequenceMatches) {
+        result.spaces1 = sequenceMatches[1];
+        result.val = sequenceMatches[2];
+        result.isSequence = true;
+    }
+    return result;
 }
 
 function normalizeChimlLines(lines: string[]): string[] {
@@ -166,7 +167,8 @@ function normalizeChimlLines(lines: string[]): string[] {
     const previousKeyList: string[] = ["root"];
     for (const line of lines) {
         const lineState = getChimlLineState(line);
-        const { spaces1, spaces2, isMap, isSequence, key, val } = lineState;
+        const { isMap, isSequence, key, spaces1, spaces2, val } = lineState;
+        let newLine = line;
         if (isMap || isSequence) {
             const newSpaceCount = spaces1.length + spaces2.length + (isSequence ? 1 : 0);
             let lastSpaceCount = previousSpaceCount[previousSpaceCount.length - 1];
@@ -183,18 +185,15 @@ function normalizeChimlLines(lines: string[]): string[] {
             lastSpaceCount = newSpaceCount;
             lastKey = insertedKey;
             if (keywords.indexOf(lastKey) > -1 && escapedVal.indexOf(val.trim()) === -1 && !isFlanked(val, '"', '"')) {
-                newLines.push([
+                newLine = [
                     spaces1,
                     isSequence ? "-" : "",
                     isMap ? `${spaces2}${key}: ` : " ",
                     doubleQuote(val),
-                ].join(""));
-            } else {
-                newLines.push(line);
+                ].join("");
             }
-        } else {
-            newLines.push(line);
         }
+        newLines.push(newLine);
     }
     return newLines;
 }

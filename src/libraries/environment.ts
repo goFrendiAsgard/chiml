@@ -3,11 +3,7 @@ function addToObj(obj: { [key: string]: any }, keyParts: string[], value: any): 
         return obj;
     }
     const key = keyParts[0];
-    if (keyParts.length === 1) {
-        obj[key] = value;
-    } else {
-        obj[key] = addToObj(obj[key], keyParts.slice(1), value);
-    }
+    obj[key] = keyParts.length === 1 ? value : addToObj(obj[key], keyParts.slice(1), value);
     return obj;
 }
 

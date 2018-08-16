@@ -132,7 +132,7 @@ test("constructor works with config object where command is flanked with square 
     expect(task.ins[1]).toBe("b");
     expect(task.out).toBe("c");
     expect(task.command).toBe("function (x,y, callback) {callback(null, x+y)}");
-    expect(task.commandType).toBe(CommandType.jsAsyncFunction);
+    expect(task.commandType).toBe(CommandType.jsFunctionWithCallback);
     expect(task.mode).toBe(Mode.single);
     expect(task.branchCondition).toBe("true");
     expect(task.loopCondition).toBe("false");
