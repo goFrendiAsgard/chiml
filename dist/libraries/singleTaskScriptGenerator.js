@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const ejs_1 = require("ejs");
 const singleTaskProperty_1 = require("../enums/singleTaskProperty");
+const stringUtil_1 = require("./stringUtil");
 function renderTemplate(template, config, spaceCount = 0) {
     let spaces = "";
     for (let i = 0; i < spaceCount; i++) {
@@ -43,15 +44,7 @@ function wrapJsFunctionWithCallback(task, spaceCount) {
         "    if (__error) {",
         "      return __reject(__error);",
         "    }",
-        "    if (__result.length === 0) {",
-        "      <%- task.out %> = undefined;",
-        "      return __resolve(true);",
-        "    }",
-        "    if (__result.length === 1) {",
-        "      <%- task.out %> = __result[0];",
-        "      return __resolve(true);",
-        "    }",
-        "      <%- task.out %> = __result;",
+        "    <%- task.out %> = __result.length === 0 ? undefined: (__result.length === 1 ? __result[0] : __result);",
         "    return __resolve(true);",
         "  });",
         "});",
@@ -106,6 +99,19 @@ function getWrapper(task) {
                 case singleTaskProperty_1.CommandType.jsFunctionWithCallback: return wrapJsFunctionWithCallback;
                 case singleTaskProperty_1.CommandType.jsSyncFunction: return wrapJsSyncFunction;
                 case singleTaskProperty_1.CommandType.jsPromise: return wrapJsPromise;
+            }
+    }
+}
+function getReadableModeDescription(task) {
+    switch (task.mode) {
+        case singleTaskProperty_1.Mode.series: return "Series";
+        case singleTaskProperty_1.Mode.parallel: return "Parallel";
+        case singleTaskProperty_1.Mode.single:
+            switch (task.commandType) {
+                case singleTaskProperty_1.CommandType.cmd: return "Single Cmd: " + task.command;
+                case singleTaskProperty_1.CommandType.jsFunctionWithCallback: return "Single JsFunctionWithCallback: " + task.command;
+                case singleTaskProperty_1.CommandType.jsSyncFunction: return "Single JsSyncFunction: " + task.command;
+                case singleTaskProperty_1.CommandType.jsPromise: return "Single JsPromise: " + task.command;
             }
     }
 }
@@ -188,9 +194,11 @@ function getReduceTemplate(task, unitTemplate) {
 function getTemplate(task) {
     const variables = task.expectLocalScope ? getLocalScopeVariables(task) : [];
     const wrapper = getWrapper(task);
+    const readableModeDescription = getReadableModeDescription(task);
     const promiseScript = wrapper(task, 6);
     const variableDeclaration = getVariableDeclaration(variables, task, 2);
     const unitTemplate = [
+        "/* " + readableModeDescription + " */",
         "function __unit<%- task.id %>(<%- ins %>) {",
         (variableDeclaration ? variableDeclaration + "\n" : ""),
         "  let <%- firstFlag %> = true;",
@@ -202,7 +210,18 @@ function getTemplate(task) {
         "    }",
         "    return Promise.resolve(<%- task.out %>);",
         "  }",
-        "  return __fn<%- task.id %>();",
+        "  return __fn<%- task.id %>().catch((__error) => {",
+        "    if (__error && !__error.foreign) {",
+        "      console.error('INPUT :');",
+        "      console.error([<%- ins %>]);",
+        "      console.error('PROCESS :');",
+        "      console.error(" + stringUtil_1.doubleQuote(readableModeDescription) + ");",
+        "      console.error('ERROR :');",
+        "      console.error(__error);",
+        "      __error.foreign = true;",
+        "    }",
+        "    throw(__error);",
+        "  });",
         "}",
     ].join("\n");
     switch (task.functionalMode) {
@@ -241,3 +260,4 @@ function getLocalScopeVariables(task) {
     }
     return vars;
 }
+//# sourceMappingURL=singleTaskScriptGenerator.js.map
