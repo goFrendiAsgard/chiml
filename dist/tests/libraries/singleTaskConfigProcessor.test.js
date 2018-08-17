@@ -428,4 +428,3 @@ test("normalizeRawConfig recognize reduce (with accumulator)", () => {
     expect(config.command).toBe("(x, y) => x + y");
     expect(config.accumulator).toBe("1");
 });
-//# sourceMappingURL=singleTaskConfigProcessor.test.js.map

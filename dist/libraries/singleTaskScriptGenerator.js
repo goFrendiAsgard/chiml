@@ -108,10 +108,10 @@ function getReadableModeDescription(task) {
         case singleTaskProperty_1.Mode.parallel: return "Parallel";
         case singleTaskProperty_1.Mode.single:
             switch (task.commandType) {
-                case singleTaskProperty_1.CommandType.cmd: return "Single Cmd: " + task.command;
-                case singleTaskProperty_1.CommandType.jsFunctionWithCallback: return "Single JsFunctionWithCallback: " + task.command;
-                case singleTaskProperty_1.CommandType.jsSyncFunction: return "Single JsSyncFunction: " + task.command;
-                case singleTaskProperty_1.CommandType.jsPromise: return "Single JsPromise: " + task.command;
+                case singleTaskProperty_1.CommandType.cmd: return "Cmd: " + task.command;
+                case singleTaskProperty_1.CommandType.jsFunctionWithCallback: return "JsFunctionWithCallback: " + task.command;
+                case singleTaskProperty_1.CommandType.jsSyncFunction: return "JsSyncFunction: " + task.command;
+                case singleTaskProperty_1.CommandType.jsPromise: return "JsPromise: " + task.command;
             }
     }
 }
@@ -211,14 +211,15 @@ function getTemplate(task) {
         "    return Promise.resolve(<%- task.out %>);",
         "  }",
         "  return __fn<%- task.id %>().catch((__error) => {",
-        "    if (__error && !__error.foreign) {",
-        "      console.error('INPUT :');",
-        "      console.error([<%- ins %>]);",
-        "      console.error('PROCESS :');",
-        "      console.error(" + stringUtil_1.doubleQuote(readableModeDescription) + ");",
-        "      console.error('ERROR :');",
-        "      console.error(__error);",
-        "      __error.foreign = true;",
+        "    __error = __error && 'message' in __error ? __error : new Error(__error);",
+        "    if (__error && !__error.__propagated) {",
+        "      __error.message = [",
+        '        "",',
+        '        "INPUT   : " + JSON.stringify([<%- ins %>], null, 2).split("\\n").join("\\n  "),',
+        '        "PROCESS : " + ' + stringUtil_1.doubleQuote(readableModeDescription) + ",",
+        '        "ERROR   : " + (__error.message).split("\\n").join("\\n  "),',
+        '      ].join("\\n");',
+        "      __error.__propagated = true;",
         "    }",
         "    throw(__error);",
         "  });",
@@ -260,4 +261,3 @@ function getLocalScopeVariables(task) {
     }
     return vars;
 }
-//# sourceMappingURL=singleTaskScriptGenerator.js.map

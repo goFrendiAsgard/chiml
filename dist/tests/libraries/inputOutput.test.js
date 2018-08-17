@@ -28,4 +28,3 @@ test("able to prompt", (done) => {
     });
     rl.write("Hello\r\n");
 });
-//# sourceMappingURL=inputOutput.test.js.map

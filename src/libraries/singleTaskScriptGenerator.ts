@@ -117,10 +117,10 @@ function getReadableModeDescription(task: ISingleTask): string {
         case Mode.parallel: return "Parallel";
         case Mode.single:
             switch (task.commandType) {
-                case CommandType.cmd: return "Single Cmd: " + task.command;
-                case CommandType.jsFunctionWithCallback: return "Single JsFunctionWithCallback: " + task.command;
-                case CommandType.jsSyncFunction: return "Single JsSyncFunction: " + task.command;
-                case CommandType.jsPromise: return "Single JsPromise: " + task.command;
+                case CommandType.cmd: return "Cmd: " + task.command;
+                case CommandType.jsFunctionWithCallback: return "JsFunctionWithCallback: " + task.command;
+                case CommandType.jsSyncFunction: return "JsSyncFunction: " + task.command;
+                case CommandType.jsPromise: return "JsPromise: " + task.command;
             }
     }
 }
@@ -227,14 +227,15 @@ function getTemplate(task: ISingleTask): string {
         "    return Promise.resolve(<%- task.out %>);",
         "  }",
         "  return __fn<%- task.id %>().catch((__error) => {",
-        "    if (__error && !__error.foreign) {",
-        "      console.error('INPUT :');",
-        "      console.error([<%- ins %>]);",
-        "      console.error('PROCESS :');",
-        "      console.error(" + doubleQuote(readableModeDescription) + ");",
-        "      console.error('ERROR :');",
-        "      console.error(__error);",
-        "      __error.foreign = true;",
+        "    __error = __error && 'message' in __error ? __error : new Error(__error);",
+        "    if (__error && !__error.__propagated) {",
+        "      __error.message = [",
+        '        "",',
+        '        "INPUT   : " + JSON.stringify([<%- ins %>], null, 2).split("\\n").join("\\n  "),',
+        '        "PROCESS : " + ' + doubleQuote(readableModeDescription) + ",",
+        '        "ERROR   : " + (__error.message).split("\\n").join("\\n  "),',
+        '      ].join("\\n");',
+        "      __error.__propagated = true;",
         "    }",
         "    throw(__error);",
         "  });",

@@ -153,4 +153,3 @@ function compileSingleFile(chiml) {
         return Promise.resolve(jsFilePath);
     });
 }
-//# sourceMappingURL=tools.js.map

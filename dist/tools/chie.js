@@ -18,4 +18,3 @@ if (require.main === module) {
     const args = process.argv.slice(2);
     main(args);
 }
-//# sourceMappingURL=chie.js.map

@@ -198,4 +198,3 @@ test("able to double quote", () => {
     const result1 = stringUtil_1.doubleQuote("System.out.println(\"Hello world\");");
     expect(result1).toBe("\"System.out.println(\\\"Hello world\\\");\"");
 });
-//# sourceMappingURL=stringUtil.test.js.map
