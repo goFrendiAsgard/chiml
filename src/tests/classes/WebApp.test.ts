@@ -581,6 +581,14 @@ test("able to reply authorized request to /jsonrpc (using jsonRpcProxy)", (done)
     });
 });
 
+test("able to reply authorized request to /jsonrpc (using jsonRpcProxy with object as config)", (done) => {
+    createJsonRpcProxy({ url: `${url}/jsonrpc?user=alice` }).call("plus", 4, 5, (error, result) => {
+        expect(error).toBeNull();
+        expect(result).toBe(9);
+        done();
+    });
+});
+
 test("able to reject unauthorized request to /jsonrpc (using jsonRpcProxy)", (done) => {
     createJsonRpcProxy(`${url}/jsonrpc?user=bob`).call("plus", 4, 5, (error, result) => {
         expect(error).toBeDefined();

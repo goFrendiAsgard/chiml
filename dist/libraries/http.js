@@ -7,9 +7,10 @@ function httpRequest(config, callback) {
     });
 }
 exports.httpRequest = httpRequest;
-function jsonRpcRequest(url, method, ...params) {
+function jsonRpcRequest(config, method, ...params) {
     const callback = params.pop();
-    const requestConfig = {
+    const normalizedConfig = typeof config === "string" ? { url: config } : config;
+    const defaultRequestConfig = {
         body: JSON.stringify({
             id: 1,
             jsonrpc: "2.0",
@@ -17,8 +18,8 @@ function jsonRpcRequest(url, method, ...params) {
             params,
         }),
         method: "POST",
-        url,
     };
+    const requestConfig = Object.assign(normalizedConfig, defaultRequestConfig);
     httpRequest(requestConfig, (error, body) => {
         if (error) {
             return callback(error, null);

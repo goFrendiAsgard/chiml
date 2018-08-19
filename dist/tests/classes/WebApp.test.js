@@ -549,6 +549,13 @@ test("able to reply authorized request to /jsonrpc (using jsonRpcProxy)", (done)
         done();
     });
 });
+test("able to reply authorized request to /jsonrpc (using jsonRpcProxy with object as config)", (done) => {
+    createJsonRpcProxy_1.createJsonRpcProxy({ url: `${url}/jsonrpc?user=alice` }).call("plus", 4, 5, (error, result) => {
+        expect(error).toBeNull();
+        expect(result).toBe(9);
+        done();
+    });
+});
 test("able to reject unauthorized request to /jsonrpc (using jsonRpcProxy)", (done) => {
     createJsonRpcProxy_1.createJsonRpcProxy(`${url}/jsonrpc?user=bob`).call("plus", 4, 5, (error, result) => {
         expect(error).toBeDefined();
@@ -578,3 +585,4 @@ test("able to close server", (done) => {
     expect(server.listening).toBeFalsy();
     done();
 });
+//# sourceMappingURL=WebApp.test.js.map

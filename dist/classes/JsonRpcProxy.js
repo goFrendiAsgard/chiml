@@ -2,11 +2,11 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const http_1 = require("../libraries/http");
 class JsonRpcProxy {
-    constructor(url) {
-        this.url = url;
+    constructor(config) {
+        this.config = config;
     }
     call(method, ...params) {
-        http_1.jsonRpcRequest(this.url, method, ...params);
+        http_1.jsonRpcRequest(this.config, method, ...params);
     }
 }
 exports.JsonRpcProxy = JsonRpcProxy;
