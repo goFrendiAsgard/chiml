@@ -85,3 +85,4 @@ function runCompiledChiml(scriptPath, ins) {
 function createStdInListener(subProcess) {
     return (chunk) => subProcess.stdin.write(chunk);
 }
+//# sourceMappingURL=cmd.js.map

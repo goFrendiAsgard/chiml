@@ -20,3 +20,4 @@ var CommandType;
     CommandType[CommandType["jsSyncFunction"] = 2] = "jsSyncFunction";
     CommandType[CommandType["jsPromise"] = 3] = "jsPromise";
 })(CommandType = exports.CommandType || (exports.CommandType = {}));
+//# sourceMappingURL=singleTaskProperty.js.map

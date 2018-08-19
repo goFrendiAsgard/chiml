@@ -1,6 +1,7 @@
 import { dirname as pathDirName, resolve as pathResolve } from "path";
 import * as io from "socket.io-client";
 import { WebApp } from "../../classes/WebApp";
+import { createJsonRpcProxy } from "../../libraries/createJsonRpcProxy";
 import { httpRequest, jsonRpcRequest } from "../../libraries/http";
 
 const testcaseDirPath = pathResolve(pathDirName(pathDirName(pathDirName(__dirname))), "testcase", "webApp");
@@ -154,7 +155,7 @@ test("able to create io", (done) => {
     done();
 });
 
-it("able to send io request", (done) => {
+test("able to send io request", (done) => {
     const socket = io.connect(url);
     socket.emit("snip", 73);
     socket.on("snap", (message) => {
@@ -164,7 +165,7 @@ it("able to send io request", (done) => {
     });
 });
 
-it("able to create https server", (done) => {
+test("able to create https server", (done) => {
     const httpsServer = app.createHttpsServer();
     expect(httpsServer).toBeDefined();
     done();
@@ -229,7 +230,7 @@ for (const user in authorizedTest) {
     if (user in authorizedTest) {
         for (const subUrl in authorizedTest[user]) {
             if (subUrl in authorizedTest[user]) {
-                it(`able to reply authorized request to /${subUrl}?user=${user}`, (done) => {
+                test(`able to reply authorized request to /${subUrl}?user=${user}`, (done) => {
                     httpRequest(`${url}/${subUrl}?user=${user}`, (error, body) => {
                         if (authorizedTest[user][subUrl]) {
                             expect(body).toMatch(/^.+\sPage$/g);
@@ -244,7 +245,7 @@ for (const user in authorizedTest) {
     }
 }
 
-it("able to reply request to /first", (done) => {
+test("able to reply request to /first", (done) => {
     httpRequest(`${url}/first`, (error, body) => {
         expect(error).toBeNull();
         expect(body).toBe("Roses are red");
@@ -252,7 +253,7 @@ it("able to reply request to /first", (done) => {
     });
 });
 
-it("able to reply request to /second", (done) => {
+test("able to reply request to /second", (done) => {
     httpRequest(`${url}/second`, (error, body) => {
         expect(error).toBeNull();
         expect(body).toBe("Violet is blue");
@@ -260,7 +261,7 @@ it("able to reply request to /second", (done) => {
     });
 });
 
-it("able to reply request to /add/5/3", (done) => {
+test("able to reply request to /add/5/3", (done) => {
     httpRequest(`${url}/add/5/3`, (error, body) => {
         expect(error).toBeNull();
         expect(body).toBe("8");
@@ -268,7 +269,7 @@ it("able to reply request to /add/5/3", (done) => {
     });
 });
 
-it("able to reply request to /minus/5/3", (done) => {
+test("able to reply request to /minus/5/3", (done) => {
     httpRequest(`${url}/minus/5/3`, (error, body) => {
         expect(error).toBeNull();
         expect(body).toBe("2");
@@ -276,7 +277,7 @@ it("able to reply request to /minus/5/3", (done) => {
     });
 });
 
-it("able to reply request to /echo/blah", (done) => {
+test("able to reply request to /echo/blah", (done) => {
     httpRequest(`${url}/echo/blah`, (error, body) => {
         expect(error).toBeNull();
         expect(body).toBe("blah");
@@ -284,7 +285,7 @@ it("able to reply request to /echo/blah", (done) => {
     });
 });
 
-it("able to reply request to undefined route", (done) => {
+test("able to reply request to undefined route", (done) => {
     httpRequest(url, (error, body) => {
         expect(error).toBeNull();
         expect(body).toBe(`${header}${footer}${copyRight}${year}`);
@@ -292,7 +293,7 @@ it("able to reply request to undefined route", (done) => {
     });
 });
 
-it("able to reply request to /hello/Frodo", (done) => {
+test("able to reply request to /hello/Frodo", (done) => {
     httpRequest(`${url}/hello/Frodo`, (error, body) => {
         expect(error).toBeNull();
         expect(body).toBe(`${header}Hello Frodo${footer}${copyRight}${year}`);
@@ -300,7 +301,7 @@ it("able to reply request to /hello/Frodo", (done) => {
     });
 });
 
-it("able to reply request to /hi/Luke", (done) => {
+test("able to reply request to /hi/Luke", (done) => {
     httpRequest(`${url}/hi/Luke`, (error, body) => {
         expect(error).toBeNull();
         expect(body).toBe(`${header}Hi Luke${footer}${copyRight}${year}`);
@@ -308,7 +309,7 @@ it("able to reply request to /hi/Luke", (done) => {
     });
 });
 
-it("able to reply request to /bonjour/Kirk", (done) => {
+test("able to reply request to /bonjour/Kirk", (done) => {
     httpRequest(`${url}/bonjour/Kirk`, (error, body) => {
         expect(error).toBeNull();
         expect(body).toBe(`${header}Bonjour Kirk${footer}${copyRight}${year}`);
@@ -316,7 +317,7 @@ it("able to reply request to /bonjour/Kirk", (done) => {
     });
 });
 
-it("able to reply request to /page-hello/Frodo", (done) => {
+test("able to reply request to /page-hello/Frodo", (done) => {
     httpRequest(`${url}/page-hello/Frodo`, (error, body) => {
         expect(error).toBeNull();
         expect(body).toBe(`${header}Hello Frodo${footer}${copyRight}${year}`);
@@ -324,7 +325,7 @@ it("able to reply request to /page-hello/Frodo", (done) => {
     });
 });
 
-it("able to reply request to /page-hi/Luke", (done) => {
+test("able to reply request to /page-hi/Luke", (done) => {
     httpRequest(`${url}/page-hi/Luke`, (error, body) => {
         expect(error).toBeNull();
         expect(body).toBe(`${header}Hi Luke${footer}${copyRight}${year}`);
@@ -332,7 +333,7 @@ it("able to reply request to /page-hi/Luke", (done) => {
     });
 });
 
-it("able to reply request to /page-bonjour/Kirk", (done) => {
+test("able to reply request to /page-bonjour/Kirk", (done) => {
     httpRequest(`${url}/page-bonjour/Kirk`, (error, body) => {
         expect(error).toBeNull();
         expect(body).toBe(`${header}Bonjour Kirk${footer}${copyRight}${year}`);
@@ -340,7 +341,7 @@ it("able to reply request to /page-bonjour/Kirk", (done) => {
     });
 });
 
-it("able to reply request to /jsonrpc (using httpRequest)", (done) => {
+test("able to reply request to /jsonrpc (using httpRequest)", (done) => {
     const requestConfig = {
         body: JSON.stringify({
             id: 1,
@@ -358,7 +359,7 @@ it("able to reply request to /jsonrpc (using httpRequest)", (done) => {
     });
 });
 
-it("able to reply request to /jsonrpc (using httpRequest, invalid chiml location)", (done) => {
+test("able to reply request to /jsonrpc (using httpRequest, invalid chiml location)", (done) => {
     const requestConfig = {
         body: JSON.stringify({
             id: 1,
@@ -383,7 +384,7 @@ it("able to reply request to /jsonrpc (using httpRequest, invalid chiml location
     });
 });
 
-it("able to reply request to /jsonrpc (using httpRequest, invalid id)", (done) => {
+test("able to reply request to /jsonrpc (using httpRequest, invalid id)", (done) => {
     const requestConfig = {
         body: JSON.stringify({
             id: 1.5,
@@ -408,7 +409,7 @@ it("able to reply request to /jsonrpc (using httpRequest, invalid id)", (done) =
     });
 });
 
-it("able to reply request to /jsonrpc (using httpRequest, invalid version)", (done) => {
+test("able to reply request to /jsonrpc (using httpRequest, invalid version)", (done) => {
     const requestConfig = {
         body: JSON.stringify({
             id: 1,
@@ -433,7 +434,7 @@ it("able to reply request to /jsonrpc (using httpRequest, invalid version)", (do
     });
 });
 
-it("able to reply request to /jsonrpc (using httpRequest, invalid params)", (done) => {
+test("able to reply request to /jsonrpc (using httpRequest, invalid params)", (done) => {
     const requestConfig = {
         body: JSON.stringify({
             id: 1,
@@ -458,7 +459,7 @@ it("able to reply request to /jsonrpc (using httpRequest, invalid params)", (don
     });
 });
 
-it("able to reply request to /jsonrpc (using httpRequest, invalid method: wrong data type)", (done) => {
+test("able to reply request to /jsonrpc (using httpRequest, invalid method: wrong data type)", (done) => {
     const requestConfig = {
         body: JSON.stringify({
             id: 1,
@@ -483,7 +484,7 @@ it("able to reply request to /jsonrpc (using httpRequest, invalid method: wrong 
     });
 });
 
-it("able to reply request to /jsonrpc (using httpRequest, invalid method: non exists)", (done) => {
+test("able to reply request to /jsonrpc (using httpRequest, invalid method: non exists)", (done) => {
     const requestConfig = {
         body: JSON.stringify({
             id: 1,
@@ -508,7 +509,7 @@ it("able to reply request to /jsonrpc (using httpRequest, invalid method: non ex
     });
 });
 
-it("able to reply request to /jsonrpc (using httpRequest, invalid json)", (done) => {
+test("able to reply request to /jsonrpc (using httpRequest, invalid json)", (done) => {
     const requestConfig = {
         body: "Invalid Json",
         method: "POST",
@@ -528,7 +529,7 @@ it("able to reply request to /jsonrpc (using httpRequest, invalid json)", (done)
     });
 });
 
-it("able to reply request to /jsonrpc (using jsonRpcRequest)", (done) => {
+test("able to reply request to /jsonrpc (using jsonRpcRequest)", (done) => {
     jsonRpcRequest(`${url}/jsonrpc`, "add", 4, 5, (error, result) => {
         expect(error).toBeNull();
         expect(result).toBe(9);
@@ -536,7 +537,7 @@ it("able to reply request to /jsonrpc (using jsonRpcRequest)", (done) => {
     });
 });
 
-it("able to reply authorized request to /jsonrpc (using jsonRpcRequest)", (done) => {
+test("able to reply authorized request to /jsonrpc (using jsonRpcRequest)", (done) => {
     jsonRpcRequest(`${url}/jsonrpc?user=alice`, "plus", 4, 5, (error, result) => {
         expect(error).toBeNull();
         expect(result).toBe(9);
@@ -544,35 +545,71 @@ it("able to reply authorized request to /jsonrpc (using jsonRpcRequest)", (done)
     });
 });
 
-it("able to reject unauthorized request to /jsonrpc (using jsonRpcRequest)", (done) => {
+test("able to reject unauthorized request to /jsonrpc (using jsonRpcRequest)", (done) => {
     jsonRpcRequest(`${url}/jsonrpc?user=bob`, "plus", 4, 5, (error, result) => {
         expect(error).toBeDefined();
         done();
     });
 });
 
-it("able to reject invalid request to /jsonrpc (using jsonRpcRequest)", (done) => {
+test("able to reject invalid request to /jsonrpc (using jsonRpcRequest)", (done) => {
     jsonRpcRequest(`${url}/jsonrpc`, "invalid", 4, 5, (error, result) => {
         expect(error).toBeDefined();
         done();
     });
 });
 
-it("able to reject invalid url (using jsonRpcRequest)", (done) => {
+test("able to reject invalid url (using jsonRpcRequest)", (done) => {
     jsonRpcRequest("ftp://nonexists.nonsense", "invalid", 4, 5, (error, result) => {
         expect(error).toBeDefined();
         done();
     });
 });
 
-it("able to reject invalid url that is not jsonrpc (using jsonRpcRequest)", (done) => {
+test("able to reject invalid url that is not jsonrpc (using jsonRpcRequest)", (done) => {
     jsonRpcRequest(`${url}/page-bonjour/Kirk`, "invalid", 4, 5, (error, result) => {
         expect(error).toBeDefined();
         done();
     });
 });
 
-it("able to close server", (done) => {
+test("able to reply authorized request to /jsonrpc (using jsonRpcProxy)", (done) => {
+    createJsonRpcProxy(`${url}/jsonrpc?user=alice`).call("plus", 4, 5, (error, result) => {
+        expect(error).toBeNull();
+        expect(result).toBe(9);
+        done();
+    });
+});
+
+test("able to reject unauthorized request to /jsonrpc (using jsonRpcProxy)", (done) => {
+    createJsonRpcProxy(`${url}/jsonrpc?user=bob`).call("plus", 4, 5, (error, result) => {
+        expect(error).toBeDefined();
+        done();
+    });
+});
+
+test("able to reject invalid request to /jsonrpc (using jsonRpcProxy)", (done) => {
+    createJsonRpcProxy(`${url}/jsonrpc`).call("invalid", 4, 5, (error, result) => {
+        expect(error).toBeDefined();
+        done();
+    });
+});
+
+test("able to reject invalid url (using jsonRpcProxy)", (done) => {
+    createJsonRpcProxy("ftp://nonexists.nonsense").call("invalid", 4, 5, (error, result) => {
+        expect(error).toBeDefined();
+        done();
+    });
+});
+
+test("able to reject invalid url that is not jsonrpc (using jsonRpcProxy)", (done) => {
+    createJsonRpcProxy(`${url}/page-bonjour/Kirk`).call("invalid", 4, 5, (error, result) => {
+        expect(error).toBeDefined();
+        done();
+    });
+});
+
+test("able to close server", (done) => {
     server.close();
     expect(server.listening).toBeFalsy();
     done();
