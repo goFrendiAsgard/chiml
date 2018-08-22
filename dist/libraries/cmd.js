@@ -1,10 +1,13 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const chalk_1 = require("chalk");
 const child_process_1 = require("child_process");
 const path_1 = require("path");
+const Logger_1 = require("../classes/Logger");
 const stringUtil_1 = require("./stringUtil");
+const defaultLogger = new Logger_1.Logger();
 function cmd(command, options) {
-    const customConsole = options && "console" in options ? options.console : console;
+    const logger = options && "logger" in options ? options.logger : defaultLogger;
     return new Promise((resolve, reject) => {
         const subProcess = child_process_1.exec(command, options, (error, stdout, stderr) => {
             if (error) {
@@ -13,10 +16,10 @@ function cmd(command, options) {
             return resolve(stdout);
         });
         subProcess.stdout.on("data", (chunk) => {
-            process.stderr.write("\x1b[33m" + String(chunk) + "\x1b[0m");
+            process.stderr.write(chalk_1.default.yellowBright(String(chunk)));
         });
         subProcess.stderr.on("data", (chunk) => {
-            process.stderr.write("\x1b[31m" + String(chunk) + "\x1b[0m");
+            process.stderr.write(chalk_1.default.redBright(String(chunk)));
         });
         const stdinListener = createStdInListener(subProcess);
         process.stdin.on("data", stdinListener);
@@ -24,8 +27,8 @@ function cmd(command, options) {
             process.stdin.removeListener("data", stdinListener);
             process.stdin.end();
         });
-        subProcess.stdin.on("error", (error) => customConsole.error(error));
-        process.stdin.on("error", (error) => customConsole.error(error));
+        subProcess.stdin.on("error", (error) => logger.error(error));
+        process.stdin.on("error", (error) => logger.error(error));
     });
 }
 exports.cmd = cmd;

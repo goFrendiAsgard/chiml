@@ -2,7 +2,9 @@ import * as http from "http";
 import * as https from "https";
 import * as Koa from "koa";
 import * as socketIo from "socket.io";
+import { Logger } from "../classes/Logger";
 import { ISocketIoEventListener } from "../interfaces/ISocketIoEventListener";
+import { ISocketIoInjectedSocket } from "../interfaces/ISocketIoInjectedSocket";
 import { ISocketIoServer } from "../interfaces/ISocketIoServer";
 import {
     createAuthenticationMiddleware,
@@ -10,11 +12,31 @@ import {
     createJsonRpcMiddleware,
     createMiddleware,
     createRouteMiddleware,
+    isAuthorized,
 } from "../libraries/middlewares";
+
+const defaultLogger = new Logger();
+
+function defaultSocketIoAuthorizationWrapper(
+    middleware: (socket: ISocketIoInjectedSocket, ...args: any[]) => any,
+    config: { [key: string]: any },
+): (socket: ISocketIoInjectedSocket, ...args: any[]) => any {
+    return (socket: ISocketIoInjectedSocket, ...args: any[]) => {
+        const { ctx } = socket;
+        if (isAuthorized(ctx, config)) {
+            return middleware(socket, ...args);
+        }
+        const next = args[args.length - 1];
+        return next();
+    };
+}
 
 export class WebApp extends Koa {
 
     public createServer = this.createHttpServer;
+
+    private authenticationMiddleware: (...ins: any[]) => any = null;
+    private authorizationMiddleware: (...ins: any[]) => any = null;
 
     public createIo(server: http.Server | https.Server): ISocketIoServer {
         const self = this;
@@ -29,18 +51,29 @@ export class WebApp extends Koa {
                 for (const eventListener of io.eventListeners) {
                     // get event and handler
                     const { event, controller } = eventListener;
+                    const logger = "logger" in eventListener && eventListener.logger ?
+                        eventListener.logger : defaultLogger;
                     const handler = createMiddleware({
-                        authorizationWrapper: null, controller, propagateContext: true,
+                        authorizationWrapper: defaultSocketIoAuthorizationWrapper,
+                        controller,
+                        propagateContext: true,
                     });
                     // register event
-                    socket.on(event, (...ins: any[]) => {
+                    socket.on(event, async (...ins: any[]) => {
+                        const request = socket.request;
+                        const httpServerResponse = new http.ServerResponse(socket.request);
                         // inject fake ctx to socket
-                        const ctx: Koa.Context = self.createContext(
-                            socket.request, new http.ServerResponse(socket.request));
+                        const ctx = self.createContext(request, httpServerResponse);
+                        if (self.authenticationMiddleware) {
+                            await self.authenticationMiddleware(ctx, async () => null);
+                        }
+                        if (self.authorizationMiddleware) {
+                            await self.authorizationMiddleware(ctx, async () => null);
+                        }
                         Object.defineProperty(socket, "ctx", { value: ctx, writable: false, configurable: true });
                         // execute handler
                         handler(socket, ...ins).catch((error) => {
-                            console.error(error);
+                            logger.error(error);
                         });
                     });
                 }
@@ -61,12 +94,20 @@ export class WebApp extends Koa {
         this.use(createJsonRpcMiddleware(url, configs));
     }
 
-    public addAuthentication(config: { [key: string]: any }): void {
-        this.use(createAuthenticationMiddleware(config));
+    public setAuthentication(config: { [key: string]: any }): void {
+        if (this.authenticationMiddleware) {
+            throw(new Error("Cannot set authentication middleware"));
+        }
+        this.authenticationMiddleware = createAuthenticationMiddleware(config);
+        this.use(this.authenticationMiddleware);
     }
 
-    public addAuthorization(config: { [key: string]: any }): void {
-        this.use(createAuthorizationMiddleware(config));
+    public setAuthorization(config: { [key: string]: any }): void {
+        if (this.authorizationMiddleware) {
+            throw(new Error("Cannot set authorization middleware"));
+        }
+        this.authorizationMiddleware = createAuthorizationMiddleware(config);
+        this.use(this.authorizationMiddleware);
     }
 
     public addMiddlewares(controllers: any[]): void {

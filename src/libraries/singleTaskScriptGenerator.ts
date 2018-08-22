@@ -45,7 +45,7 @@ function wrapJsFunctionWithCallback(task: ISingleTask, spaceCount: number): stri
         "    if (__error) {",
         "      return __reject(__error);",
         "    }",
-        "    <%- task.out %> = __result.length === 0 ? undefined: (__result.length === 1 ? __result[0] : __result);",
+        "    <%- task.out %> = __result.length === 0 ? undefined : (__result.length === 1 ? __result[0] : __result);",
         "    return __resolve(true);",
         "  });",
         "});",

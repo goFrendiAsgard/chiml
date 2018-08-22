@@ -1,8 +1,9 @@
 #! /usr/bin/env node
-import { compile, getFiles } from "../index";
+import { compile, getFiles, Logger } from "../index";
 
 function main(args: any[]) {
     const fileGetter = args.length < 1 ? getFiles(".") : Promise.resolve(args);
+    const logger = new Logger();
     fileGetter
         .then((files) => {
             return compile(files);
@@ -11,10 +12,10 @@ function main(args: any[]) {
             const createdFileList = jsFilePaths.map((filePath) => {
                 return "- " + filePath;
             }).join("\n");
-            console.log(`JavaScript file created:\n${createdFileList}`);
+            logger.log(`JavaScript file created:\n${createdFileList}`);
         })
         .catch((error) => {
-            console.error(error);
+            logger.error(error);
         });
 }
 

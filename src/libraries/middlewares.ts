@@ -2,9 +2,12 @@ import { existsSync as fsExistsSync } from "fs";
 import * as Koa from "koa";
 import * as koaRoute from "koa-route";
 import * as pathToRegexp from "path-to-regexp";
+import { Logger } from "../classes/Logger";
 import { getChimlCompiledScriptPath } from "./cmd";
 import { readFromStream } from "./stream";
 import { execute } from "./tools";
+
+const defaultLogger = new Logger();
 
 enum JREC {
     ParseError = -32700,
@@ -45,19 +48,20 @@ function jsonRpcAuthorizationWrapper(
     config: { [key: string]: any },
 ): (ctx: Koa.Context, ...args: any[]) => any {
     return (ctx: Koa.Context, ...args: any[]) => {
-        if (!isAuthorized(ctx, config)) {
-            return jsonRpcErrorProcessor(ctx, {
-                code: JREC.MethodNotFound,
-                message: "unauthorized access",
-            });
+        if (isAuthorized(ctx, config)) {
+            return middleware(ctx, ...args);
         }
-        return middleware(ctx, ...args);
+        return jsonRpcErrorProcessor(ctx, {
+            code: JREC.MethodNotFound,
+            message: "unauthorized access",
+        });
     };
 }
 
 const defaultMiddlewareConfig = {
     authorizationWrapper: defaultAuthorizationWrapper,
     controller: (...ins) => ins.slice(0, -1).join(""),
+    logger: defaultLogger,
     outProcessor: defaultOutProcessor,
     propagateContext: true,
     roles: defaultRoles,
@@ -65,6 +69,7 @@ const defaultMiddlewareConfig = {
 
 const defaultRouteConfig = {
     authorizationWrapper: defaultAuthorizationWrapper,
+    logger: defaultLogger,
     method: "all",
     propagateContext: false,
     roles: defaultRoles,
@@ -109,28 +114,33 @@ export function createAuthorizationMiddleware(config: { [key: string]: any }): (
 
 export function createJsonRpcMiddleware(url: string, configs: any[], method: string = "all"): (...ins: any[]) => any {
     const normalizedConfigs = configs.map((config) => {
-        return Object.assign({}, { propagateContext: false, controller: (...ins) => ins }, config);
+        const normalizedConfig = createNormalizedMiddlewareConfig(config);
+        return Object.assign({}, { propagateContext: false, controller: (...ins) => ins }, normalizedConfig);
     });
     const middleware = createJsonRpcBaseMiddleware(normalizedConfigs);
     return koaRoute[method](url, middleware);
 }
 
 export function createRouteMiddleware(config: { [key: string]: any }): (...ins: any[]) => any {
-    const normalizedRouteConfig = Object.assign({}, defaultRouteConfig, config);
+    const normalizedConfig = createNormalizedMiddlewareConfig(config);
+    const normalizedRouteConfig = Object.assign({}, defaultRouteConfig, normalizedConfig);
     const { method, url } = normalizedRouteConfig;
     const middleware = createMiddleware(normalizedRouteConfig);
     return koaRoute[method](url, middleware);
 }
 
 export function createMiddleware(middlewareConfig: any): (...ins: any[]) => any {
-    const normalizedMiddlewareConfig = isController(middlewareConfig) ?
-        { controller: middlewareConfig } : middlewareConfig;
+    const normalizedMiddlewareConfig = createNormalizedMiddlewareConfig(middlewareConfig);
     const normalizedConfig = Object.assign({}, defaultMiddlewareConfig, normalizedMiddlewareConfig);
-    const middleware = createHandler(normalizedConfig);
+    const middleware = createMetaMiddleware(normalizedConfig);
     if ("authorizationWrapper" in normalizedConfig && normalizedConfig.authorizationWrapper) {
         return normalizedConfig.authorizationWrapper(middleware, normalizedConfig);
     }
     return middleware;
+}
+
+function createNormalizedMiddlewareConfig(middlewareConfig: any): (...ins: any[]) => any {
+    return isController(middlewareConfig) ? { controller: middlewareConfig } : middlewareConfig;
 }
 
 function isController(config: any): boolean {
@@ -163,33 +173,33 @@ function isRouteMatch(ctx: Koa.Context, config: { [key: string]: any }) {
     return false;
 }
 
-function isAuthorized(ctx: Koa.Context, config: { [key: string]: string }): boolean {
+export function isAuthorized(ctx: Koa.Context, config: { [key: string]: string }): boolean {
     const normalizedConfig = Object.assign({}, { roles: defaultRoles }, config);
     ctx.state = ctx.state || {};
     ctx.state.roles = ctx.state.roles || (ctx.state.user ? ["loggedIn"] : ["loggedOut"]);
     return ctx.state.roles.filter((role) => normalizedConfig.roles.indexOf(role) > -1).length > 0;
 }
 
-function createHandler(config: { [key: string]: any }): (...ins: any[]) => any {
+function createMetaMiddleware(config: { [key: string]: any }): (...ins: any[]) => any {
     const normalizedConfig = Object.assign({}, defaultMiddlewareConfig, config);
     const { controller, propagateContext, outProcessor } = normalizedConfig;
-    if (!propagateContext) {
-        const subHandler = createHandler({
-            controller,
-            outProcessor,
-            propagateContext: true,
-        });
-        return (ctx: { [key: string]: any }, ...ins: any[]) => {
-            return subHandler(...ins)
-                .then((out) => outProcessor(ctx, out));
-        };
+    if (propagateContext) {
+        return createBareMiddleware(controller);
     }
+    const subHandler = createBareMiddleware(controller);
+    return (ctx: { [key: string]: any }, ...ins: any[]) => {
+        return subHandler(...ins)
+            .then((out) => outProcessor(ctx, out));
+    };
+}
+
+export function createBareMiddleware(controller: any): (...ins: any[]) => any {
     if (typeof controller === "string") {
         const scriptPath = getChimlCompiledScriptPath(controller, process.cwd());
         if (scriptPath !== controller && fsExistsSync(scriptPath)) {
             // compiled chiml
             return (...ins: any[]) => {
-                const fn = require(scriptPath);
+                const fn: (...ins: any[]) => any = require(scriptPath);
                 const normalIns = getNormalizedIns(ins);
                 return fn(...normalIns);
             };
@@ -200,17 +210,20 @@ function createHandler(config: { [key: string]: any }): (...ins: any[]) => any {
     // function
     return (...ins: any[]) => {
         const result: any = controller(...ins);
-        try {
-            if ("then" in result) {
-                // if the result is promise like, return it
-                return result;
-            }
-        } catch (error) {
-            // do nothing
+        if (result && typeof result === "object" && "then" in result) {
+            // if the result is promise like, return it
+            return result;
         }
         // if the result is not promise like, make a promise based on it
         return Promise.resolve(result);
     };
+}
+
+function jsonRpcSimpleErrorProcessor(
+    ctx: Koa.Context, id: number = null, code: number = JREC.InternalError, message: string = "",
+): void {
+    const errorObj = { id, code, message };
+    jsonRpcErrorProcessor(ctx, errorObj);
 }
 
 function jsonRpcErrorProcessor(ctx: Koa.Context, errorObj: { [key: string]: any }): void {
@@ -234,48 +247,36 @@ function isValidJsonRpcId(id): boolean {
 }
 
 function createJsonRpcBaseMiddleware(configs: any[]): (...ins: any[]) => any {
+    const logger = Array.isArray(configs) && configs.length > 0 && "logger" in configs[0] ?
+        configs[0].logger : defaultLogger;
     return async (ctx: Koa.Context, ...ins: any[]) => {
         let jsonRequest;
         try {
             const request = await readFromStream(ctx.req);
             jsonRequest = JSON.parse(request);
         } catch (error) {
-            console.error(error);
-            return jsonRpcErrorProcessor(ctx, { code: JREC.ParseError });
+            defaultLogger.error(error);
+            return jsonRpcSimpleErrorProcessor(ctx, null, JREC.ParseError);
         }
 
         const { id, jsonrpc, method, params } = jsonRequest;
         if (!isValidJsonRpcId(id)) {
-            return jsonRpcErrorProcessor(ctx, {
-                code: JREC.InvalidRequest,
-                message: "id should be null, undefined, or interger",
-            });
+            return jsonRpcSimpleErrorProcessor(
+                ctx, id, JREC.InvalidRequest, "id should be null, undefined, or integer");
         }
         if (jsonrpc !== "2.0") {
-            return jsonRpcErrorProcessor(ctx, {
-                code: JREC.InvalidRequest,
-                message: 'jsonrpc must be exactly "2.0"',
-            });
+            return jsonRpcSimpleErrorProcessor(ctx, id, JREC.InvalidRequest, 'jsonrpc must be exactly "2.0"');
         }
         if (typeof method !== "string") {
-            return jsonRpcErrorProcessor(ctx, {
-                code: JREC.InvalidRequest,
-                message: "method must be string",
-            });
+            return jsonRpcSimpleErrorProcessor(ctx, id, JREC.InvalidRequest, "method must be string");
         }
         if (!Array.isArray(params)) {
-            return jsonRpcErrorProcessor(ctx, {
-                code: JREC.InvalidParams,
-                message: "invalid params",
-            });
+            return jsonRpcSimpleErrorProcessor(ctx, id, JREC.InvalidParams, "invalid params");
         }
 
         const matchedConfigs = configs.filter((config) => config.method === method);
         if (matchedConfigs.length < 1) {
-            return jsonRpcErrorProcessor(ctx, {
-                code: JREC.MethodNotFound,
-                message: "method not found",
-            });
+            return jsonRpcSimpleErrorProcessor(ctx, id, JREC.MethodNotFound, "method not found");
         }
 
         try {
@@ -290,8 +291,8 @@ function createJsonRpcBaseMiddleware(configs: any[]): (...ins: any[]) => any {
             const middleware = createMiddleware(matchedConfig);
             return await middleware(ctx, ...params);
         } catch (error) {
-            console.log(error);
-            return jsonRpcErrorProcessor(ctx, { code: JREC.InternalError });
+            defaultLogger.error(error);
+            return jsonRpcSimpleErrorProcessor(ctx, id, JREC.InternalError);
         }
     };
 }

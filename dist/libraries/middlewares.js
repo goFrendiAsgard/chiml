@@ -11,9 +11,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const fs_1 = require("fs");
 const koaRoute = require("koa-route");
 const pathToRegexp = require("path-to-regexp");
+const Logger_1 = require("../classes/Logger");
 const cmd_1 = require("./cmd");
 const stream_1 = require("./stream");
 const tools_1 = require("./tools");
+const defaultLogger = new Logger_1.Logger();
 var JREC;
 (function (JREC) {
     JREC[JREC["ParseError"] = -32700] = "ParseError";
@@ -44,24 +46,26 @@ function defaultAuthorizationWrapper(middleware, config) {
 }
 function jsonRpcAuthorizationWrapper(middleware, config) {
     return (ctx, ...args) => {
-        if (!isAuthorized(ctx, config)) {
-            return jsonRpcErrorProcessor(ctx, {
-                code: JREC.MethodNotFound,
-                message: "unauthorized access",
-            });
+        if (isAuthorized(ctx, config)) {
+            return middleware(ctx, ...args);
         }
-        return middleware(ctx, ...args);
+        return jsonRpcErrorProcessor(ctx, {
+            code: JREC.MethodNotFound,
+            message: "unauthorized access",
+        });
     };
 }
 const defaultMiddlewareConfig = {
     authorizationWrapper: defaultAuthorizationWrapper,
     controller: (...ins) => ins.slice(0, -1).join(""),
+    logger: defaultLogger,
     outProcessor: defaultOutProcessor,
     propagateContext: true,
     roles: defaultRoles,
 };
 const defaultRouteConfig = {
     authorizationWrapper: defaultAuthorizationWrapper,
+    logger: defaultLogger,
     method: "all",
     propagateContext: false,
     roles: defaultRoles,
@@ -103,30 +107,34 @@ function createAuthorizationMiddleware(config) {
 exports.createAuthorizationMiddleware = createAuthorizationMiddleware;
 function createJsonRpcMiddleware(url, configs, method = "all") {
     const normalizedConfigs = configs.map((config) => {
-        return Object.assign({}, { propagateContext: false, controller: (...ins) => ins }, config);
+        const normalizedConfig = createNormalizedMiddlewareConfig(config);
+        return Object.assign({}, { propagateContext: false, controller: (...ins) => ins }, normalizedConfig);
     });
     const middleware = createJsonRpcBaseMiddleware(normalizedConfigs);
     return koaRoute[method](url, middleware);
 }
 exports.createJsonRpcMiddleware = createJsonRpcMiddleware;
 function createRouteMiddleware(config) {
-    const normalizedRouteConfig = Object.assign({}, defaultRouteConfig, config);
+    const normalizedConfig = createNormalizedMiddlewareConfig(config);
+    const normalizedRouteConfig = Object.assign({}, defaultRouteConfig, normalizedConfig);
     const { method, url } = normalizedRouteConfig;
     const middleware = createMiddleware(normalizedRouteConfig);
     return koaRoute[method](url, middleware);
 }
 exports.createRouteMiddleware = createRouteMiddleware;
 function createMiddleware(middlewareConfig) {
-    const normalizedMiddlewareConfig = isController(middlewareConfig) ?
-        { controller: middlewareConfig } : middlewareConfig;
+    const normalizedMiddlewareConfig = createNormalizedMiddlewareConfig(middlewareConfig);
     const normalizedConfig = Object.assign({}, defaultMiddlewareConfig, normalizedMiddlewareConfig);
-    const middleware = createHandler(normalizedConfig);
+    const middleware = createMetaMiddleware(normalizedConfig);
     if ("authorizationWrapper" in normalizedConfig && normalizedConfig.authorizationWrapper) {
         return normalizedConfig.authorizationWrapper(middleware, normalizedConfig);
     }
     return middleware;
 }
 exports.createMiddleware = createMiddleware;
+function createNormalizedMiddlewareConfig(middlewareConfig) {
+    return isController(middlewareConfig) ? { controller: middlewareConfig } : middlewareConfig;
+}
 function isController(config) {
     const routeMiddlewareKeys = Object.keys(defaultRouteConfig);
     const middlewareKeys = Object.keys(defaultMiddlewareConfig);
@@ -159,20 +167,20 @@ function isAuthorized(ctx, config) {
     ctx.state.roles = ctx.state.roles || (ctx.state.user ? ["loggedIn"] : ["loggedOut"]);
     return ctx.state.roles.filter((role) => normalizedConfig.roles.indexOf(role) > -1).length > 0;
 }
-function createHandler(config) {
+exports.isAuthorized = isAuthorized;
+function createMetaMiddleware(config) {
     const normalizedConfig = Object.assign({}, defaultMiddlewareConfig, config);
     const { controller, propagateContext, outProcessor } = normalizedConfig;
-    if (!propagateContext) {
-        const subHandler = createHandler({
-            controller,
-            outProcessor,
-            propagateContext: true,
-        });
-        return (ctx, ...ins) => {
-            return subHandler(...ins)
-                .then((out) => outProcessor(ctx, out));
-        };
+    if (propagateContext) {
+        return createBareMiddleware(controller);
     }
+    const subHandler = createBareMiddleware(controller);
+    return (ctx, ...ins) => {
+        return subHandler(...ins)
+            .then((out) => outProcessor(ctx, out));
+    };
+}
+function createBareMiddleware(controller) {
     if (typeof controller === "string") {
         const scriptPath = cmd_1.getChimlCompiledScriptPath(controller, process.cwd());
         if (scriptPath !== controller && fs_1.existsSync(scriptPath)) {
@@ -189,18 +197,18 @@ function createHandler(config) {
     // function
     return (...ins) => {
         const result = controller(...ins);
-        try {
-            if ("then" in result) {
-                // if the result is promise like, return it
-                return result;
-            }
-        }
-        catch (error) {
-            // do nothing
+        if (result && typeof result === "object" && "then" in result) {
+            // if the result is promise like, return it
+            return result;
         }
         // if the result is not promise like, make a promise based on it
         return Promise.resolve(result);
     };
+}
+exports.createBareMiddleware = createBareMiddleware;
+function jsonRpcSimpleErrorProcessor(ctx, id = null, code = JREC.InternalError, message = "") {
+    const errorObj = { id, code, message };
+    jsonRpcErrorProcessor(ctx, errorObj);
 }
 function jsonRpcErrorProcessor(ctx, errorObj) {
     const { id, code } = errorObj;
@@ -231,6 +239,8 @@ function isValidJsonRpcId(id) {
         (typeof id === "number" && Number.isSafeInteger(id));
 }
 function createJsonRpcBaseMiddleware(configs) {
+    const logger = Array.isArray(configs) && configs.length > 0 && "logger" in configs[0] ?
+        configs[0].logger : defaultLogger;
     return (ctx, ...ins) => __awaiter(this, void 0, void 0, function* () {
         let jsonRequest;
         try {
@@ -238,40 +248,25 @@ function createJsonRpcBaseMiddleware(configs) {
             jsonRequest = JSON.parse(request);
         }
         catch (error) {
-            console.error(error);
-            return jsonRpcErrorProcessor(ctx, { code: JREC.ParseError });
+            defaultLogger.error(error);
+            return jsonRpcSimpleErrorProcessor(ctx, null, JREC.ParseError);
         }
         const { id, jsonrpc, method, params } = jsonRequest;
         if (!isValidJsonRpcId(id)) {
-            return jsonRpcErrorProcessor(ctx, {
-                code: JREC.InvalidRequest,
-                message: "id should be null, undefined, or interger",
-            });
+            return jsonRpcSimpleErrorProcessor(ctx, id, JREC.InvalidRequest, "id should be null, undefined, or integer");
         }
         if (jsonrpc !== "2.0") {
-            return jsonRpcErrorProcessor(ctx, {
-                code: JREC.InvalidRequest,
-                message: 'jsonrpc must be exactly "2.0"',
-            });
+            return jsonRpcSimpleErrorProcessor(ctx, id, JREC.InvalidRequest, 'jsonrpc must be exactly "2.0"');
         }
         if (typeof method !== "string") {
-            return jsonRpcErrorProcessor(ctx, {
-                code: JREC.InvalidRequest,
-                message: "method must be string",
-            });
+            return jsonRpcSimpleErrorProcessor(ctx, id, JREC.InvalidRequest, "method must be string");
         }
         if (!Array.isArray(params)) {
-            return jsonRpcErrorProcessor(ctx, {
-                code: JREC.InvalidParams,
-                message: "invalid params",
-            });
+            return jsonRpcSimpleErrorProcessor(ctx, id, JREC.InvalidParams, "invalid params");
         }
         const matchedConfigs = configs.filter((config) => config.method === method);
         if (matchedConfigs.length < 1) {
-            return jsonRpcErrorProcessor(ctx, {
-                code: JREC.MethodNotFound,
-                message: "method not found",
-            });
+            return jsonRpcSimpleErrorProcessor(ctx, id, JREC.MethodNotFound, "method not found");
         }
         try {
             const authorizationWrapper = jsonRpcAuthorizationWrapper;
@@ -286,8 +281,8 @@ function createJsonRpcBaseMiddleware(configs) {
             return yield middleware(ctx, ...params);
         }
         catch (error) {
-            console.log(error);
-            return jsonRpcErrorProcessor(ctx, { code: JREC.InternalError });
+            defaultLogger.error(error);
+            return jsonRpcSimpleErrorProcessor(ctx, id, JREC.InternalError);
         }
     });
 }

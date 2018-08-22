@@ -1,4 +1,5 @@
-export declare class JsonRpcProxy {
+import { IJsonRpcProxy } from "../interfaces/IJsonRpcProxy";
+export declare class JsonRpcProxy implements IJsonRpcProxy {
     private config;
     constructor(config: string | {
         [key: string]: string;

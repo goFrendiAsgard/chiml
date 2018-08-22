@@ -1,6 +1,7 @@
 import {CommandType, FunctionalMode, Mode} from "../enums/singleTaskProperty";
 
 export interface ISingleTask {
+    // properties
     id: string;
     src: string;
     dst: string;
@@ -18,4 +19,7 @@ export interface ISingleTask {
     expectLocalScope: boolean;
     hasParent: boolean;
     chimlPath: string;
+    // methods
+    getScript(): string;
+    execute(...inputs): Promise<any>;
 }

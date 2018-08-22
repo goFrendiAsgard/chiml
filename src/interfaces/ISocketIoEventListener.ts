@@ -1,4 +1,7 @@
+import { ILogger } from "./ILogger";
+
 export interface ISocketIoEventListener {
-    event: string;
     controller: any;
+    event: string;
+    logger?: ILogger;
 }

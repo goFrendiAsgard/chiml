@@ -1,4 +1,7 @@
 import { createInterface, ReadLine, ReadLineOptions } from "readline";
+import { Logger } from "../classes/Logger";
+
+const logger = new Logger();
 
 export function createPrompt(config: ReadLineOptions = { input: process.stdin, output: process.stderr }): any {
     return (textPrompt: string, callback): any => {
@@ -15,7 +18,9 @@ export function createPrompt(config: ReadLineOptions = { input: process.stdin, o
     };
 }
 
-export function print(...args: any[]): void {
-    const callback = args.pop();
-    callback(null, console.log(...args));
+export function createPrint(config: {[key: string]: any} = { logger }) {
+    return (...args: any[]): void => {
+        const callback = args.pop();
+        callback(null, logger.log(...args));
+    };
 }

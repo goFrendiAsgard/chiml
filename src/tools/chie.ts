@@ -1,16 +1,17 @@
 #! /usr/bin/env node
-import { execute } from "../index";
+import { execute, Logger } from "../index";
 
 function main(args: any[]): any {
+    const logger = new Logger();
     if (args.length < 1) {
-        return console.error("Expect more than one parameter(s): `chiml script/file` and `inputs`");
+        return logger.error("Expect more than one parameter(s): `chiml script/file` and `inputs`");
     }
     return execute(...args)
         .then((result) => {
-            console.log(result);
+            logger.log(result);
         })
         .catch((error) => {
-            console.error(error);
+            logger.error(error);
         });
 }
 

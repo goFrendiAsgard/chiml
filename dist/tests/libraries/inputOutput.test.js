@@ -3,7 +3,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const stream_1 = require("stream");
 const inputOutput_1 = require("../../libraries/inputOutput");
 test("able to print", (done) => {
-    inputOutput_1.print("hello", (error) => {
+    const print = inputOutput_1.createPrint();
+    print("hello", (error) => {
         expect(error).toBeNull();
         done();
     });

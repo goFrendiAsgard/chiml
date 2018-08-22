@@ -19,4 +19,6 @@ export interface ISingleTask {
     expectLocalScope: boolean;
     hasParent: boolean;
     chimlPath: string;
+    getScript(): string;
+    execute(...inputs: any[]): Promise<any>;
 }

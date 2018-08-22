@@ -1,6 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const readline_1 = require("readline");
+const Logger_1 = require("../classes/Logger");
+const logger = new Logger_1.Logger();
 function createPrompt(config = { input: process.stdin, output: process.stderr }) {
     return (textPrompt, callback) => {
         const rl = readline_1.createInterface(config);
@@ -17,9 +19,11 @@ function createPrompt(config = { input: process.stdin, output: process.stderr })
     };
 }
 exports.createPrompt = createPrompt;
-function print(...args) {
-    const callback = args.pop();
-    callback(null, console.log(...args));
+function createPrint(config = { logger }) {
+    return (...args) => {
+        const callback = args.pop();
+        callback(null, logger.log(...args));
+    };
 }
-exports.print = print;
+exports.createPrint = createPrint;
 //# sourceMappingURL=inputOutput.js.map

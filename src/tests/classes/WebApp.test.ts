@@ -43,13 +43,13 @@ test("able to add routes before middlewares", (done) => {
 
 test("able to add authentication, authorization, and authorized routes", (done) => {
     // authentication
-    app.addAuthentication({
+    app.setAuthentication({
         controller: (ctx) => {
             return ctx.query.user;
         },
     });
     // authorization
-    app.addAuthorization({
+    app.setAuthorization({
         controller: (ctx) => {
             switch (ctx.state.user) {
                 case "alice": return "admin";
@@ -401,7 +401,7 @@ test("able to reply request to /jsonrpc (using httpRequest, invalid id)", (done)
             error: {
                 code: -32600,
                 data: "Invalid Request",
-                message: "id should be null, undefined, or interger",
+                message: "id should be null, undefined, or integer",
             },
             jsonrpc: "2.0",
         });

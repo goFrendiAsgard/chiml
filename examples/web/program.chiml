@@ -39,8 +39,8 @@ do:
     - (middlewares) -> {app.addMiddlewares}
 
     # authentication & authorization
-    - "({controller:(ctx) => ctx.query.user == 'admin' && ctx.query.password == 'secret' ? 'admin' : null}) -> {app.addAuthentication}"
-    - "({controller:(ctx) => ctx.state.user == 'admin' ? ['admin'] : []}) -> {app.addAuthorization}"
+    - ({controller:(ctx) => ctx.query.user == 'admin' && ctx.query.password == 'secret' ? 'admin' : null}) -> {app.setAuthentication}
+    - ({controller:(ctx) => ctx.state.user == 'admin' ? ['admin'] : []}) -> {app.setAuthorization}
 
     # routes
     - (routes) -> {app.addRoutes}

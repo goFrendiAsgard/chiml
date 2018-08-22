@@ -1,7 +1,8 @@
 import { Readable, Writable } from "stream";
-import { createPrompt, print } from "../../libraries/inputOutput";
+import { createPrint, createPrompt } from "../../libraries/inputOutput";
 
 test("able to print", (done) => {
+    const print = createPrint();
     print("hello", (error) => {
         expect(error).toBeNull();
         done();

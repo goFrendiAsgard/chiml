@@ -1,9 +1,14 @@
+import chalk from "chalk";
 import { exec } from "child_process";
 import { isAbsolute as isAbsolutePath, resolve as pathResolve } from "path";
+import { Logger } from "../classes/Logger";
+import { ILogger } from "../interfaces/ILogger";
 import { doubleQuote, smartSplit } from "./stringUtil";
 
+const defaultLogger = new Logger();
+
 export function cmd(command: string, options?: { [key: string]: any }): Promise<string> {
-    const customConsole: Console = options && "console" in options ? options.console : console;
+    const logger: ILogger = options && "logger" in options ? options.logger : defaultLogger;
     return new Promise((resolve, reject) => {
         const subProcess = exec(command, options, (error, stdout, stderr) => {
             if (error) {
@@ -13,11 +18,11 @@ export function cmd(command: string, options?: { [key: string]: any }): Promise<
         });
 
         subProcess.stdout.on("data", (chunk) => {
-            process.stderr.write("\x1b[33m" + String(chunk) + "\x1b[0m");
+            process.stderr.write(chalk.yellowBright(String(chunk)));
         });
 
         subProcess.stderr.on("data", (chunk) => {
-            process.stderr.write("\x1b[31m" + String(chunk) + "\x1b[0m");
+            process.stderr.write(chalk.redBright(String(chunk)));
         });
 
         const stdinListener = createStdInListener(subProcess);
@@ -27,8 +32,8 @@ export function cmd(command: string, options?: { [key: string]: any }): Promise<
             process.stdin.removeListener("data", stdinListener);
             process.stdin.end();
         });
-        subProcess.stdin.on("error", (error) => customConsole.error(error));
-        process.stdin.on("error", (error) => customConsole.error(error));
+        subProcess.stdin.on("error", (error) => logger.error(error));
+        process.stdin.on("error", (error) => logger.error(error));
 
     });
 }
