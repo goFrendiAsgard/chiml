@@ -51,4 +51,3 @@ class SingleTask {
     }
 }
 exports.SingleTask = SingleTask;
-//# sourceMappingURL=SingleTask.js.map

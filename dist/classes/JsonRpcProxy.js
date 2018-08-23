@@ -10,4 +10,3 @@ class JsonRpcProxy {
     }
 }
 exports.JsonRpcProxy = JsonRpcProxy;
-//# sourceMappingURL=JsonRpcProxy.js.map

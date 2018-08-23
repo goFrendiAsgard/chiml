@@ -26,4 +26,3 @@ function createPrint(config = { logger }) {
     };
 }
 exports.createPrint = createPrint;
-//# sourceMappingURL=inputOutput.js.map

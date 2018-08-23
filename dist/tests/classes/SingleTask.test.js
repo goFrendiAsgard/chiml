@@ -782,4 +782,3 @@ test("constructor recognize reduce (with accumulator)", () => {
         expect(error).toBeNull();
     });
 });
-//# sourceMappingURL=SingleTask.test.js.map

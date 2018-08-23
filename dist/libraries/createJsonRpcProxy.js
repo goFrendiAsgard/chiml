@@ -5,4 +5,3 @@ function createJsonRpcProxy(config) {
     return new JsonRpcProxy_1.JsonRpcProxy(config);
 }
 exports.createJsonRpcProxy = createJsonRpcProxy;
-//# sourceMappingURL=createJsonRpcProxy.js.map

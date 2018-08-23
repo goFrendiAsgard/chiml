@@ -177,4 +177,3 @@ test("compile test.chiml", () => {
         expect(error).toBeNull();
     });
 }, 100000);
-//# sourceMappingURL=cmd.test.js.map

@@ -110,4 +110,3 @@ test("copy non-exists path", () => {
         expect(error).toBeDefined();
     });
 }, 20000);
-//# sourceMappingURL=tools.test.js.map
