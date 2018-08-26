@@ -84,14 +84,14 @@ class WebApp extends Koa {
     addJsonRpc(url, configs) {
         this.use(middlewares_1.createJsonRpcMiddleware(url, configs));
     }
-    setAuthentication(config) {
+    addAuthentication(config) {
         if (this.authenticationMiddleware) {
             throw (new Error("Cannot set authentication middleware"));
         }
         this.authenticationMiddleware = middlewares_1.createAuthenticationMiddleware(config);
         this.use(this.authenticationMiddleware);
     }
-    setAuthorization(config) {
+    addAuthorization(config) {
         if (this.authorizationMiddleware) {
             throw (new Error("Cannot set authorization middleware"));
         }

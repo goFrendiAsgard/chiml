@@ -334,3 +334,4 @@ test("default variable works", () => {
         expect(error).toBeUndefined();
     });
 });
+//# sourceMappingURL=singleTaskScriptGenerator.test.js.map

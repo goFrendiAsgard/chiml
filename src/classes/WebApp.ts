@@ -94,7 +94,7 @@ export class WebApp extends Koa {
         this.use(createJsonRpcMiddleware(url, configs));
     }
 
-    public setAuthentication(config: { [key: string]: any }): void {
+    public addAuthentication(config: { [key: string]: any }): void {
         if (this.authenticationMiddleware) {
             throw(new Error("Cannot set authentication middleware"));
         }
@@ -102,7 +102,7 @@ export class WebApp extends Koa {
         this.use(this.authenticationMiddleware);
     }
 
-    public setAuthorization(config: { [key: string]: any }): void {
+    public addAuthorization(config: { [key: string]: any }): void {
         if (this.authorizationMiddleware) {
             throw(new Error("Cannot set authorization middleware"));
         }

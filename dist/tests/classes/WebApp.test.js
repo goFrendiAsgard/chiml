@@ -50,13 +50,13 @@ test("able to add routes before middlewares", (done) => {
 });
 test("able to add authentication, authorization, and authorized routes", (done) => {
     // authentication
-    app.setAuthentication({
+    app.addAuthentication({
         controller: (ctx) => {
             return ctx.query.user;
         },
     });
     // authorization
-    app.setAuthorization({
+    app.addAuthorization({
         controller: (ctx) => {
             switch (ctx.state.user) {
                 case "alice": return "admin";

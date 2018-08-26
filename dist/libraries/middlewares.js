@@ -146,7 +146,7 @@ function isController(config) {
     return true;
 }
 function isRouteConfig(config) {
-    return config && "method" in config && config.method && "url" in config && config.url;
+    return config && config.method && config.url;
 }
 function isRouteMethodMatch(ctx, method) {
     const upperCasedMethod = method.toUpperCase();
@@ -296,3 +296,4 @@ function getNormalizedIns(ins) {
         }
     });
 }
+//# sourceMappingURL=middlewares.js.map

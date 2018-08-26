@@ -2,7 +2,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const ejs_1 = require("ejs");
 const singleTaskProperty_1 = require("../enums/singleTaskProperty");
-const stringUtil_1 = require("./stringUtil");
 function renderTemplate(template, config, spaceCount = 0) {
     let spaces = "";
     for (let i = 0; i < spaceCount; i++) {
@@ -195,6 +194,7 @@ function getTemplate(task) {
     const variables = task.expectLocalScope ? getLocalScopeVariables(task) : [];
     const wrapper = getWrapper(task);
     const readableModeDescription = getReadableModeDescription(task);
+    const quotedReadableModeDescription = JSON.stringify(readableModeDescription);
     const promiseScript = wrapper(task, 6);
     const variableDeclaration = getVariableDeclaration(variables, task, 2);
     const unitTemplate = [
@@ -216,7 +216,7 @@ function getTemplate(task) {
         "      __error.message = [",
         '        "",',
         '        "INPUT   : " + JSON.stringify([<%- ins %>], null, 2).split("\\n").join("\\n  "),',
-        '        "PROCESS : " + ' + stringUtil_1.doubleQuote(readableModeDescription) + ",",
+        '        "PROCESS : " + ' + quotedReadableModeDescription + '.split("\\n").join("\\n  "),',
         '        "ERROR   : " + (__error.message).split("\\n").join("\\n  "),',
         '      ].join("\\n");',
         "      __error.__propagated = true;",
@@ -261,3 +261,4 @@ function getLocalScopeVariables(task) {
     }
     return vars;
 }
+//# sourceMappingURL=singleTaskScriptGenerator.js.map

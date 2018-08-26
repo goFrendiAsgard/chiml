@@ -31,3 +31,4 @@ test("able to cascade environment", () => {
     const result = environment_1.cascade(obj, env);
     expect(result).toMatchObject(expected);
 });
+//# sourceMappingURL=environment.test.js.map

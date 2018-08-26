@@ -1,1 +1,8 @@
-(ctx, next) -> (ctx, next) => {return next().then(()=>{ctx.body += "&copy; goFrendi"});}
+ins: ctx, next
+do: |
+    (ctx, next) => {
+        return next()
+            .then(()=>{
+                ctx.body += "&copy; goFrendi"
+            });
+    }

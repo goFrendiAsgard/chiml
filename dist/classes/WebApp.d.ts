@@ -13,10 +13,10 @@ export declare class WebApp extends Koa {
         [key: string]: any;
     }): https.Server;
     addJsonRpc(url: string, configs: any[]): void;
-    setAuthentication(config: {
+    addAuthentication(config: {
         [key: string]: any;
     }): void;
-    setAuthorization(config: {
+    addAuthorization(config: {
         [key: string]: any;
     }): void;
     addMiddlewares(controllers: any[]): void;

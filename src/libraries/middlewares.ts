@@ -155,7 +155,7 @@ function isController(config: any): boolean {
 }
 
 function isRouteConfig(config: { [key: string]: any }): boolean {
-    return config && "method" in config && config.method && "url" in config && config.url;
+    return config && config.method && config.url;
 }
 
 function isRouteMethodMatch(ctx: Koa.Context, method: string) {

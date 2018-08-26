@@ -12,3 +12,4 @@ test("construct sandbox for `/somewhere/over/theRainbow.chiml`", () => {
     expect(result.__filename).toBe("/somewhere/over/theRainbow.chiml");
     expect(result.__dirname).toBe("/somewhere/over");
 });
+//# sourceMappingURL=sandbox.test.js.map
