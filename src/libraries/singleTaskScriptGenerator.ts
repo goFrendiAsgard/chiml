@@ -117,10 +117,10 @@ function getReadableModeDescription(task: ISingleTask): string {
         case Mode.parallel: return "Parallel";
         case Mode.single:
             switch (task.commandType) {
-                case CommandType.cmd: return "Cmd: " + task.command;
-                case CommandType.jsFunctionWithCallback: return "JsFunctionWithCallback: " + task.command;
-                case CommandType.jsSyncFunction: return "JsSyncFunction: " + task.command;
-                case CommandType.jsPromise: return "JsPromise: " + task.command;
+                case CommandType.cmd: return "Command : " + task.command;
+                case CommandType.jsFunctionWithCallback: return "JS Function with Node Callback : " + task.command;
+                case CommandType.jsSyncFunction: return "JS Function : " + task.command;
+                case CommandType.jsPromise: return "JS Promise : " + task.command;
             }
     }
 }
@@ -214,6 +214,13 @@ function getTemplate(task: ISingleTask): string {
     const quotedReadableModeDescription = JSON.stringify(readableModeDescription);
     const promiseScript = wrapper(task, 6);
     const variableDeclaration = getVariableDeclaration(variables, task, 2);
+    let readableFunctionalMode = doubleQuote(getReadableFunctionalMode(task.functionalMode));
+    if (readableFunctionalMode !== "\"Normal\"") {
+        readableFunctionalMode = [
+            readableFunctionalMode,
+            "JSON.stringify(<%- task.src %>)",
+        ].join(" + ");
+    }
     const unitTemplate = [
         "/* " + readableModeDescription + " */",
         "function __unit<%- task.id %>(<%- ins %>) {",
@@ -232,6 +239,7 @@ function getTemplate(task: ISingleTask): string {
         "    if (__error && !__error.__propagated) {",
         "      __error.message = [",
         '        "",',
+        '        "MODE    : " + ' + readableFunctionalMode + ",",
         '        "INPUT   : " + JSON.stringify([<%- ins %>], null, 2).split("\\n").join("\\n  "),',
         '        "PROCESS : " + ' + quotedReadableModeDescription + '.split("\\n").join("\\n  "),',
         '        "ERROR   : " + (__error.message).split("\\n").join("\\n  "),',
@@ -247,6 +255,15 @@ function getTemplate(task: ISingleTask): string {
         case FunctionalMode.map: return getMapTemplate(task, unitTemplate);
         case FunctionalMode.filter: return getFilterTemplate(task, unitTemplate);
         case FunctionalMode.reduce: return getReduceTemplate(task, unitTemplate);
+    }
+}
+
+function getReadableFunctionalMode(functionalMode: number) {
+    switch (functionalMode) {
+        case FunctionalMode.none: return "Normal";
+        case FunctionalMode.map: return "Map";
+        case FunctionalMode.filter: return "Filter";
+        case FunctionalMode.reduce: return "Reduce";
     }
 }
 

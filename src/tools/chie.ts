@@ -8,7 +8,9 @@ function main(args: any[]): any {
     }
     return execute(...args)
         .then((result) => {
-            logger.log(result);
+            const shownResult = Array.isArray(result) || typeof result === "object" ?
+                JSON.stringify(result, null, 2) : result;
+            logger.log(shownResult);
         })
         .catch((error) => {
             logger.error(error);

@@ -116,3 +116,4 @@ class WebApp extends Koa {
     }
 }
 exports.WebApp = WebApp;
+//# sourceMappingURL=WebApp.js.map

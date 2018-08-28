@@ -9,7 +9,9 @@ function main(args) {
     }
     return index_1.execute(...args)
         .then((result) => {
-        logger.log(result);
+        const shownResult = Array.isArray(result) || typeof result === "object" ?
+            JSON.stringify(result, null, 2) : result;
+        logger.log(shownResult);
     })
         .catch((error) => {
         logger.error(error);

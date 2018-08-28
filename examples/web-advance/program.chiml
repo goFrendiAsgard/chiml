@@ -46,8 +46,8 @@ do:
           - (middleware) -> {app.use}
 
     # authentication & authorization
-    - (config.authentication) -> {app.setAuthentication}
-    - (config.authorization) -> {app.setAuthorization}
+    - (config.authentication) -> {app.addAuthentication}
+    - (config.authorization) -> {app.addAuthorization}
 
     # ejs
     - (app, config.ejs) -> {require(__dirname + '/node_modules/koa-ejs')}

@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const ejs_1 = require("ejs");
 const singleTaskProperty_1 = require("../enums/singleTaskProperty");
+const stringUtil_1 = require("./stringUtil");
 function renderTemplate(template, config, spaceCount = 0) {
     let spaces = "";
     for (let i = 0; i < spaceCount; i++) {
@@ -107,10 +108,10 @@ function getReadableModeDescription(task) {
         case singleTaskProperty_1.Mode.parallel: return "Parallel";
         case singleTaskProperty_1.Mode.single:
             switch (task.commandType) {
-                case singleTaskProperty_1.CommandType.cmd: return "Cmd: " + task.command;
-                case singleTaskProperty_1.CommandType.jsFunctionWithCallback: return "JsFunctionWithCallback: " + task.command;
-                case singleTaskProperty_1.CommandType.jsSyncFunction: return "JsSyncFunction: " + task.command;
-                case singleTaskProperty_1.CommandType.jsPromise: return "JsPromise: " + task.command;
+                case singleTaskProperty_1.CommandType.cmd: return "Command : " + task.command;
+                case singleTaskProperty_1.CommandType.jsFunctionWithCallback: return "JS Function with Node Callback : " + task.command;
+                case singleTaskProperty_1.CommandType.jsSyncFunction: return "JS Function : " + task.command;
+                case singleTaskProperty_1.CommandType.jsPromise: return "JS Promise : " + task.command;
             }
     }
 }
@@ -197,6 +198,13 @@ function getTemplate(task) {
     const quotedReadableModeDescription = JSON.stringify(readableModeDescription);
     const promiseScript = wrapper(task, 6);
     const variableDeclaration = getVariableDeclaration(variables, task, 2);
+    let readableFunctionalMode = stringUtil_1.doubleQuote(getReadableFunctionalMode(task.functionalMode));
+    if (readableFunctionalMode !== "\"Normal\"") {
+        readableFunctionalMode = [
+            readableFunctionalMode,
+            "JSON.stringify(<%- task.src %>)",
+        ].join(" + ");
+    }
     const unitTemplate = [
         "/* " + readableModeDescription + " */",
         "function __unit<%- task.id %>(<%- ins %>) {",
@@ -215,6 +223,7 @@ function getTemplate(task) {
         "    if (__error && !__error.__propagated) {",
         "      __error.message = [",
         '        "",',
+        '        "MODE    : " + ' + readableFunctionalMode + ",",
         '        "INPUT   : " + JSON.stringify([<%- ins %>], null, 2).split("\\n").join("\\n  "),',
         '        "PROCESS : " + ' + quotedReadableModeDescription + '.split("\\n").join("\\n  "),',
         '        "ERROR   : " + (__error.message).split("\\n").join("\\n  "),',
@@ -230,6 +239,14 @@ function getTemplate(task) {
         case singleTaskProperty_1.FunctionalMode.map: return getMapTemplate(task, unitTemplate);
         case singleTaskProperty_1.FunctionalMode.filter: return getFilterTemplate(task, unitTemplate);
         case singleTaskProperty_1.FunctionalMode.reduce: return getReduceTemplate(task, unitTemplate);
+    }
+}
+function getReadableFunctionalMode(functionalMode) {
+    switch (functionalMode) {
+        case singleTaskProperty_1.FunctionalMode.none: return "Normal";
+        case singleTaskProperty_1.FunctionalMode.map: return "Map";
+        case singleTaskProperty_1.FunctionalMode.filter: return "Filter";
+        case singleTaskProperty_1.FunctionalMode.reduce: return "Reduce";
     }
 }
 function getInputDeclaration(task) {
