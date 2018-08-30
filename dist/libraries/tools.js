@@ -137,7 +137,7 @@ function copyMultiDirs(configs, options = {}) {
 }
 exports.copyMultiDirs = copyMultiDirs;
 function createCopyCommand(source, destination) {
-    const quotedSource = stringUtil_1.doubleQuote(source);
+    const quotedSource = stringUtil_1.doubleQuote(source + "/.");
     const quotedDestination = stringUtil_1.doubleQuote(destination);
     return `cp -r ${quotedSource} ${quotedDestination}`;
 }

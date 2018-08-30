@@ -3,7 +3,7 @@ import { copy as fsCopy, readdir as readDir, readFile, stat as fsStat, writeFile
 import { basename as pathBaseName, dirname as pathDirName, resolve as pathResolve } from "path";
 import { SingleTask } from "../classes/SingleTask";
 import { tsToJs } from "./scriptTransform";
-import { chimlToConfig, doubleQuote, parseStringArray } from "./stringUtil";
+import { chimlToConfig, doubleQuote, parseStringArray, removeFlank } from "./stringUtil";
 
 const rootDirPath = pathDirName(pathDirName(__dirname));
 const distPath = pathResolve(rootDirPath, "dist");
@@ -127,7 +127,7 @@ export function copyMultiDirs(configs: string[][], options: { [key: string]: any
 }
 
 function createCopyCommand(source: string, destination: string): string {
-    const quotedSource = doubleQuote(source);
+    const quotedSource = doubleQuote(source + "/.");
     const quotedDestination = doubleQuote(destination);
     return `cp -r ${quotedSource} ${quotedDestination}`;
 }
