@@ -26,8 +26,6 @@ function defaultSocketIoAuthorizationWrapper(
         if (isAuthorized(ctx, config)) {
             return middleware(socket, ...args);
         }
-        const next = args[args.length - 1];
-        return next();
     };
 }
 
@@ -72,9 +70,11 @@ export class WebApp extends Koa {
                         }
                         Object.defineProperty(socket, "ctx", { value: ctx, writable: false, configurable: true });
                         // execute handler
-                        handler(socket, ...ins).catch((error) => {
+                        try {
+                            handler(socket, ...ins).catch((error) => logger.error(error));
+                        } catch (error) {
                             logger.error(error);
-                        });
+                        }
                     });
                 }
             });

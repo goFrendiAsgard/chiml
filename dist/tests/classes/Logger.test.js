@@ -9,6 +9,7 @@ test("all logger methods should not yield error", () => {
         logger.info("info");
         logger.log("log");
         logger.warn("warn");
+        expect(true).toBeTruthy();
     }
     catch (error) {
         expect(error).toBeUndefined();

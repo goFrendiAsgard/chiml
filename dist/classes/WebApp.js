@@ -21,8 +21,6 @@ function defaultSocketIoAuthorizationWrapper(middleware, config) {
         if (middlewares_1.isAuthorized(ctx, config)) {
             return middleware(socket, ...args);
         }
-        const next = args[args.length - 1];
-        return next();
     };
 }
 class WebApp extends Koa {
@@ -66,9 +64,12 @@ class WebApp extends Koa {
                         }
                         Object.defineProperty(socket, "ctx", { value: ctx, writable: false, configurable: true });
                         // execute handler
-                        handler(socket, ...ins).catch((error) => {
+                        try {
+                            handler(socket, ...ins).catch((error) => logger.error(error));
+                        }
+                        catch (error) {
                             logger.error(error);
-                        });
+                        }
                     }));
                 }
             });

@@ -82,6 +82,40 @@ test("able to add authentication, authorization, and authorized routes", (done) 
     app.addRoutes(routes);
     done();
 });
+test("should not be able to re-add authentication middleware", (done) => {
+    try {
+        app.addAuthentication({
+            controller: (ctx) => {
+                return ctx.query.user;
+            },
+        });
+        expect(true).toBeFalsy();
+        done();
+    }
+    catch (error) {
+        expect(error).toBeDefined();
+        done();
+    }
+});
+test("should not be able to re-add authorization middleware", (done) => {
+    try {
+        app.addAuthorization({
+            controller: (ctx) => {
+                switch (ctx.state.user) {
+                    case "alice": return "admin";
+                    case "bob": return ["author", "contributor"];
+                    default: return null;
+                }
+            },
+        });
+        expect(true).toBeFalsy();
+        done();
+    }
+    catch (error) {
+        expect(error).toBeDefined();
+        done();
+    }
+});
 test("able to add jsonRpc middleware", (done) => {
     const configs = [
         { method: "add", controller: path_1.resolve(testcaseDirPath, "compiled-page.chiml") },
@@ -93,9 +127,16 @@ test("able to add jsonRpc middleware", (done) => {
 });
 test("able to add middlewares", (done) => {
     const configs = [
+        // config
+        {
+            authorizationWrapper: null,
+            controller: (ctx, next) => __awaiter(this, void 0, void 0, function* () {
+                ctx.body = header;
+                yield next();
+            }),
+        },
         // function
         (ctx, next) => __awaiter(this, void 0, void 0, function* () {
-            ctx.body = header;
             yield next();
             ctx.body += year;
         }),
@@ -136,7 +177,7 @@ test("able to create http server and run it", (done) => {
     expect(server.listening).toBeTruthy();
     done();
 });
-test("able to create io", (done) => {
+test("able to create io and handle io event", (done) => {
     const configs = [
         {
             controller: (socket, message) => {
@@ -154,16 +195,70 @@ test("able to create io", (done) => {
     const serverIo = app.createIo(server);
     serverIo.addEventListeners(configs);
     serverIo.applyEventListeners();
-    done();
-});
-test("able to send io request", (done) => {
-    const socket = io.connect(url);
-    socket.emit("snip", 73);
-    socket.on("snap", (message) => {
+    // create client socket
+    const clientSocket = io.connect(url);
+    clientSocket.emit("snip", 73);
+    clientSocket.on("snap", (message) => {
         expect(message).toBe(74);
-        socket.disconnect();
+        clientSocket.disconnect();
         done();
     });
+});
+test("able to create and handle io event that yield error", (done) => {
+    let clientSocket;
+    const mockLogger = {
+        debug(...params) { return null; },
+        error(...params) {
+            expect(params[0].message).toBe("wkwkwk");
+            clientSocket.disconnect();
+            done();
+        },
+        info(...params) { return null; },
+        log(...params) { return null; },
+        warn(...params) { return null; },
+    };
+    const configs = [
+        {
+            controller: (socket, message) => {
+                return Promise.reject(new Error("wkwkwk"));
+            },
+            event: "laugh",
+            logger: mockLogger,
+        },
+    ];
+    const serverIo = app.createIo(server);
+    serverIo.addEventListeners(configs);
+    serverIo.applyEventListeners();
+    clientSocket = io.connect(url);
+    clientSocket.emit("laugh");
+});
+test("able to create and handle io event that yield error", (done) => {
+    let clientSocket;
+    const mockLogger = {
+        debug(...params) { return null; },
+        error(...params) {
+            expect(params[0].message).toBe("wkwkwk");
+            clientSocket.disconnect();
+            done();
+        },
+        info(...params) { return null; },
+        log(...params) { return null; },
+        warn(...params) { return null; },
+    };
+    const configs = [
+        {
+            controller: (socket, message) => {
+                throw (new Error("wkwkwk"));
+            },
+            event: "laugh",
+            logger: mockLogger,
+        },
+    ];
+    const serverIo = app.createIo(server);
+    serverIo.addEventListeners(configs);
+    serverIo.applyEventListeners();
+    clientSocket = io.connect(url);
+    clientSocket.emit("laugh");
 });
 test("able to create https server", (done) => {
     const httpsServer = app.createHttpsServer();
