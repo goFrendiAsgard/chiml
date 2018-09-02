@@ -3,7 +3,11 @@ import * as originalHttpRequest from "request";
 
 export function httpRequest(config: any, callback: any) {
     originalHttpRequest(config, (error, response, body) => {
-        callback(error, body);
+        try {
+            callback(error, JSON.parse(body));
+        } catch (parseError) {
+            callback(error, body);
+        }
     });
 }
 

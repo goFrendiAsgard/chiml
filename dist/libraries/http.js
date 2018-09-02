@@ -4,7 +4,12 @@ require("cache-require-paths");
 const originalHttpRequest = require("request");
 function httpRequest(config, callback) {
     originalHttpRequest(config, (error, response, body) => {
-        callback(error, body);
+        try {
+            callback(error, JSON.parse(body));
+        }
+        catch (parseError) {
+            callback(error, body);
+        }
     });
 }
 exports.httpRequest = httpRequest;
