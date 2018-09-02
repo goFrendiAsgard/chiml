@@ -1,10 +1,16 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const chalk_1 = require("chalk");
 const child_process_1 = require("child_process");
 const path_1 = require("path");
 const Logger_1 = require("../classes/Logger");
 const stringUtil_1 = require("./stringUtil");
+const BRIGHT = "\x1b[1m";
+const FG_BLUE = "\x1b[34m";
+const FG_CYAN = "\x1b[36m";
+const FG_RED = "\x1b[31m";
+const FG_WHITE = "\x1b[37m";
+const FG_YELLOW = "\x1b[33m";
+const RESET_COLOR = "\x1b[0m";
 const defaultLogger = new Logger_1.Logger();
 function cmd(command, options) {
     const logger = options && "logger" in options ? options.logger : defaultLogger;
@@ -16,10 +22,14 @@ function cmd(command, options) {
             return resolve(stdout);
         });
         subProcess.stdout.on("data", (chunk) => {
-            process.stderr.write(chalk_1.default.yellowBright(String(chunk)));
+            process.stderr.write(BRIGHT + FG_YELLOW);
+            process.stderr.write(String(chunk));
+            process.stderr.write(RESET_COLOR);
         });
         subProcess.stderr.on("data", (chunk) => {
-            process.stderr.write(chalk_1.default.redBright(String(chunk)));
+            process.stderr.write(BRIGHT + FG_RED);
+            process.stderr.write(String(chunk));
+            process.stderr.write(RESET_COLOR);
         });
         const stdinListener = createStdInListener(subProcess);
         process.stdin.on("data", stdinListener);

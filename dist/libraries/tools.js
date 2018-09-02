@@ -38,9 +38,12 @@ function getCompiledScript(chiml) {
     return new Promise((resolve, reject) => {
         stringUtil_1.chimlToConfig(chiml)
             .then((config) => {
+            const cacheKiller = new Date().getTime();
             const task = new SingleTask_1.SingleTask(config);
             const mainScript = task.getScript();
             const script = [
+                'import { RequireCache } from "@speedy/require-cache";',
+                `new RequireCache({ cacheKiller: "${cacheKiller}" }).start();`,
                 'import {__cmd, __parseIns, sys} from "chiml/dist/index.js";',
                 "const __isCompiled = true;",
                 mainScript,

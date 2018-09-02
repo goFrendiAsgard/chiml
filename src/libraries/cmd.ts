@@ -1,9 +1,16 @@
-import chalk from "chalk";
 import { exec } from "child_process";
 import { isAbsolute as isAbsolutePath, resolve as pathResolve } from "path";
 import { Logger } from "../classes/Logger";
 import { ILogger } from "../interfaces/ILogger";
 import { doubleQuote, smartSplit } from "./stringUtil";
+
+const BRIGHT = "\x1b[1m";
+const FG_BLUE = "\x1b[34m";
+const FG_CYAN = "\x1b[36m";
+const FG_RED = "\x1b[31m";
+const FG_WHITE = "\x1b[37m";
+const FG_YELLOW = "\x1b[33m";
+const RESET_COLOR = "\x1b[0m";
 
 const defaultLogger = new Logger();
 
@@ -18,11 +25,15 @@ export function cmd(command: string, options?: { [key: string]: any }): Promise<
         });
 
         subProcess.stdout.on("data", (chunk) => {
-            process.stderr.write(chalk.yellowBright(String(chunk)));
+            process.stderr.write(BRIGHT + FG_YELLOW);
+            process.stderr.write(String(chunk));
+            process.stderr.write(RESET_COLOR);
         });
 
         subProcess.stderr.on("data", (chunk) => {
-            process.stderr.write(chalk.redBright(String(chunk)));
+            process.stderr.write(BRIGHT + FG_RED);
+            process.stderr.write(String(chunk));
+            process.stderr.write(RESET_COLOR);
         });
 
         const stdinListener = createStdInListener(subProcess);
