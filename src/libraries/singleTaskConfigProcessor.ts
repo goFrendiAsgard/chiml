@@ -1,3 +1,4 @@
+require("cache-require-paths");
 import { CommandType, FunctionalMode, Mode } from "../enums/singleTaskProperty";
 import { IRawConfig } from "../interfaces/IRawConfig";
 import { isFlanked, removeFlank, smartSplit } from "./stringUtil";

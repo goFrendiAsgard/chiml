@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+require("cache-require-paths");
 const JsonRpcProxy_1 = require("../classes/JsonRpcProxy");
 const WebApp_1 = require("../classes/WebApp");
 const cmd_1 = require("./cmd");

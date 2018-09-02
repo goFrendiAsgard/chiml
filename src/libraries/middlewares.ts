@@ -1,3 +1,4 @@
+require("cache-require-paths");
 import { existsSync as fsExistsSync } from "fs";
 import * as Koa from "koa";
 import * as koaRoute from "koa-route";

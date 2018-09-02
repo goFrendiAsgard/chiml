@@ -1,4 +1,5 @@
 #! /usr/bin/env node
+require("cache-require-paths");
 import { compile, getFiles, Logger } from "../index";
 
 function main(args: any[]) {

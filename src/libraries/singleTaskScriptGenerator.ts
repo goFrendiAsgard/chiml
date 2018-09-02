@@ -1,3 +1,4 @@
+require("cache-require-paths");
 import { render } from "ejs";
 import { CommandType, FunctionalMode, Mode } from "../enums/singleTaskProperty";
 import { ISingleTask } from "../interfaces/ISingleTask";

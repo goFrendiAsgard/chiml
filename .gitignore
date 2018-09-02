@@ -1,4 +1,5 @@
 package-lock.json
+.cache-require-paths.json
 .cache
 .vscode
 node_modules

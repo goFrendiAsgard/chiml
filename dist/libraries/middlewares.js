@@ -8,6 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+require("cache-require-paths");
 const fs_1 = require("fs");
 const koaRoute = require("koa-route");
 const pathToRegexp = require("path-to-regexp");

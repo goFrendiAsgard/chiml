@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+require("cache-require-paths");
 const ejs_1 = require("ejs");
 const singleTaskProperty_1 = require("../enums/singleTaskProperty");
 const stringUtil_1 = require("./stringUtil");

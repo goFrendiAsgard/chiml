@@ -1,11 +1,12 @@
-import * as ts from "typescript";
+require("cache-require-paths");
+import { ModuleKind, ScriptTarget, transpileModule } from "typescript";
 
 export function tsToJs(source: string) {
     const compilerOptions = {
-        module: ts.ModuleKind.CommonJS,
-        target: ts.ScriptTarget.ES5,
+        module: ModuleKind.CommonJS,
+        target: ScriptTarget.ES5,
     };
     const reportDiagnostics = true;
-    const result = ts.transpileModule(source, { compilerOptions, reportDiagnostics });
+    const result = transpileModule(source, { compilerOptions, reportDiagnostics });
     return result.outputText;
 }

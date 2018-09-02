@@ -1,3 +1,4 @@
+require("cache-require-paths");
 import { ILogger } from "../interfaces/ILogger";
 
 const BRIGHT = "\x1b[1m";

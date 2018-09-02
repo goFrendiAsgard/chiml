@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+require("cache-require-paths");
 const readline_1 = require("readline");
 const Logger_1 = require("../classes/Logger");
 const logger = new Logger_1.Logger();

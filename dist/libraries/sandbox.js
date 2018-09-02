@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+require("cache-require-paths");
 const path_1 = require("path");
 const utilities = require("../libraries/utilities");
 function createSandbox(chimlPath) {

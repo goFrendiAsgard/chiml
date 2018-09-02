@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+require("cache-require-paths");
 const BRIGHT = "\x1b[1m";
 const FG_BLUE = "\x1b[34m";
 const FG_CYAN = "\x1b[36m";

@@ -1,3 +1,4 @@
+require("cache-require-paths");
 import { IJsonRpcProxy } from "../interfaces/IJsonRpcProxy";
 import { jsonRpcRequest } from "../libraries/http";
 

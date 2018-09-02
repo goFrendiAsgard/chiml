@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+require("cache-require-paths");
 const originalHttpRequest = require("request");
 function httpRequest(config, callback) {
     originalHttpRequest(config, (error, response, body) => {

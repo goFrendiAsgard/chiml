@@ -1,3 +1,4 @@
+require("cache-require-paths");
 import { createInterface, ReadLine, ReadLineOptions } from "readline";
 import { Logger } from "../classes/Logger";
 

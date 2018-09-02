@@ -1,3 +1,4 @@
+require("cache-require-paths");
 import * as http from "http";
 import * as https from "https";
 import * as Koa from "koa";

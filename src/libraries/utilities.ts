@@ -1,3 +1,4 @@
+require("cache-require-paths");
 import { JsonRpcProxy } from "../classes/JsonRpcProxy";
 import { WebApp } from "../classes/WebApp";
 import { cmdComposedCommand as __cmd } from "./cmd";

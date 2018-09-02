@@ -8,6 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+require("cache-require-paths");
 const http = require("http");
 const https = require("https");
 const Koa = require("koa");

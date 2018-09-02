@@ -1,3 +1,4 @@
+require("cache-require-paths");
 import * as originalHttpRequest from "request";
 
 export function httpRequest(config: any, callback: any) {

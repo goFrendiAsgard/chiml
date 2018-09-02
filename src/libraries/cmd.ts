@@ -1,3 +1,4 @@
+require("cache-require-paths");
 import { exec } from "child_process";
 import { isAbsolute as isAbsolutePath, resolve as pathResolve } from "path";
 import { Logger } from "../classes/Logger";

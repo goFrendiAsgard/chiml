@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+require("cache-require-paths");
 const fs_1 = require("fs");
 const js_yaml_1 = require("js-yaml");
 const singleTaskConfigProcessor_1 = require("./singleTaskConfigProcessor");

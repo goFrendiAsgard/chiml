@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+require("cache-require-paths");
 const vm_1 = require("vm");
 const singleTaskProperty_1 = require("../enums/singleTaskProperty");
 const sandbox_1 = require("../libraries/sandbox");

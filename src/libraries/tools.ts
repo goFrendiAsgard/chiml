@@ -1,3 +1,4 @@
+require("cache-require-paths");
 import { exec } from "child_process";
 import { copy as fsCopy, readdir as readDir, readFile, stat as fsStat, writeFile } from "fs-extra";
 import { basename as pathBaseName, dirname as pathDirName, resolve as pathResolve } from "path";
@@ -30,12 +31,9 @@ export function getCompiledScript(chiml: any): Promise<string> {
     return new Promise((resolve, reject) => {
         chimlToConfig(chiml)
             .then((config) => {
-                const cacheKiller = new Date().getTime();
                 const task = new SingleTask(config);
                 const mainScript = task.getScript();
                 const script = [
-                    'import { RequireCache } from "@speedy/require-cache";',
-                    `new RequireCache({ cacheKiller: "${cacheKiller}" }).start();`,
                     'import {__cmd, __parseIns, sys} from "chiml/dist/index.js";',
                     "const __isCompiled = true;",
                     mainScript,

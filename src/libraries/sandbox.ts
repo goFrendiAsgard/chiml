@@ -1,3 +1,4 @@
+require("cache-require-paths");
 import { dirname as pathDirName, resolve as pathResolve } from "path";
 import * as utilities from "../libraries/utilities";
 

@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+require("cache-require-paths");
 const http_1 = require("../libraries/http");
 class JsonRpcProxy {
     constructor(config) {

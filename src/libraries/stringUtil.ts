@@ -1,3 +1,4 @@
+require("cache-require-paths");
 import { readFile } from "fs";
 import { safeLoad } from "js-yaml";
 import { ILineState } from "../interfaces/ILineState";

@@ -1,6 +1,7 @@
 #! /usr/bin/env node
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+require("cache-require-paths");
 const index_1 = require("../index");
 function main(args) {
     const fileGetter = args.length < 1 ? index_1.getFiles(".") : Promise.resolve(args);

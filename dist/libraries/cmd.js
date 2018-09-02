@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+require("cache-require-paths");
 const child_process_1 = require("child_process");
 const path_1 = require("path");
 const Logger_1 = require("../classes/Logger");
