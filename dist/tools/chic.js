@@ -2,13 +2,14 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 require("cache-require-paths");
-const index_1 = require("../index");
+const Logger_1 = require("../classes/Logger");
+const tools_1 = require("../libraries/tools");
 function main(args) {
-    const fileGetter = args.length < 1 ? index_1.getFiles(".") : Promise.resolve(args);
-    const logger = new index_1.Logger();
+    const fileGetter = args.length < 1 ? tools_1.getFiles(".") : Promise.resolve(args);
+    const logger = new Logger_1.Logger();
     fileGetter
         .then((files) => {
-        return index_1.compile(files);
+        return tools_1.compile(files);
     })
         .then((jsFilePaths) => {
         const createdFileList = jsFilePaths.map((filePath) => {

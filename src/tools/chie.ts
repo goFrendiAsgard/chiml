@@ -1,6 +1,7 @@
 #! /usr/bin/env node
 require("cache-require-paths");
-import { execute, Logger } from "../index";
+import { Logger } from "../classes/Logger";
+import { execute } from "../libraries/tools";
 
 function main(args: any[]): any {
     const logger = new Logger();

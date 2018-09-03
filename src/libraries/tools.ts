@@ -34,7 +34,7 @@ export function getCompiledScript(chiml: any): Promise<string> {
                 const task = new SingleTask(config);
                 const mainScript = task.getScript();
                 const script = [
-                    'import {__cmd, __parseIns, sys} from "chiml/dist/index.js";',
+                    'import {__cmd, __parseIns, sys} from "chiml/dist/libraries/utilities.js";',
                     "const __isCompiled = true;",
                     mainScript,
                     "module.exports = __main_0;",

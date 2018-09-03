@@ -1,6 +1,7 @@
 #! /usr/bin/env node
 require("cache-require-paths");
-import { compile, getFiles, Logger } from "../index";
+import { Logger } from "../classes/Logger";
+import { compile, getFiles } from "../libraries/tools";
 
 function main(args: any[]) {
     const fileGetter = args.length < 1 ? getFiles(".") : Promise.resolve(args);
