@@ -1,7 +1,0 @@
-ins: ctx
-vars:
-    data:
-        title: "Hello world"
-        lang: "eng"
-do:
-    - ('index', data) -> {ctx.render}

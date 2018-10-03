@@ -1,7 +1,7 @@
 {
   "name": "chiml",
-  "version": "0.0.11",
-  "description": "(JavaScript + YAML + GoodIntention) --> CHIML",
+  "version": "0.1.0",
+  "description": "Typescripting",
   "main": "dist/index.js",
   "bin": {
     "chie": "dist/tools/chie.js",
@@ -40,30 +40,13 @@
   },
   "homepage": "https://github.com/goFrendiAsgard/chimera-framework#readme",
   "dependencies": {
-    "cache-require-paths": "^0.3.0",
-    "ejs": "^2.6.1",
-    "fs-extra": "^6.0.1",
-    "js-yaml": "^3.12.0",
-    "koa": "^2.5.1",
-    "koa-route": "^3.2.0",
-    "path-to-regexp": "^2.2.1",
-    "request": "^2.87.0",
-    "socket.io": "^2.1.1",
-    "typescript": "^2.9.1"
+    "typescript": "^3.1.1"
   },
   "devDependencies": {
-    "@types/ejs": "^2.6.0",
-    "@types/fs-extra": "^5.0.3",
-    "@types/js-yaml": "^3.11.1",
-    "@types/koa": "^2.0.46",
-    "@types/koa-route": "^3.2.3",
-    "@types/node": "^10.3.2",
-    "@types/request": "^2.47.0",
-    "@types/socket.io": "^1.4.36",
-    "@types/jest": "^23.0.0",
-    "@types/socket.io-client": "^1.4.32",
-    "jest": "^23.1.0",
-    "ts-jest": "^22.4.6",
-    "tslint": "^5.10.0"
+    "@types/jest": "^23.3.2",
+    "@types/node": "^10.11.3",
+    "jest": "^23.6.0",
+    "ts-jest": "^23.10.3",
+    "tslint": "^5.11.0"
   }
 }

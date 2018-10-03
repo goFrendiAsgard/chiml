@@ -1,3 +1,0 @@
-ins: a, b
-out: c
-do: (a, b) -> chie child.chiml -> c

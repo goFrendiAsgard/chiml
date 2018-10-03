@@ -1,8 +1,0 @@
-ins: ctx, next
-do: |
-    (ctx, next) => {
-        return next()
-            .then(()=>{
-                ctx.body += "&copy; goFrendi"
-            });
-    }

@@ -1,7 +1,0 @@
-ins: a, b
-out: f
-do:
-    - (a, b) -> (x, y) => x + y -> c
-    - (a, b) -> (x, y) => x - y -> d
-    - do: (c, d) -> (x, y) => x * y -> e
-    - do: ("result: " + e) --> f

@@ -1,1 +1,0 @@
-(ctx) -> (ctx) => ctx.query.user == 'admin' && ctx.query.password == 'secret' ? 'admin' : null

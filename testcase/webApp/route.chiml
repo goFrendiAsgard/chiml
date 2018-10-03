@@ -1,1 +1,0 @@
-(ctx, name) -> (ctx, name) => ctx.body += `Hi ${name}`

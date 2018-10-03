@@ -1,3 +1,5 @@
-require("cache-require-paths");
-import { compile, execute, getCompiledScript } from "./libraries/tools";
-export { compile, execute, getCompiledScript };
+import { asyn } from "./libraries/asyn";
+import { call } from "./libraries/call";
+import { sync } from "./libraries/sync";
+
+export { asyn, call, sync };
