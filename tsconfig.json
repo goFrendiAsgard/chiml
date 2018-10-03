@@ -2,7 +2,8 @@
     "compileOnSave": true,
     "compilerOptions": {
         "module": "commonjs",
-        "target": "es2015",
+        "target": "ES5",
+        "experimentalDecorators": true,
         "declaration": true,
         "outDir": "./dist",
         "rootDir": "./src"
