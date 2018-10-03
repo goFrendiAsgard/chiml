@@ -4,6 +4,8 @@ CHIML is stands for Chimera-Lib. It is a collection of useful libraries that kee
 
 # Concept
 
+**NOTE :** This concept is not fully implemented and is subject to change
+
 ## User's Library
 
 ```typescript
@@ -32,14 +34,22 @@ import { asyncAdd, callbackAdd, cmd, syncAdd } from "lib";
 
 export default async function main(input1: any, input2: any): Promises<any> {
   let myNumber: number = input1;
-  myNumber = await @chiml.sync add(myNumber, input2);
-  myNumber = await @chiml.async asyncAdd(myNumber, input2);
-  myNumber = await @chiml.callback callbackAdd(myNumber, input2);
-  myNumber = await @chiml.async exec(cmd, myNumber, input2);
+  myNumber = await chiml.sync(add)(myNumber, input2);
+  myNumber = await chiml.asyn(asyncAdd)(myNumber, input2);
+  myNumber = await chiml.call(callbackAdd)(myNumber, input2);
+  myNumber = await chiml.exec(cmd)myNumber, input2);
   const [x, y, z] = await chiml.parallel(
-    add(myNumber, input),
-    add(myNumber, input),
-    add(myNumber, input),
+    add(myNumber, 1),
+    add(myNumber, 2),
+    add(myNumber, 3),
   );
+  return [myNumber, x, y, z];
 }
+```
+
+## Execution
+
+```
+chie main.ts 5 1
+5, 6, 7, 8
 ```
