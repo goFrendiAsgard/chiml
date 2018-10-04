@@ -1,4 +1,5 @@
-import { asyn, call, sync } from "./index";
+import { esprima } from "esprima";
+import { asyn, call, sync } from "../index";
 
 describe("Translate async function into promise", async () => {
 

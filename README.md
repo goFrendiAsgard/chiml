@@ -11,15 +11,15 @@ CHIML is stands for Chimera-Lib. It is a collection of useful libraries that kee
 ```typescript
 // lib.ts
 export function syncAdd(a: number, b: number): number {
-  return a + b;
+    return a + b;
 }
 
 export function async asyncAdd(a: number, b: number): Promise<number> {
-  return a + b;
+    return a + b;
 }
 
 export function callbackAdd(a: number, b: number, callback:(error: Error, number: number) => void) {
-  callback(null, a + b);
+    callback(null, a + b);
 }
 
 export const cmd = "python3 add.py";
@@ -29,21 +29,25 @@ export const cmd = "python3 add.py";
 
 ```typescript
 // main.ts
-import * as chiml from "chiml";
+import { chiml as $ } from "chiml";
 import { asyncAdd, callbackAdd, cmd, syncAdd } from "lib";
 
 export default async function main(input1: any, input2: any): Promises<any> {
-  let myNumber: number = input1;
-  myNumber = await chiml.sync(add)(myNumber, input2);
-  myNumber = await chiml.asyn(asyncAdd)(myNumber, input2);
-  myNumber = await chiml.call(callbackAdd)(myNumber, input2);
-  myNumber = await chiml.exec(cmd)myNumber, input2);
-  const [x, y, z] = await chiml.parallel(
-    add(myNumber, 1),
-    add(myNumber, 2),
-    add(myNumber, 3),
-  );
-  return [myNumber, x, y, z];
+
+    let myNumber: number = input1;
+
+    myNumber = await $(add, myNumber, input2);
+    myNumber = await $(asyncAdd, myNumber, input2);
+    myNumber = await $(callbackAdd, myNumber, input2);
+    myNumber = await $(cmd, myNumber, input2);
+
+    const [x, y, z] = await $.parallel(
+        $(add, myNumber, 1),
+        $(add, myNumber, 2),
+        $(add, myNumber, 3),
+    );
+    return [myNumber, x, y, z];
+
 }
 ```
 
@@ -51,5 +55,5 @@ export default async function main(input1: any, input2: any): Promises<any> {
 
 ```
 chie main.ts 5 1
-5, 6, 7, 8
+11, 12, 13, 14
 ```

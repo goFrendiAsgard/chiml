@@ -1,4 +1,4 @@
-import { asyn } from "./libraries/asyn";
-import { call } from "./libraries/call";
-import { sync } from "./libraries/sync";
-export { asyn, call, sync };
+import { asyn as a } from "./libraries/asyn";
+import { call as c } from "./libraries/call";
+import { sync as s } from "./libraries/sync";
+export { a, c, s };
