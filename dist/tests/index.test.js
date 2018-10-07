@@ -8,62 +8,124 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const chiml = require("../index");
-describe("Translate async function into promise", () => __awaiter(this, void 0, void 0, function* () {
-    it("Translate async function", () => __awaiter(this, void 0, void 0, function* () {
-        function fn(a, b) {
-            return __awaiter(this, void 0, void 0, function* () {
-                return a + b;
-            });
-        }
-        const result = yield chiml.a(fn)(4, 5);
-        expect(result).toBe(9);
-    }));
-}));
-describe("Translate node callback into promise", () => __awaiter(this, void 0, void 0, function* () {
-    it("Translate node callback with single result", () => __awaiter(this, void 0, void 0, function* () {
-        function fn(a, b, callback) {
-            callback(null, a + b);
-        }
-        const result = yield chiml.c(fn)(4, 5);
-        expect(result).toBe(9);
-    }));
-    it("Translate node callback with multiple results", () => __awaiter(this, void 0, void 0, function* () {
-        function fn(a, b, callback) {
-            callback(null, a + b, a - b);
-        }
-        const result = yield chiml.c(fn)(4, 5);
-        expect(result).toMatchObject([9, -1]);
-    }));
-    it("Translate node callback that yield error", () => __awaiter(this, void 0, void 0, function* () {
-        function fn(a, b, callback) {
-            callback("error bro", a + b);
-        }
+const index_1 = require("../index");
+const lib_1 = require("./fixtures/lib");
+describe("works with promises", () => __awaiter(this, void 0, void 0, function* () {
+    it("single resolving promise works", () => __awaiter(this, void 0, void 0, function* () {
         try {
-            yield chiml.c(fn)(4, 5);
+            const result = yield index_1.chiml(lib_1.resolvingPromise);
+            expect(result).toBe(73);
         }
         catch (error) {
-            expect(error).toBe("error bro");
+            console.error(error);
+            expect(error).toBeFalsy();
+        }
+    }));
+    it("multiple promise works", () => __awaiter(this, void 0, void 0, function* () {
+        try {
+            const result = yield index_1.chiml(lib_1.resolvingPromise, lib_1.resolvingPromise);
+            expect(result[0]).toBe(73);
+            expect(result[1]).toBe(73);
+        }
+        catch (error) {
+            console.error(error);
+            expect(error).toBeFalsy();
+        }
+    }));
+    it("single rejecting promise works", () => __awaiter(this, void 0, void 0, function* () {
+        try {
+            const result = yield index_1.chiml(lib_1.rejectingPromise);
+            expect(result).toBeUndefined();
+        }
+        catch (error) {
+            expect(error).toBe("rejected");
+        }
+    }));
+    it("multiple promise works", () => __awaiter(this, void 0, void 0, function* () {
+        try {
+            const result = yield index_1.chiml(lib_1.rejectingPromise, lib_1.resolvingPromise);
+            expect(result).toBeUndefined();
+        }
+        catch (error) {
+            expect(error).toBe("rejected");
         }
     }));
 }));
-describe("Translate sync function into promise", () => __awaiter(this, void 0, void 0, function* () {
-    it("Translate sync function", () => __awaiter(this, void 0, void 0, function* () {
-        function fn(a, b) {
-            return a + b;
-        }
-        const result = yield chiml.s(fn)(4, 5);
-        expect(result).toBe(9);
-    }));
-    it("Translate sync function that yield error", () => __awaiter(this, void 0, void 0, function* () {
-        function fn(a, b) {
-            throw (new Error("error bro"));
-        }
+describe("works with async functions", () => __awaiter(this, void 0, void 0, function* () {
+    it("async function works", () => __awaiter(this, void 0, void 0, function* () {
         try {
-            yield chiml.s(fn)(4, 5);
+            const result = yield index_1.chiml(lib_1.asyncFunction, 4, 5);
+            expect(result).toBe(9);
         }
         catch (error) {
-            expect(error.message).toBe("error bro");
+            console.error(error);
+            expect(error).toBeFalsy();
+        }
+    }));
+}));
+describe("works with sync functions", () => __awaiter(this, void 0, void 0, function* () {
+    it("sync function works", () => __awaiter(this, void 0, void 0, function* () {
+        try {
+            const result = yield index_1.chiml(lib_1.syncFunction, 4, 5);
+            expect(result).toBe(9);
+        }
+        catch (error) {
+            console.error(error);
+            expect(error).toBeFalsy();
+        }
+    }));
+}));
+describe("works with functions that have node callback", () => __awaiter(this, void 0, void 0, function* () {
+    it("function with callback works", () => __awaiter(this, void 0, void 0, function* () {
+        try {
+            const result = yield index_1.chiml(lib_1.functionWithCallback, 4, 5);
+            expect(result).toBe(9);
+        }
+        catch (error) {
+            console.error(error);
+            expect(error).toBeFalsy();
+        }
+    }));
+}));
+describe("works with cmd", () => __awaiter(this, void 0, void 0, function* () {
+    it("cmd works", () => __awaiter(this, void 0, void 0, function* () {
+        try {
+            const result = yield index_1.chiml(lib_1.cmd, 4, 5);
+            expect(result).toBe(9);
+        }
+        catch (error) {
+            console.error(error);
+            expect(error).toBeFalsy();
+        }
+    }));
+}));
+describe("works with composition", () => __awaiter(this, void 0, void 0, function* () {
+    it("composition works", () => __awaiter(this, void 0, void 0, function* () {
+        try {
+            function square(x) {
+                return x * x;
+            }
+            const result = yield index_1.chiml([square, lib_1.minus], 9, 4);
+            expect(result).toBe(25);
+        }
+        catch (error) {
+            console.error(error);
+            expect(error).toBeFalsy();
+        }
+    }));
+}));
+describe("work", () => __awaiter(this, void 0, void 0, function* () {
+    it("simple case works", () => __awaiter(this, void 0, void 0, function* () {
+        try {
+            const n1 = 10;
+            const n2 = 8;
+            const [addResult, minusResult] = yield index_1.chiml(index_1.chiml(lib_1.add, n1, n2), index_1.chiml(lib_1.minus, n1, n2));
+            const result = index_1.chiml([lib_1.rootSquare, lib_1.multiply], addResult, minusResult);
+            expect(result).toBe(6);
+        }
+        catch (error) {
+            console.error(error);
+            expect(error).toBeFalsy();
         }
     }));
 }));

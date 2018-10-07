@@ -18,7 +18,7 @@
   },
   "jest": {
     "transform": {
-      "\\.(ts|tsx)$": "<rootDir>/node_modules/ts-jest/preprocessor.js"
+      "\\.(ts|tsx)$": "ts-jest"
     },
     "testRegex": "/.*\\.test\\.(ts|tsx)$",
     "moduleFileExtensions": [
@@ -40,7 +40,6 @@
   },
   "homepage": "https://github.com/goFrendiAsgard/chimera-framework#readme",
   "dependencies": {
-    "esprima": "^4.0.1",
     "typescript": "^3.1.1"
   },
   "devDependencies": {

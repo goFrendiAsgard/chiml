@@ -1,67 +1,139 @@
-import { esprima } from "esprima";
-import { asyn, call, sync } from "../index";
+import { chiml as $ } from "../index";
+import {
+    add, asyncFunction, cmd, functionWithCallback, minus, multiply,
+    rejectingPromise, resolvingPromise, rootSquare, syncFunction } from "./fixtures/lib";
 
-describe("Translate async function into promise", async () => {
+describe("works with promises", async () => {
 
-    it("Translate async function", async () => {
-        async function fn(a: number, b: number) {
-            return a + b;
+    it ("single resolving promise works", async () => {
+        try {
+            const result = await $(resolvingPromise);
+            expect(result).toBe(73);
+        } catch (error) {
+            console.error(error);
+            expect(error).toBeFalsy();
         }
-        const result = await asyn(fn)(4, 5);
-        expect(result).toBe(9);
+    });
+
+    it ("multiple promise works", async () => {
+        try {
+            const result = await $(resolvingPromise, resolvingPromise);
+            expect(result[0]).toBe(73);
+            expect(result[1]).toBe(73);
+        } catch (error) {
+            console.error(error);
+            expect(error).toBeFalsy();
+        }
+    });
+
+    it ("single rejecting promise works", async () => {
+        try {
+            const result = await $(rejectingPromise);
+            expect(result).toBeUndefined();
+        } catch (error) {
+            expect(error).toBe("rejected");
+        }
+    });
+
+    it ("multiple promise works", async () => {
+        try {
+            const result = await $(rejectingPromise, resolvingPromise);
+            expect(result).toBeUndefined();
+        } catch (error) {
+            expect(error).toBe("rejected");
+        }
     });
 
 });
 
-describe("Translate node callback into promise", async () => {
+describe("works with async functions", async () => {
 
-    it("Translate node callback with single result", async () => {
-        function fn(a: number, b: number, callback: (error, result) => any) {
-            callback(null, a + b);
-        }
-        const result = await call(fn)(4, 5);
-        expect(result).toBe(9);
-    });
-
-    it("Translate node callback with multiple results", async () => {
-        function fn(a: number, b: number, callback: (error, result1, result2) => any) {
-            callback(null, a + b, a - b);
-        }
-        const result = await call(fn)(4, 5);
-        expect(result).toMatchObject([9, -1]);
-    });
-
-    it("Translate node callback that yield error", async () => {
-        function fn(a: number, b: number, callback: (error, result) => any) {
-            callback("error bro", a + b);
-        }
+    it ("async function works", async () => {
         try {
-            await call(fn)(4, 5);
+            const result = await $(asyncFunction, 4, 5);
+            expect(result).toBe(9);
         } catch (error) {
-            expect(error).toBe("error bro");
+            console.error(error);
+            expect(error).toBeFalsy();
         }
     });
 
 });
 
-describe("Translate sync function into promise", async () => {
+describe("works with sync functions", async () => {
 
-    it("Translate sync function", async () => {
-        function fn(a: number, b: number): number {
-            return a + b;
+    it ("sync function works", async () => {
+        try {
+            const result = await $(syncFunction, 4, 5);
+            expect(result).toBe(9);
+        } catch (error) {
+            console.error(error);
+            expect(error).toBeFalsy();
         }
-        const result = await sync(fn)(4, 5);
-        expect(result).toBe(9);
     });
 
-    it("Translate sync function that yield error", async () => {
-        function fn(a: number, b: number): any {
-            throw(new Error("error bro"));
-        }
+});
+
+describe("works with functions that have node callback", async () => {
+
+    it ("function with callback works", async () => {
         try {
-            await sync(fn)(4, 5);
+            const result = await $(functionWithCallback, 4, 5);
+            expect(result).toBe(9);
         } catch (error) {
-            expect(error.message).toBe("error bro");
+            console.error(error);
+            expect(error).toBeFalsy();
+        }
+    });
+
+});
+
+describe("works with cmd", async () => {
+
+    it ("cmd works", async () => {
+        try {
+            const result = await $(cmd, 4, 5);
+            expect(result).toBe(9);
+        } catch (error) {
+            console.error(error);
+            expect(error).toBeFalsy();
+        }
+    });
+
+});
+
+describe("works with composition", async () => {
+
+    it ("composition works", async () => {
+        try {
+            function square(x: number): number {
+                return x * x;
+            }
+            const result = await $([square, minus], 9, 4);
+            expect(result).toBe(25);
+        } catch (error) {
+            console.error(error);
+            expect(error).toBeFalsy();
+        }
+    });
+
+});
+
+describe("work", async () => {
+
+    it("simple case works", async () => {
+        try {
+            const n1 = 10;
+            const n2 = 8;
+            const [addResult, minusResult] = await $(
+                $(add, n1, n2),
+                $(minus, n1, n2),
+            );
+            const result = $([rootSquare, multiply], addResult, minusResult);
+            expect(result).toBe(6);
+        } catch (error) {
+            console.error(error);
+            expect(error).toBeFalsy();
         }
     });
 
