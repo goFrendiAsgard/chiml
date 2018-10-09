@@ -101,14 +101,18 @@ function isPromise(arg: any): boolean {
     return arg && arg.then ? true : false;
 }
 
-function runCommand(command: string, options?: { [key: string]: any }): Promise<string> {
+function runCommand(command: string, options?: { [key: string]: any }): Promise<any> {
     const logger: Console = options && options.logger || console;
     return new Promise((resolve, reject) => {
         const subProcess = exec(command, options, (error, stdout, stderr) => {
             if (error) {
                 return reject(error);
             }
-            return resolve(stdout);
+            try {
+                return resolve(JSON.parse(stdout));
+            } catch (error) {
+                return resolve(stdout);
+            }
         });
 
         subProcess.stdout.on("data", (chunk) => {

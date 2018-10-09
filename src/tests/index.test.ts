@@ -1,7 +1,9 @@
 import { chiml as $ } from "../index";
 import {
-    add, asyncFunction, cmd, functionWithCallback, minus, multiply,
-    rejectingPromise, resolvingPromise, rootSquare, syncFunction } from "./fixtures/lib";
+    add, asyncFunction, cmd, errorAsyncFunction, errorSyncFunction,
+    functionWithCallback, functionWithCallbackAndMultipleReturn,
+    functionWithCallbackYieldError, minus, multiply, rejectingPromise,
+    resolvingPromise, rootSquare, square, syncFunction } from "./fixtures/lib";
 
 describe("works with promises", async () => {
 
@@ -106,9 +108,6 @@ describe("works with composition", async () => {
 
     it ("composition works", async () => {
         try {
-            function square(x: number): number {
-                return x * x;
-            }
             const result = await $([square, minus], 9, 4);
             expect(result).toBe(25);
         } catch (error) {
@@ -129,7 +128,9 @@ describe("work", async () => {
                 $(add, n1, n2),
                 $(minus, n1, n2),
             );
-            const result = $([rootSquare, multiply], addResult, minusResult);
+            expect(addResult).toBe(18);
+            expect(minusResult).toBe(2);
+            const result = await $([rootSquare, multiply], addResult, minusResult);
             expect(result).toBe(6);
         } catch (error) {
             console.error(error);

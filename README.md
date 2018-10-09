@@ -52,12 +52,15 @@ chie main.ts 10 8
 
 ## Spec
 
-* If all parameter are promise, it will do `Promise.all` and return the result
-* If the first parameter is array, it will compose the array into one single async function
-    - if there is no other parameter, the async function will be returned
-    - If there are other parameters, the async function should be executed with the rest of the parameters as inputs.
-* If this first parameter is string, it will run the cmd
-* If the first parameter is sync function, it will be turned into async function, and executed with rest of the parameters as inputs
-* If the first parameter is callback function, it will be turned into async function, and executed with rest of the parameters as inputs
-* If the first parameter is async function, it will be executed with rest of the parameters as inputs
-* If the first parameter is a promise, nothing should be done
+* If all arguments are `promise`s, it will do `Promise.all` and return the result
+* If the first argument is `array`, it will be composed in reverse order. I.e: `$([a, b], c, d) ---> $(b, c, d).then((result) => $(a, result))`
+* If the first argument is `string`, it wil be treated as shell command and will be executed with the rest of the arguments as shell command's arguments. The result should be a `promise`
+* If the first argument is `async function`, it will be executed with the rest of arguments as function's argument. The return value should be a promise
+* If the first argument is `function with callback`, it will be executed with the rest of arguments as function's argument. The return value should be a promise
+* If the first argument is `synchronous function`, it will be executed with the rest of arguments as function's argument. The return value should be a promise
+
+## Todo
+
+* Make 100% Coverage.
+* Think how to implement `map`, `filter`, and `reduce`.
+* Implement a declarative mode of this.

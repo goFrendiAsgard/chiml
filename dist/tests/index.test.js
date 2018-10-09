@@ -120,7 +120,9 @@ describe("work", () => __awaiter(this, void 0, void 0, function* () {
             const n1 = 10;
             const n2 = 8;
             const [addResult, minusResult] = yield index_1.chiml(index_1.chiml(lib_1.add, n1, n2), index_1.chiml(lib_1.minus, n1, n2));
-            const result = index_1.chiml([lib_1.rootSquare, lib_1.multiply], addResult, minusResult);
+            expect(addResult).toBe(18);
+            expect(minusResult).toBe(2);
+            const result = yield index_1.chiml([lib_1.rootSquare, lib_1.multiply], addResult, minusResult);
             expect(result).toBe(6);
         }
         catch (error) {

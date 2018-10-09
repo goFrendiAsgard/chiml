@@ -105,7 +105,12 @@ function runCommand(command, options) {
             if (error) {
                 return reject(error);
             }
-            return resolve(stdout);
+            try {
+                return resolve(JSON.parse(stdout));
+            }
+            catch (error) {
+                return resolve(stdout);
+            }
         });
         subProcess.stdout.on("data", (chunk) => {
             process.stderr.write(BRIGHT + FG_YELLOW);
