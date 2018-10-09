@@ -23,16 +23,8 @@ function chiml(...args) {
         return compose(arg, ...restArgs);
     }
     // create resolver and execute the resolver
-    try {
-        const result = resolveCmdOrFunction(arg, ...restArgs);
-        if (isPromise(result)) {
-            return result;
-        }
-        return Promise.resolve(result);
-    }
-    catch (error) {
-        return Promise.reject(error);
-    }
+    const result = resolveCmdOrFunction(arg, ...restArgs);
+    return result;
 }
 exports.chiml = chiml;
 function compose(rawActions, ...args) {
@@ -109,7 +101,7 @@ function runCommand(command, options) {
                 return resolve(JSON.parse(stdout));
             }
             catch (error) {
-                return resolve(stdout);
+                return resolve(stdout.trim());
             }
         });
         subProcess.stdout.on("data", (chunk) => {

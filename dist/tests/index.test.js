@@ -62,6 +62,15 @@ describe("works with async functions", () => __awaiter(this, void 0, void 0, fun
             expect(error).toBeFalsy();
         }
     }));
+    it("async function that yield error works", () => __awaiter(this, void 0, void 0, function* () {
+        try {
+            const result = yield index_1.chiml(lib_1.errorAsyncFunction, 4, 5);
+            expect(result).toBeUndefined();
+        }
+        catch (error) {
+            expect(error).toBe("async function rejected");
+        }
+    }));
 }));
 describe("works with sync functions", () => __awaiter(this, void 0, void 0, function* () {
     it("sync function works", () => __awaiter(this, void 0, void 0, function* () {
@@ -72,6 +81,15 @@ describe("works with sync functions", () => __awaiter(this, void 0, void 0, func
         catch (error) {
             console.error(error);
             expect(error).toBeFalsy();
+        }
+    }));
+    it("sync function that yield error works", () => __awaiter(this, void 0, void 0, function* () {
+        try {
+            const result = yield index_1.chiml(lib_1.errorSyncFunction, 4, 5);
+            expect(result).toBeUndefined();
+        }
+        catch (error) {
+            expect(error.message).toBe("sync function error");
         }
     }));
 }));
@@ -86,6 +104,26 @@ describe("works with functions that have node callback", () => __awaiter(this, v
             expect(error).toBeFalsy();
         }
     }));
+    it("function with callback and multiple results works", () => __awaiter(this, void 0, void 0, function* () {
+        try {
+            const result = yield index_1.chiml(lib_1.functionWithCallbackAndMultipleReturn, 4, 5);
+            expect(result[0]).toBe(9);
+            expect(result[1]).toBe(-1);
+        }
+        catch (error) {
+            console.error(error);
+            expect(error).toBeFalsy();
+        }
+    }));
+    it("function with callback that yield error works", () => __awaiter(this, void 0, void 0, function* () {
+        try {
+            const result = yield index_1.chiml(lib_1.functionWithCallbackYieldError, 4, 5);
+            expect(result).toBeUndefined();
+        }
+        catch (error) {
+            expect(error).toBe("callback error");
+        }
+    }));
 }));
 describe("works with cmd", () => __awaiter(this, void 0, void 0, function* () {
     it("cmd works", () => __awaiter(this, void 0, void 0, function* () {
@@ -98,14 +136,40 @@ describe("works with cmd", () => __awaiter(this, void 0, void 0, function* () {
             expect(error).toBeFalsy();
         }
     }));
+    it("cmd that return a non-json-parseable string works", () => __awaiter(this, void 0, void 0, function* () {
+        try {
+            const result = yield index_1.chiml(lib_1.hello, "world");
+            expect(result).toBe("Hello world");
+        }
+        catch (error) {
+            console.error(error);
+            expect(error).toBeFalsy();
+        }
+    }));
+    it("cmd that contains single command works", () => __awaiter(this, void 0, void 0, function* () {
+        try {
+            const result = yield index_1.chiml("ls");
+            expect(result).toBeDefined();
+        }
+        catch (error) {
+            console.error(error);
+            expect(error).toBeFalsy();
+        }
+    }));
+    it("error cmd works", () => __awaiter(this, void 0, void 0, function* () {
+        try {
+            const result = yield index_1.chiml("/dev/null/oraono", 4, 5);
+            expect(result).toBeUndefined();
+        }
+        catch (error) {
+            expect(error).toBeDefined();
+        }
+    }));
 }));
 describe("works with composition", () => __awaiter(this, void 0, void 0, function* () {
     it("composition works", () => __awaiter(this, void 0, void 0, function* () {
         try {
-            function square(x) {
-                return x * x;
-            }
-            const result = yield index_1.chiml([square, lib_1.minus], 9, 4);
+            const result = yield index_1.chiml([lib_1.square, lib_1.minus], 9, 4);
             expect(result).toBe(25);
         }
         catch (error) {

@@ -39,8 +39,10 @@ export function functionWithCallbackAndMultipleReturn(a: number, b: number, cb: 
 const fixturesPath = path.resolve(path.dirname(path.dirname(__dirname)), "tests", "fixtures");
 const rootSquarePath = path.resolve(fixturesPath, "rootSquare.py");
 const cmdPath = path.resolve(fixturesPath, "add.py");
+const helloPath = path.resolve(fixturesPath, "hello.py");
 export const cmd = `python3 ${cmdPath}`;
 export const rootSquare = `python3 ${rootSquarePath}`;
+export const hello = `python3 ${helloPath}`;
 
 export const resolvingPromise = Promise.resolve(73);
 export const rejectingPromise = Promise.reject("rejected");

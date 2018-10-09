@@ -24,15 +24,8 @@ export function chiml(...args: any[]): IChimlResult {
         return compose(arg, ...restArgs);
     }
     // create resolver and execute the resolver
-    try {
-        const result = resolveCmdOrFunction(arg, ...restArgs);
-        if (isPromise(result)) {
-            return result;
-        }
-        return Promise.resolve(result);
-    } catch (error) {
-        return Promise.reject(error);
-    }
+    const result = resolveCmdOrFunction(arg, ...restArgs);
+    return result;
 }
 
 function compose(rawActions: any[], ...args: any[]): Promise<any> {
@@ -111,7 +104,7 @@ function runCommand(command: string, options?: { [key: string]: any }): Promise<
             try {
                 return resolve(JSON.parse(stdout));
             } catch (error) {
-                return resolve(stdout);
+                return resolve(stdout.trim());
             }
         });
 

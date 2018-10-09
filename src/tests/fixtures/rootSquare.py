@@ -1,2 +1,2 @@
-n1 = float(input())
-print(n1 ** 0.5)
+n = float(input())
+print(n ** 0.5)

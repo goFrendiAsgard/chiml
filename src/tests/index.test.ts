@@ -2,7 +2,7 @@ import { chiml as $ } from "../index";
 import {
     add, asyncFunction, cmd, errorAsyncFunction, errorSyncFunction,
     functionWithCallback, functionWithCallbackAndMultipleReturn,
-    functionWithCallbackYieldError, minus, multiply, rejectingPromise,
+    functionWithCallbackYieldError, hello, minus, multiply, rejectingPromise,
     resolvingPromise, rootSquare, square, syncFunction } from "./fixtures/lib";
 
 describe("works with promises", async () => {
@@ -60,6 +60,15 @@ describe("works with async functions", async () => {
         }
     });
 
+    it("async function that yield error works", async () => {
+        try {
+            const result = await $(errorAsyncFunction, 4, 5);
+            expect(result).toBeUndefined();
+        } catch (error) {
+            expect(error).toBe("async function rejected");
+        }
+    });
+
 });
 
 describe("works with sync functions", async () => {
@@ -71,6 +80,15 @@ describe("works with sync functions", async () => {
         } catch (error) {
             console.error(error);
             expect(error).toBeFalsy();
+        }
+    });
+
+    it("sync function that yield error works", async () => {
+        try {
+            const result = await $(errorSyncFunction, 4, 5);
+            expect(result).toBeUndefined();
+        } catch (error) {
+            expect(error.message).toBe("sync function error");
         }
     });
 
@@ -88,6 +106,26 @@ describe("works with functions that have node callback", async () => {
         }
     });
 
+    it ("function with callback and multiple results works", async () => {
+        try {
+            const result = await $(functionWithCallbackAndMultipleReturn, 4, 5);
+            expect(result[0]).toBe(9);
+            expect(result[1]).toBe(-1);
+        } catch (error) {
+            console.error(error);
+            expect(error).toBeFalsy();
+        }
+    });
+
+    it("function with callback that yield error works", async () => {
+        try {
+            const result = await $(functionWithCallbackYieldError, 4, 5);
+            expect(result).toBeUndefined();
+        } catch (error) {
+            expect(error).toBe("callback error");
+        }
+    });
+
 });
 
 describe("works with cmd", async () => {
@@ -99,6 +137,35 @@ describe("works with cmd", async () => {
         } catch (error) {
             console.error(error);
             expect(error).toBeFalsy();
+        }
+    });
+
+    it ("cmd that return a non-json-parseable string works", async () => {
+        try {
+            const result = await $(hello, "world");
+            expect(result).toBe("Hello world");
+        } catch (error) {
+            console.error(error);
+            expect(error).toBeFalsy();
+        }
+    });
+
+    it ("cmd that contains single command works", async () => {
+        try {
+            const result = await $("ls");
+            expect(result).toBeDefined();
+        } catch (error) {
+            console.error(error);
+            expect(error).toBeFalsy();
+        }
+    });
+
+    it("error cmd works", async () => {
+        try {
+            const result = await $("/dev/null/oraono", 4, 5);
+            expect(result).toBeUndefined();
+        } catch (error) {
+            expect(error).toBeDefined();
         }
     });
 
