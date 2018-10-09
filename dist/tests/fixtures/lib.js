@@ -16,7 +16,7 @@ exports.multiply = multiply;
 exports.syncFunction = add;
 exports.asyncFunction = (a, b) => Promise.resolve(a + b);
 exports.functionWithCallback = (a, b, cb) => cb(null, a + b);
-const fixturesPath = path.resolve(path.dirname(path.dirname(__dirname)), "dist", "tests", "fixtures");
+const fixturesPath = path.resolve(path.dirname(path.dirname(__dirname)), "tests", "fixtures");
 const rootSquarePath = path.resolve(fixturesPath, "rootSquare.py");
 const cmdPath = path.resolve(fixturesPath, "add.py");
 exports.cmd = `python3 ${cmdPath}`;
