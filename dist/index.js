@@ -2,12 +2,13 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const child_process_1 = require("child_process");
 const BRIGHT = "\x1b[1m";
-const FG_BLUE = "\x1b[34m";
-const FG_CYAN = "\x1b[36m";
+// const FG_BLUE = "\x1b[34m";
+// const FG_CYAN = "\x1b[36m";
 const FG_RED = "\x1b[31m";
-const FG_WHITE = "\x1b[37m";
+// const FG_WHITE = "\x1b[37m";
 const FG_YELLOW = "\x1b[33m";
 const RESET_COLOR = "\x1b[0m";
+// real implementation
 function chiml(...args) {
     const arg = args[0];
     const restArgs = args.slice(1);

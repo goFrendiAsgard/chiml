@@ -2,13 +2,90 @@ import { ChildProcess, exec } from "child_process";
 import { IChimlResult } from "./interfaces";
 
 const BRIGHT = "\x1b[1m";
-const FG_BLUE = "\x1b[34m";
-const FG_CYAN = "\x1b[36m";
+// const FG_BLUE = "\x1b[34m";
+// const FG_CYAN = "\x1b[36m";
 const FG_RED = "\x1b[31m";
-const FG_WHITE = "\x1b[37m";
+// const FG_WHITE = "\x1b[37m";
 const FG_YELLOW = "\x1b[33m";
 const RESET_COLOR = "\x1b[0m";
 
+// all are promises
+export function chiml<TResult1>(
+    p1: Promise<TResult1>,
+): Promise<[TResult1]>;
+export function chiml<TResult1, TResult2>(
+    p1: Promise<TResult1>, p2: Promise<TResult1>,
+): Promise<[TResult1, TResult2]>;
+export function chiml<TResult1, TResult2, TResult3>(
+    p1: Promise<TResult1>, p2: Promise<TResult1>, p3: Promise<TResult3>,
+): Promise<[TResult1, TResult2, TResult3]>;
+export function chiml<TResult1, TResult2, TResult3, TResult4>(
+    p1: Promise<TResult1>, p2: Promise<TResult1>, p3: Promise<TResult3>, p4: Promise<TResult4>,
+): Promise<[TResult1, TResult2, TResult3, TResult4]>;
+export function chiml<TResult1, TResult2, TResult3, TResult4, TResult5>(
+    p1: Promise<TResult1>, p2: Promise<TResult1>, p3: Promise<TResult3>, p4: Promise<TResult4>, p5: Promise<TResult5>,
+): Promise<[TResult1, TResult2, TResult3, TResult4, TResult5]>;
+export function chiml(...args: IChimlResult[]): IChimlResult;
+
+// async function
+export function chiml<TArgs extends any[], TResult extends IChimlResult>(
+    fn: (...args: TArgs) => TResult, ...args: TArgs): TResult;
+
+// sync function
+export function chiml<TArgs extends any[], TResult extends any>(
+    fn: (...args: TArgs) => TResult, ...args: TArgs): Promise<TResult>;
+
+// function with callback
+export function chiml<TA1 extends any, TResult extends any>(
+    fn: (a1: TA1, cb: (error: any, result: TResult) => any) => any,
+    a1: TA1,
+): Promise<TResult>;
+export function chiml<TA1 extends any, TResult extends any[]>(
+    fn: (a1: TA1, cb: (error: any, ...result: TResult) => any) => any,
+    a1: TA1,
+): Promise<TResult>;
+export function chiml<TA1 extends any, TA2 extends any, TResult extends any>(
+    fn: (a1: TA1, a2: TA2, cb: (error: any, result: TResult) => any) => any,
+    a1: TA1, a2: TA2,
+): Promise<TResult>;
+export function chiml<TA1 extends any, TA2 extends any, TResult extends any[]>(
+    fn: (a1: TA1, a2: TA2, cb: (error: any, ...result: TResult) => any) => any,
+    a1: TA1, a2: TA2,
+): Promise<TResult>;
+export function chiml<TA1 extends any, TA2 extends any, TA3 extends any, TResult extends any>(
+    fn: (a1: TA1, a2: TA2, a3: TA3, cb: (error: any, result: TResult) => any) => any,
+    a1: TA1, a2: TA2, a3: TA3,
+): Promise<TResult>;
+export function chiml<TA1 extends any, TA2 extends any, TA3 extends any, TResult extends any[]>(
+    fn: (a1: TA1, a2: TA2, a3: TA3, cb: (error: any, ...result: TResult) => any) => any,
+    a1: TA1, a2: TA2, a3: TA3,
+): Promise<TResult>;
+export function chiml<TA1 extends any, TA2 extends any, TA3 extends any, TA4 extends any, TResult extends any>(
+    fn: (a1: TA1, a2: TA2, a3: TA3, a4: TA4, cb: (error: any, result: TResult) => any) => any,
+    a1: TA1, a2: TA2, a3: TA3, a4: TA4,
+): Promise<TResult>;
+export function chiml<TA1 extends any, TA2 extends any, TA3 extends any, TA4 extends any, TResult extends any[]>(
+    fn: (a1: TA1, a2: TA2, a3: TA3, a4: TA4, cb: (error: any, ...result: TResult) => any) => any,
+    a1: TA1, a2: TA2, a3: TA3, a4: TA4,
+): Promise<TResult>;
+// tslint:disable-next-line:max-line-length
+export function chiml<TA1 extends any, TA2 extends any, TA3 extends any, TA4 extends any, TA5 extends any, TResult extends any>(
+    fn: (a1: TA1, a2: TA2, a3: TA3, a4: TA4, a5: TA5, cb: (error: any, result: TResult) => any) => any,
+    a1: TA1, a2: TA2, a3: TA3, a4: TA4, a5: TA5,
+): Promise<TResult>;
+// tslint:disable-next-line:max-line-length
+export function chiml<TA1 extends any, TA2 extends any, TA3 extends any, TA4 extends any, TA5 extends any, TResult extends any[]>(
+    fn: (a1: TA1, a2: TA2, a3: TA3, a4: TA4, a5: TA5, cb: (error: any, ...result: TResult) => any) => any,
+    a1: TA1, a2: TA2, a3: TA3, a4: TA4, a5: TA5,
+): Promise<TResult>;
+
+// command
+export function chiml(cmd: string|any[], ...args: any[]): IChimlResult;
+
+// any other
+export function chiml(...args: any[]): IChimlResult;
+
+// real implementation
 export function chiml(...args: any[]): IChimlResult {
     const arg = args[0];
     const restArgs = args.slice(1);
@@ -28,9 +105,9 @@ export function chiml(...args: any[]): IChimlResult {
     return result;
 }
 
-function compose(rawActions: any[], ...args: any[]): Promise<any> {
+function compose(rawActions: any[], ...args: any[]): IChimlResult {
     const actions = rawActions.reverse();
-    let result: Promise<any> = Promise.resolve(null);
+    let result: IChimlResult = Promise.resolve(null);
     for (let i = 0; i < args.length; i++) {
         const action = actions[i];
         if (i === 0) {
@@ -42,7 +119,7 @@ function compose(rawActions: any[], ...args: any[]): Promise<any> {
     return result;
 }
 
-function resolveCmdOrFunction(func: any, ...args: any[]): any|Promise<any> {
+function resolveCmdOrFunction(func: any, ...args: any[]): any|IChimlResult {
     if (typeof func === "string") {
         const command = composeCommand(func, args);
         return runCommand(command);
@@ -52,7 +129,7 @@ function resolveCmdOrFunction(func: any, ...args: any[]): any|Promise<any> {
     }
 }
 
-function resolveFunction(func: (...args: any[]) => any, ...args: any[]): Promise<any> {
+function resolveFunction(func: (...args: any[]) => any, ...args: any[]): IChimlResult {
     return new Promise((resolve, reject) => {
         function callback(error, ...result) {
             if (error) {
@@ -94,7 +171,7 @@ function isPromise(arg: any): boolean {
     return arg && arg.then ? true : false;
 }
 
-function runCommand(command: string, options?: { [key: string]: any }): Promise<any> {
+function runCommand(command: string, options?: { [key: string]: any }): IChimlResult {
     const logger: Console = options && options.logger || console;
     return new Promise((resolve, reject) => {
         const subProcess = exec(command, options, (error, stdout, stderr) => {
