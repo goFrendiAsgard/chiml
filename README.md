@@ -2,9 +2,7 @@
 
 CHIML is stands for Chimera-Lib. It is a collection of useful libraries that keep you sane while doing some typescript.
 
-# Concept
-
-**NOTE :** This concept is not fully implemented and is subject to change
+# Example 1
 
 ## User's Library
 
@@ -34,10 +32,12 @@ import { add, minus, multiply, rootSquare } from "lib";
 
 export default async function main(n1: number, n2: number): Promises<any> {
 
+    // parallel
     const [ addResult, minusResult ] = await $(
         $(add, n1, n2),
         $(minus, n1, n2),
     );
+    // compose
     return await $([rootSquare, multiply], addResult, minusResult);
 
 }
@@ -50,7 +50,35 @@ chie main.ts 10 8
 6
 ```
 
-## Spec
+# Example 2
+
+## Main
+
+```typescript
+// main.ts
+import { chiml as $, map, filter, reduce } from "chiml";
+export default async function main(): Promises<any> {
+    const data: number[] = [1, 2, 3, 4, 5];
+    const squared = $(map((x) => x * x, data));
+    const even = $(filter((x) => x % 2 === 0, data));
+    const sum = $(reduce((x, y = 0) => x + y, data));
+    return { data, even, squared, sum };
+}
+```
+
+## Execution
+
+```
+chie main.ts
+{
+    "data": [ 1, 2, 3, 4, 5 ],
+    "even": [ 2, 4 ],
+    "squared": [ 1, 4, 9, 16, 25 ],
+    "sum": 15 
+}
+```
+
+# Spec
 
 * If all arguments are `promise`s, it will do `Promise.all` and return the result
 * If the first argument is `array`, it will be composed in reverse order. I.e: `$([a, b], c, d) ---> $(b, c, d).then((result) => $(a, result))`
@@ -62,5 +90,5 @@ chie main.ts 10 8
 ## Todo
 
 * Make 100% Coverage.
-* Think how to implement `map`, `filter`, and `reduce`.
+* Implement `map`, `filter`, and `reduce`.
 * Implement a declarative mode of this.
