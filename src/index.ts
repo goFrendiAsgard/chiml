@@ -116,15 +116,15 @@ export function chiml(...args: any[]): IChimlResult {
 // async & sync function
 export function map<TArg, TResult>(
     func: (arg: TArg) => Promise<TResult>|TResult,
-): (arg: TArg[]) => Promise<TResult>;
+): (args: TArg[]) => Promise<TResult>;
 // function that have callback
 export function map<TArg, TResult, TCallback extends(error: any, result: TResult) => any>(
     func: (arg: TArg, cb: TCallback) => any,
-): (arg: TArg[]) => Promise<TResult>;
-export function map<TArg, TResult extends any[]>(cmd: string): (arg: TArg[]) => Promise<TResult>;
+): (args: TArg[]) => Promise<TResult>;
+export function map<TArg, TResult extends any[]>(cmd: string): (args: TArg[]) => Promise<TResult>;
 
 // real implementation
-export function map(funcOrCmd: string|IAnyFunction): (arg: any[]) => IChimlResult {
+export function map(funcOrCmd: string|IAnyFunction): (args: any[]) => IChimlResult {
     return (args: any[]) => {
         const promises: IChimlResult[] = args.map(
             (element) => chiml(funcOrCmd, element),
@@ -140,15 +140,15 @@ export function map(funcOrCmd: string|IAnyFunction): (arg: any[]) => IChimlResul
 // async & sync function
 export function filter<TArg, TResult extends TArg[]>(
     func: (arg: TArg) => Promise<boolean>|boolean,
-): (arg: TArg[]) => Promise<TResult>;
+): (args: TArg[]) => Promise<TResult>;
 // function that have callback
 export function filter<TArg, TResult, TCallback extends(error: any, result: boolean) => any>(
     func: (arg: TArg, cb: TCallback) => any,
-): (arg: TArg[]) => Promise<TResult>;
-export function filter<TArg, TResult extends any[]>(cmd: string): (arg: TArg[]) => Promise<TResult>;
+): (args: TArg[]) => Promise<TResult>;
+export function filter<TArg, TResult extends any[]>(cmd: string): (args: TArg[]) => Promise<TResult>;
 
 // real implementation
-export function filter(funcOrCmd: string|IAnyFunction): (arg: any[]) => IChimlResult {
+export function filter(funcOrCmd: string|IAnyFunction): (args: any[]) => IChimlResult {
     return (args: any[]) => {
         const promises: IChimlResult[] = args.map(
             (element) => chiml(funcOrCmd, element),
@@ -173,29 +173,22 @@ export function filter(funcOrCmd: string|IAnyFunction): (arg: any[]) => IChimlRe
 // async & sync function
 export function reduce<TArg, TResult>(
     func: (arg: TArg, accumulator: TResult) => Promise<TResult>|TResult,
-): (arg: TArg[]) => Promise<TResult>;
+): (args: TArg[], accumulator: TResult) => Promise<TResult>;
 // function that have callback
 export function reduce<TArg, TResult, TCallback extends(error: any, result: TResult) => any>(
     func: (arg: TArg, accumulator: TResult, cb: TCallback) => any,
-): (arg: TArg[]) => Promise<TResult>;
-export function reduce<TArg, TResult extends any[]>(cmd: string): (arg: TArg[]) => Promise<TResult>;
+): (args: TArg[], accumulator: TResult) => Promise<TResult>;
+export function reduce<TArg, TResult extends any[]>(
+    cmd: string): (args: TArg[], accumulator: TResult) => Promise<TResult>;
 
-// real implementation, TODO: fix this
-export function reduce(funcOrCmd: string|IAnyFunction): (arg: any[]) => IChimlResult {
-    return (args: any[]) => {
-        const promises: IChimlResult[] = args.map(
-            (element) => chiml(funcOrCmd, element),
-        );
-        return Promise.all(promises)
-            .then((reduceedList: boolean[]) => {
-                const result: any[] = [];
-                for (let i = 0; i < reduceedList.length; i++) {
-                    if (reduceedList[i]) {
-                        result.push(args[i]);
-                    }
-                }
-                return result;
-            });
+// real implementation
+export function reduce(funcOrCmd: string|IAnyFunction): (arg: any[], accumulator: any) => IChimlResult {
+    return async (args: any[], accumulator: any) => {
+        let result: any = accumulator;
+        for (const arg of args) {
+            result = await chiml(funcOrCmd, arg, result);
+        }
+        return result;
     };
 }
 

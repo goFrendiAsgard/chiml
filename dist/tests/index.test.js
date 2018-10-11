@@ -209,4 +209,11 @@ describe("filter", () => __awaiter(this, void 0, void 0, function* () {
         expect(result).toMatchObject([2, 4]);
     }));
 }));
+describe("reduce", () => __awaiter(this, void 0, void 0, function* () {
+    it("work with sync function", () => __awaiter(this, void 0, void 0, function* () {
+        const data = [1, 2, 3, 4, 5];
+        const result = yield index_1.chiml(index_1.reduce((x, y) => x + y), data, 0);
+        expect(result).toBe(15);
+    }));
+}));
 //# sourceMappingURL=index.test.js.map

@@ -1,4 +1,12 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const child_process_1 = require("child_process");
 const BRIGHT = "\x1b[1m";
@@ -53,6 +61,17 @@ function filter(funcOrCmd) {
     };
 }
 exports.filter = filter;
+// real implementation
+function reduce(funcOrCmd) {
+    return (args, accumulator) => __awaiter(this, void 0, void 0, function* () {
+        let result = accumulator;
+        for (const arg of args) {
+            result = yield chiml(funcOrCmd, arg, result);
+        }
+        return result;
+    });
+}
+exports.reduce = reduce;
 /*********************************************************
  * private functions
  *********************************************************/

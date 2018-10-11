@@ -1,4 +1,4 @@
-import { chiml as $, filter, map } from "../index";
+import { chiml as $, filter, map, reduce } from "../index";
 import {
     add, asyncFunction, cmd, errorAsyncFunction, errorSyncFunction,
     functionWithCallback, functionWithCallbackAndMultipleReturn,
@@ -223,6 +223,16 @@ describe("filter", async () => {
         const data: number[] = [1, 2, 3, 4, 5];
         const result = await $(filter((x: number) => x % 2 === 0 ), data);
         expect(result).toMatchObject([2, 4]);
+    });
+
+});
+
+describe("reduce", async () => {
+
+    it("work with sync function", async () => {
+        const data: number[] = [1, 2, 3, 4, 5];
+        const result = await $(reduce((x: number, y: number) => x + y ), data, 0);
+        expect(result).toBe(15);
     });
 
 });

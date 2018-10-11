@@ -61,7 +61,7 @@ export default async function main(): Promises<any> {
     const data: number[] = [1, 2, 3, 4, 5];
     const squared = $(map((x) => x * x), data);
     const even = $(filter((x) => x % 2 === 0), data);
-    const sum = $(reduce((x, y = 0) => x + y), data);
+    const sum = $(reduce((x, y) => x + y), data, 0);
     return { data, even, squared, sum };
 }
 ```
