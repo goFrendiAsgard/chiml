@@ -1,5 +1,5 @@
 import { ChildProcess, exec } from "child_process";
-import { IChimlResult } from "./interfaces";
+import { IAnyFunction, IChimlResult } from "./interfaces";
 
 const BRIGHT = "\x1b[1m";
 // const FG_BLUE = "\x1b[34m";
@@ -8,6 +8,10 @@ const FG_RED = "\x1b[31m";
 // const FG_WHITE = "\x1b[37m";
 const FG_YELLOW = "\x1b[33m";
 const RESET_COLOR = "\x1b[0m";
+
+/*********************************************************
+ * chiml
+ *********************************************************/
 
 // all are promises
 export function chiml<TResult1>(
@@ -104,6 +108,100 @@ export function chiml(...args: any[]): IChimlResult {
     const result = resolveCmdOrFunction(arg, ...restArgs);
     return result;
 }
+
+/*********************************************************
+ * map
+ *********************************************************/
+
+// async & sync function
+export function map<TArg, TResult>(
+    func: (arg: TArg) => Promise<TResult>|TResult,
+): (arg: TArg[]) => Promise<TResult>;
+// function that have callback
+export function map<TArg, TResult, TCallback extends(error: any, result: TResult) => any>(
+    func: (arg: TArg, cb: TCallback) => any,
+): (arg: TArg[]) => Promise<TResult>;
+export function map<TArg, TResult extends any[]>(cmd: string): (arg: TArg[]) => Promise<TResult>;
+
+// real implementation
+export function map(funcOrCmd: string|IAnyFunction): (arg: any[]) => IChimlResult {
+    return (args: any[]) => {
+        const promises: IChimlResult[] = args.map(
+            (element) => chiml(funcOrCmd, element),
+        );
+        return Promise.all(promises);
+    };
+}
+
+/*********************************************************
+ * filter
+ *********************************************************/
+
+// async & sync function
+export function filter<TArg, TResult extends TArg[]>(
+    func: (arg: TArg) => Promise<boolean>|boolean,
+): (arg: TArg[]) => Promise<TResult>;
+// function that have callback
+export function filter<TArg, TResult, TCallback extends(error: any, result: boolean) => any>(
+    func: (arg: TArg, cb: TCallback) => any,
+): (arg: TArg[]) => Promise<TResult>;
+export function filter<TArg, TResult extends any[]>(cmd: string): (arg: TArg[]) => Promise<TResult>;
+
+// real implementation
+export function filter(funcOrCmd: string|IAnyFunction): (arg: any[]) => IChimlResult {
+    return (args: any[]) => {
+        const promises: IChimlResult[] = args.map(
+            (element) => chiml(funcOrCmd, element),
+        );
+        return Promise.all(promises)
+            .then((filteredList: boolean[]) => {
+                const result: any[] = [];
+                for (let i = 0; i < filteredList.length; i++) {
+                    if (filteredList[i]) {
+                        result.push(args[i]);
+                    }
+                }
+                return result;
+            });
+    };
+}
+
+/*********************************************************
+ * reduce
+ *********************************************************/
+
+// async & sync function
+export function reduce<TArg, TResult>(
+    func: (arg: TArg, accumulator: TResult) => Promise<TResult>|TResult,
+): (arg: TArg[]) => Promise<TResult>;
+// function that have callback
+export function reduce<TArg, TResult, TCallback extends(error: any, result: TResult) => any>(
+    func: (arg: TArg, accumulator: TResult, cb: TCallback) => any,
+): (arg: TArg[]) => Promise<TResult>;
+export function reduce<TArg, TResult extends any[]>(cmd: string): (arg: TArg[]) => Promise<TResult>;
+
+// real implementation, TODO: fix this
+export function reduce(funcOrCmd: string|IAnyFunction): (arg: any[]) => IChimlResult {
+    return (args: any[]) => {
+        const promises: IChimlResult[] = args.map(
+            (element) => chiml(funcOrCmd, element),
+        );
+        return Promise.all(promises)
+            .then((reduceedList: boolean[]) => {
+                const result: any[] = [];
+                for (let i = 0; i < reduceedList.length; i++) {
+                    if (reduceedList[i]) {
+                        result.push(args[i]);
+                    }
+                }
+                return result;
+            });
+    };
+}
+
+/*********************************************************
+ * private functions
+ *********************************************************/
 
 function compose(rawActions: any[], ...args: any[]): IChimlResult {
     const actions = rawActions.reverse();

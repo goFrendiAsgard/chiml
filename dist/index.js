@@ -28,6 +28,34 @@ function chiml(...args) {
     return result;
 }
 exports.chiml = chiml;
+// real implementation
+function map(funcOrCmd) {
+    return (args) => {
+        const promises = args.map((element) => chiml(funcOrCmd, element));
+        return Promise.all(promises);
+    };
+}
+exports.map = map;
+// real implementation
+function filter(funcOrCmd) {
+    return (args) => {
+        const promises = args.map((element) => chiml(funcOrCmd, element));
+        return Promise.all(promises)
+            .then((filteredList) => {
+            const result = [];
+            for (let i = 0; i < filteredList.length; i++) {
+                if (filteredList[i]) {
+                    result.push(args[i]);
+                }
+            }
+            return result;
+        });
+    };
+}
+exports.filter = filter;
+/*********************************************************
+ * private functions
+ *********************************************************/
 function compose(rawActions, ...args) {
     const actions = rawActions.reverse();
     let result = Promise.resolve(null);

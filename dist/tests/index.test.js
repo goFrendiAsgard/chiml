@@ -195,4 +195,18 @@ describe("work", () => __awaiter(this, void 0, void 0, function* () {
         }
     }));
 }));
+describe("map", () => __awaiter(this, void 0, void 0, function* () {
+    it("work with sync function", () => __awaiter(this, void 0, void 0, function* () {
+        const data = [1, 2, 3, 4, 5];
+        const result = yield index_1.chiml(index_1.map((x) => x * x), data);
+        expect(result).toMatchObject([1, 4, 9, 16, 25]);
+    }));
+}));
+describe("filter", () => __awaiter(this, void 0, void 0, function* () {
+    it("work with sync function", () => __awaiter(this, void 0, void 0, function* () {
+        const data = [1, 2, 3, 4, 5];
+        const result = yield index_1.chiml(index_1.filter((x) => x % 2 === 0), data);
+        expect(result).toMatchObject([2, 4]);
+    }));
+}));
 //# sourceMappingURL=index.test.js.map

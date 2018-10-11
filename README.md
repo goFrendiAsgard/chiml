@@ -59,9 +59,9 @@ chie main.ts 10 8
 import { chiml as $, map, filter, reduce } from "chiml";
 export default async function main(): Promises<any> {
     const data: number[] = [1, 2, 3, 4, 5];
-    const squared = $(map((x) => x * x, data));
-    const even = $(filter((x) => x % 2 === 0, data));
-    const sum = $(reduce((x, y = 0) => x + y, data));
+    const squared = $(map((x) => x * x), data);
+    const even = $(filter((x) => x % 2 === 0), data);
+    const sum = $(reduce((x, y = 0) => x + y), data);
     return { data, even, squared, sum };
 }
 ```

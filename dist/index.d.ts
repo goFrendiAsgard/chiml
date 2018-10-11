@@ -1,4 +1,7 @@
 import { IChimlResult } from "./interfaces";
+/*********************************************************
+ * chiml
+ *********************************************************/
 export declare function chiml<TResult1>(p1: Promise<TResult1>): Promise<[TResult1]>;
 export declare function chiml<TResult1, TResult2>(p1: Promise<TResult1>, p2: Promise<TResult1>): Promise<[TResult1, TResult2]>;
 export declare function chiml<TResult1, TResult2, TResult3>(p1: Promise<TResult1>, p2: Promise<TResult1>, p3: Promise<TResult3>): Promise<[TResult1, TResult2, TResult3]>;
@@ -19,3 +22,15 @@ export declare function chiml<TA1 extends any, TA2 extends any, TA3 extends any,
 export declare function chiml<TA1 extends any, TA2 extends any, TA3 extends any, TA4 extends any, TA5 extends any, TResult extends any[]>(fn: (a1: TA1, a2: TA2, a3: TA3, a4: TA4, a5: TA5, cb: (error: any, ...result: TResult) => any) => any, a1: TA1, a2: TA2, a3: TA3, a4: TA4, a5: TA5): Promise<TResult>;
 export declare function chiml(cmd: string | any[], ...args: any[]): IChimlResult;
 export declare function chiml(...args: any[]): IChimlResult;
+/*********************************************************
+ * map
+ *********************************************************/
+export declare function map<TArg, TResult>(func: (arg: TArg) => Promise<TResult> | TResult): (arg: TArg[]) => Promise<TResult>;
+export declare function map<TArg, TResult, TCallback extends (error: any, result: TResult) => any>(func: (arg: TArg, cb: TCallback) => any): (arg: TArg[]) => Promise<TResult>;
+export declare function map<TArg, TResult extends any[]>(cmd: string): (arg: TArg[]) => Promise<TResult>;
+/*********************************************************
+ * filter
+ *********************************************************/
+export declare function filter<TArg, TResult extends TArg[]>(func: (arg: TArg) => Promise<boolean> | boolean): (arg: TArg[]) => Promise<TResult>;
+export declare function filter<TArg, TResult, TCallback extends (error: any, result: boolean) => any>(func: (arg: TArg, cb: TCallback) => any): (arg: TArg[]) => Promise<TResult>;
+export declare function filter<TArg, TResult extends any[]>(cmd: string): (arg: TArg[]) => Promise<TResult>;
