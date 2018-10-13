@@ -5,7 +5,7 @@ import {
     functionWithCallbackYieldError, hello, minus, multiply, rejectingPromise,
     resolvingPromise, rootSquare, square, syncFunction } from "./fixtures/lib";
 
-describe("works with promises", async () => {
+describe("works with promises", () => {
 
     it ("single resolving promise works", async () => {
         try {
@@ -15,6 +15,7 @@ describe("works with promises", async () => {
             console.error(error);
             expect(error).toBeFalsy();
         }
+        return null;
     });
 
     it ("multiple promise works", async () => {
@@ -26,6 +27,7 @@ describe("works with promises", async () => {
             console.error(error);
             expect(error).toBeFalsy();
         }
+        return null;
     });
 
     it ("single rejecting promise works", async () => {
@@ -35,6 +37,7 @@ describe("works with promises", async () => {
         } catch (error) {
             expect(error).toBe("rejected");
         }
+        return null;
     });
 
     it ("multiple promise works", async () => {
@@ -44,11 +47,12 @@ describe("works with promises", async () => {
         } catch (error) {
             expect(error).toBe("rejected");
         }
+        return null;
     });
 
 });
 
-describe("works with async functions", async () => {
+describe("works with async functions", () => {
 
     it ("async function works", async () => {
         try {
@@ -58,6 +62,7 @@ describe("works with async functions", async () => {
             console.error(error);
             expect(error).toBeFalsy();
         }
+        return null;
     });
 
     it("async function that yield error works", async () => {
@@ -67,11 +72,12 @@ describe("works with async functions", async () => {
         } catch (error) {
             expect(error).toBe("async function rejected");
         }
+        return null;
     });
 
 });
 
-describe("works with sync functions", async () => {
+describe("works with sync functions", () => {
 
     it ("sync function works", async () => {
         try {
@@ -81,6 +87,7 @@ describe("works with sync functions", async () => {
             console.error(error);
             expect(error).toBeFalsy();
         }
+        return null;
     });
 
     it("sync function that yield error works", async () => {
@@ -90,11 +97,12 @@ describe("works with sync functions", async () => {
         } catch (error) {
             expect(error.message).toBe("sync function error");
         }
+        return null;
     });
 
 });
 
-describe("works with functions that have node callback", async () => {
+describe("works with functions that have node callback", () => {
 
     it ("function with callback works", async () => {
         try {
@@ -104,6 +112,7 @@ describe("works with functions that have node callback", async () => {
             console.error(error);
             expect(error).toBeFalsy();
         }
+        return null;
     });
 
     it ("function with callback and multiple results works", async () => {
@@ -115,6 +124,7 @@ describe("works with functions that have node callback", async () => {
             console.error(error);
             expect(error).toBeFalsy();
         }
+        return null;
     });
 
     it("function with callback that yield error works", async () => {
@@ -124,11 +134,12 @@ describe("works with functions that have node callback", async () => {
         } catch (error) {
             expect(error).toBe("callback error");
         }
+        return null;
     });
 
 });
 
-describe("works with cmd", async () => {
+describe("works with cmd", () => {
 
     it ("cmd works", async () => {
         try {
@@ -138,6 +149,7 @@ describe("works with cmd", async () => {
             console.error(error);
             expect(error).toBeFalsy();
         }
+        return null;
     });
 
     it ("cmd that return a non-json-parseable string works", async () => {
@@ -148,6 +160,7 @@ describe("works with cmd", async () => {
             console.error(error);
             expect(error).toBeFalsy();
         }
+        return null;
     });
 
     it ("cmd that contains single command works", async () => {
@@ -158,6 +171,7 @@ describe("works with cmd", async () => {
             console.error(error);
             expect(error).toBeFalsy();
         }
+        return null;
     });
 
     it("error cmd works", async () => {
@@ -167,11 +181,12 @@ describe("works with cmd", async () => {
         } catch (error) {
             expect(error).toBeDefined();
         }
+        return null;
     });
 
 });
 
-describe("works with composition", async () => {
+describe("works with composition", () => {
 
     it ("composition works", async () => {
         try {
@@ -181,11 +196,12 @@ describe("works with composition", async () => {
             console.error(error);
             expect(error).toBeFalsy();
         }
+        return null;
     });
 
 });
 
-describe("work", async () => {
+describe("work", () => {
 
     it("simple case works", async () => {
         try {
@@ -203,36 +219,58 @@ describe("work", async () => {
             console.error(error);
             expect(error).toBeFalsy();
         }
+        return null;
+    });
+
+    it("simple case with parallel and composition works", async () => {
+        try {
+            const n1 = 10;
+            const n2 = 8;
+            const result = await $(
+                $(add, n1, n2),
+                $(minus, n1, n2),
+            ).then(async (r) => {
+                return await $([rootSquare, multiply], r[0], r[1]);
+            });
+            expect(result).toBe(6);
+        } catch (error) {
+            console.error(error);
+            expect(error).toBeFalsy();
+        }
+        return null;
     });
 
 });
 
-describe("map", async () => {
+describe("map", () => {
 
     it("work with sync function", async () => {
         const data: number[] = [1, 2, 3, 4, 5];
         const result = await $(map((x: number) => x * x), data);
         expect(result).toMatchObject([1, 4, 9, 16, 25]);
+        return null;
     });
 
 });
 
-describe("filter", async () => {
+describe("filter", () => {
 
     it("work with sync function", async () => {
         const data: number[] = [1, 2, 3, 4, 5];
         const result = await $(filter((x: number) => x % 2 === 0 ), data);
         expect(result).toMatchObject([2, 4]);
+        return null;
     });
 
 });
 
-describe("reduce", async () => {
+describe("reduce", () => {
 
     it("work with sync function", async () => {
         const data: number[] = [1, 2, 3, 4, 5];
         const result = await $(reduce((x: number, y: number) => x + y ), data, 0);
         expect(result).toBe(15);
+        return null;
     });
 
 });
