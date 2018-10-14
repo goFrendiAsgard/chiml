@@ -23,36 +23,81 @@ export function multiply(a: number, b: number, callback: (error: Error, result: 
 export const rootSquare = "python3 rootSquare.py";
 ```
 
-## Main Program
+## Main Program (In Typescript, composition)
 
 ```typescript
 // main.ts
 import { chiml as $ } from "chiml";
 import { add, minus, multiply, rootSquare } from "lib";
 
-export default async function main(n1: number, n2: number): Promises<any> {
+export default async function main(n1: number, n2: number): Promises<number> {
+    return await $(
+        // parallel
+        $(add, n1, n2),
+        $(minus, n1, n2),
+    )
+        .then(([addResult, minusResult]) => {
+            // compose
+            return $([rootSquare, multiply], addResult, minusResult)
+        });
+}
+```
 
-    // parallel
-    const [ addResult, minusResult ] = await $(
+## Main Program (In Typescript, imperative)
+
+```typescript
+// main.ts
+import { chiml as $ } from "chiml";
+import { add, minus, multiply, rootSquare } from "lib";
+
+export default async function main(n1: number, n2: number): Promises<number> {
+    const [addResult, minusResult] = await $(
+        // parallel
         $(add, n1, n2),
         $(minus, n1, n2),
     );
-    // compose
-    return await $([rootSquare, multiply], addResult, minusResult);
-
+    // composition
+    return await $([rootSquare, multiply], addResult, minusResult)
 }
+```
+
+## Main Program (In Yaml)
+```yaml
+# main.yml
+import:
+    lib: [ add, minus, multiply, rootSquare ]
+ins: [ n1:number, n2:number ]
+vars: [ addResult:number, minusResult:number ]
+out: result
+do:
+    - parallel:
+
+        - ins: [n1, n2]
+          out: addResult
+          do: <add>
+
+        - ins: [n1, n2]
+          out: minusResult
+          do: <minus>
+
+    - ins: [ addResult, minusResult ]
+      out: result
+      do: [ rootSquare, multiply ]
 ```
 
 ## Execution
 
 ```
-chie main.ts 10 8
+> chie main.ts 10 8
+6
+
+> chie main.yml 10 8
 6
 ```
 
 # Example 2
 
-## Main
+## Main Program (In Typescript)
 
 ```typescript
 // main.ts
@@ -66,15 +111,49 @@ export default async function main(): Promises<any> {
 }
 ```
 
+## Main Program (In Yaml)
+
+```yaml
+# main.yml
+vars:
+    data:number[]: [1, 2, 3, 4, 5]
+    result:{[key: string]: number[]}:
+        squared: []
+        even: []
+        sum: []
+out: result
+do:
+    - ins: data
+      out: result.squared
+      map: <(x) => x * x>
+
+    - ins: data
+      out: result.even
+      filter: <(x) => x % 2 === 0>
+
+    - ins: data
+      out: result.even
+      accumulator: 0
+      reduce: <(x, y) => x + y>
+```
+
 ## Execution
 
 ```
-chie main.ts
+> chie main.ts
 {
     "data": [ 1, 2, 3, 4, 5 ],
     "even": [ 2, 4 ],
     "squared": [ 1, 4, 9, 16, 25 ],
-    "sum": 15 
+    "sum": 15
+}
+
+> chie main.yml
+{
+    "data": [ 1, 2, 3, 4, 5 ],
+    "even": [ 2, 4 ],
+    "squared": [ 1, 4, 9, 16, 25 ],
+    "sum": 15
 }
 ```
 
