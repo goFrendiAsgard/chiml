@@ -210,14 +210,12 @@ function compose(rawActions: any[], ...args: any[]): IChimlResult {
     return result;
 }
 
-function resolveCmdOrFunction(func: any, ...args: any[]): any|IChimlResult {
+function resolveCmdOrFunction(func: IAnyFunction | string, ...args: any[]): any|IChimlResult {
     if (typeof func === "string") {
         const command = composeCommand(func, args);
         return runCommand(command);
     }
-    if (typeof func === "function") {
-        return resolveFunction(func, ...args);
-    }
+    return resolveFunction(func, ...args);
 }
 
 function resolveFunction(func: (...args: any[]) => any, ...args: any[]): IChimlResult {
@@ -263,7 +261,6 @@ function isPromise(arg: any): boolean {
 }
 
 function runCommand(command: string, options?: { [key: string]: any }): IChimlResult {
-    const logger: Console = options && options.logger || console;
     return new Promise((resolve, reject) => {
         const subProcess = exec(command, options, (error, stdout, stderr) => {
             if (error) {
@@ -295,20 +292,35 @@ function runCommand(command: string, options?: { [key: string]: any }): IChimlRe
             process.stdin.removeListener("data", stdinListener);
             process.stdin.end();
         });
-        subProcess.stdin.on("error", (error) => logger.error(error));
-        process.stdin.on("error", (error) => logger.error(error));
+        subProcess.stdin.on("error", (error) => console.error(error));
+        process.stdin.on("error", (error) => console.error(error));
 
     });
 }
 
-function composeCommand(command: string, ins: any[] = []): string {
+function composeCommand(command: string, ins: any[]): string {
     if (ins.length === 0) {
         return command;
     }
     const echoes = ins.map((element) => "echo " + doubleQuote(String(element))).join(" && ");
-    const inputs = ins.map((element) => doubleQuote(String(element))).join(" ");
-    const composedCommand = `(${echoes}) | ${command} ${inputs}`;
+    const commandWithParams = getCommandWithParams(command, ins);
+    const composedCommand = `(${echoes}) | ${commandWithParams}`;
     return composedCommand;
+}
+
+function getCommandWithParams(command: string, ins: any[]): string {
+    // command has no templated parameters
+    if (command.match(/.*\$\{[0-9]+\}.*/g)) {
+        // command has templated parameters (i.e: ${1}, ${2}, etc)
+        let commandWithParams = command;
+        for (let i = 0; i < ins.length; i++) {
+            const paramIndex = i + 1;
+            commandWithParams = commandWithParams.replace(`$\{${paramIndex}}`, doubleQuote(String(ins[i])));
+        }
+        return commandWithParams;
+    }
+    const inputs = ins.map((element) => doubleQuote(String(element))).join(" ");
+    return `${command} ${inputs}`;
 }
 
 function createStdInListener(subProcess: ChildProcess): (chunk: any) => void {

@@ -93,9 +93,7 @@ function resolveCmdOrFunction(func, ...args) {
         const command = composeCommand(func, args);
         return runCommand(command);
     }
-    if (typeof func === "function") {
-        return resolveFunction(func, ...args);
-    }
+    return resolveFunction(func, ...args);
 }
 function resolveFunction(func, ...args) {
     return new Promise((resolve, reject) => {
@@ -139,7 +137,6 @@ function isPromise(arg) {
     return arg && arg.then ? true : false;
 }
 function runCommand(command, options) {
-    const logger = options && options.logger || console;
     return new Promise((resolve, reject) => {
         const subProcess = child_process_1.exec(command, options, (error, stdout, stderr) => {
             if (error) {
@@ -168,18 +165,32 @@ function runCommand(command, options) {
             process.stdin.removeListener("data", stdinListener);
             process.stdin.end();
         });
-        subProcess.stdin.on("error", (error) => logger.error(error));
-        process.stdin.on("error", (error) => logger.error(error));
+        subProcess.stdin.on("error", (error) => console.error(error));
+        process.stdin.on("error", (error) => console.error(error));
     });
 }
-function composeCommand(command, ins = []) {
+function composeCommand(command, ins) {
     if (ins.length === 0) {
         return command;
     }
     const echoes = ins.map((element) => "echo " + doubleQuote(String(element))).join(" && ");
-    const inputs = ins.map((element) => doubleQuote(String(element))).join(" ");
-    const composedCommand = `(${echoes}) | ${command} ${inputs}`;
+    const commandWithParams = getCommandWithParams(command, ins);
+    const composedCommand = `(${echoes}) | ${commandWithParams}`;
     return composedCommand;
+}
+function getCommandWithParams(command, ins) {
+    // command has no templated parameters
+    if (command.match(/.*\$\{[0-9]+\}.*/g)) {
+        // command has templated parameters (i.e: ${1}, ${2}, etc)
+        let commandWithParams = command;
+        for (let i = 0; i < ins.length; i++) {
+            const paramIndex = i + 1;
+            commandWithParams = commandWithParams.replace(`$\{${paramIndex}}`, doubleQuote(String(ins[i])));
+        }
+        return commandWithParams;
+    }
+    const inputs = ins.map((element) => doubleQuote(String(element))).join(" ");
+    return `${command} ${inputs}`;
 }
 function createStdInListener(subProcess) {
     return (chunk) => subProcess.stdin.write(chunk);

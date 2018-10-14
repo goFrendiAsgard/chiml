@@ -2,31 +2,21 @@ import { chiml as $, filter, map, reduce } from "../index";
 import {
     add, asyncFunction, cmd, errorAsyncFunction, errorSyncFunction,
     functionWithCallback, functionWithCallbackAndMultipleReturn,
-    functionWithCallbackYieldError, hello, minus, multiply, rejectingPromise,
+    functionWithCallbackYieldError, greeting, greetingWithParams,
+    hello, minus, multiply, rejectingPromise,
     resolvingPromise, rootSquare, square, syncFunction } from "./fixtures/lib";
 
 describe("works with promises", () => {
 
     it ("single resolving promise works", async () => {
-        try {
-            const result = await $(resolvingPromise);
-            expect(result).toBe(73);
-        } catch (error) {
-            console.error(error);
-            expect(error).toBeFalsy();
-        }
+        const result = await $(resolvingPromise);
+        expect(result).toBe(73);
         return null;
     });
 
     it ("multiple promise works", async () => {
-        try {
-            const result = await $(resolvingPromise, resolvingPromise);
-            expect(result[0]).toBe(73);
-            expect(result[1]).toBe(73);
-        } catch (error) {
-            console.error(error);
-            expect(error).toBeFalsy();
-        }
+        const result = await $(resolvingPromise, resolvingPromise);
+        expect(result).toMatchObject([73, 73]);
         return null;
     });
 
@@ -55,13 +45,8 @@ describe("works with promises", () => {
 describe("works with async functions", () => {
 
     it ("async function works", async () => {
-        try {
-            const result = await $(asyncFunction, 4, 5);
-            expect(result).toBe(9);
-        } catch (error) {
-            console.error(error);
-            expect(error).toBeFalsy();
-        }
+        const result = await $(asyncFunction, 4, 5);
+        expect(result).toBe(9);
         return null;
     });
 
@@ -80,13 +65,8 @@ describe("works with async functions", () => {
 describe("works with sync functions", () => {
 
     it ("sync function works", async () => {
-        try {
-            const result = await $(syncFunction, 4, 5);
-            expect(result).toBe(9);
-        } catch (error) {
-            console.error(error);
-            expect(error).toBeFalsy();
-        }
+        const result = await $(syncFunction, 4, 5);
+        expect(result).toBe(9);
         return null;
     });
 
@@ -105,25 +85,15 @@ describe("works with sync functions", () => {
 describe("works with functions that have node callback", () => {
 
     it ("function with callback works", async () => {
-        try {
-            const result = await $(functionWithCallback, 4, 5);
-            expect(result).toBe(9);
-        } catch (error) {
-            console.error(error);
-            expect(error).toBeFalsy();
-        }
+        const result = await $(functionWithCallback, 4, 5);
+        expect(result).toBe(9);
         return null;
     });
 
     it ("function with callback and multiple results works", async () => {
-        try {
-            const result = await $(functionWithCallbackAndMultipleReturn, 4, 5);
-            expect(result[0]).toBe(9);
-            expect(result[1]).toBe(-1);
-        } catch (error) {
-            console.error(error);
-            expect(error).toBeFalsy();
-        }
+        const result = await $(functionWithCallbackAndMultipleReturn, 4, 5);
+        expect(result[0]).toBe(9);
+        expect(result[1]).toBe(-1);
         return null;
     });
 
@@ -142,35 +112,26 @@ describe("works with functions that have node callback", () => {
 describe("works with cmd", () => {
 
     it ("cmd works", async () => {
-        try {
-            const result = await $(cmd, 4, 5);
-            expect(result).toBe(9);
-        } catch (error) {
-            console.error(error);
-            expect(error).toBeFalsy();
-        }
+        const result = await $(cmd, 4, 5);
+        expect(result).toBe(9);
         return null;
     });
 
     it ("cmd that return a non-json-parseable string works", async () => {
-        try {
-            const result = await $(hello, "world");
-            expect(result).toBe("Hello world");
-        } catch (error) {
-            console.error(error);
-            expect(error).toBeFalsy();
-        }
+        const result = await $(hello, "world");
+        expect(result).toBe("Hello world");
         return null;
     });
 
-    it ("cmd that contains single command works", async () => {
-        try {
-            const result = await $("ls");
-            expect(result).toBeDefined();
-        } catch (error) {
-            console.error(error);
-            expect(error).toBeFalsy();
-        }
+    it ("cmd that has no params works", async () => {
+        const result = await $(greeting);
+        expect(result).toBe("hello world");
+        return null;
+    });
+
+    it ("cmd that has positional params works", async () => {
+        const result = await $(greetingWithParams, "hi", "Frodo");
+        expect(result).toBe("hi Frodo");
         return null;
     });
 
@@ -189,13 +150,8 @@ describe("works with cmd", () => {
 describe("works with composition", () => {
 
     it ("composition works", async () => {
-        try {
-            const result = await $([square, minus], 9, 4);
-            expect(result).toBe(25);
-        } catch (error) {
-            console.error(error);
-            expect(error).toBeFalsy();
-        }
+        const result = await $([square, minus], 9, 4);
+        expect(result).toBe(25);
         return null;
     });
 
@@ -204,39 +160,29 @@ describe("works with composition", () => {
 describe("work", () => {
 
     it("simple case works", async () => {
-        try {
-            const n1 = 10;
-            const n2 = 8;
-            const [addResult, minusResult] = await $(
-                $(add, n1, n2),
-                $(minus, n1, n2),
-            );
-            expect(addResult).toBe(18);
-            expect(minusResult).toBe(2);
-            const result = await $([rootSquare, multiply], addResult, minusResult);
-            expect(result).toBe(6);
-        } catch (error) {
-            console.error(error);
-            expect(error).toBeFalsy();
-        }
+        const n1 = 10;
+        const n2 = 8;
+        const [addResult, minusResult] = await $(
+            $(add, n1, n2),
+            $(minus, n1, n2),
+        );
+        expect(addResult).toBe(18);
+        expect(minusResult).toBe(2);
+        const result = await $([rootSquare, multiply], addResult, minusResult);
+        expect(result).toBe(6);
         return null;
     });
 
     it("simple case with parallel and composition works", async () => {
-        try {
-            const n1 = 10;
-            const n2 = 8;
-            const result = await $(
-                $(add, n1, n2),
-                $(minus, n1, n2),
-            ).then(async (r) => {
-                return await $([rootSquare, multiply], r[0], r[1]);
-            });
-            expect(result).toBe(6);
-        } catch (error) {
-            console.error(error);
-            expect(error).toBeFalsy();
-        }
+        const n1 = 10;
+        const n2 = 8;
+        const result = await $(
+            $(add, n1, n2),
+            $(minus, n1, n2),
+        ).then(async ([addResult, minusResult]) => {
+            return await $([rootSquare, multiply], addResult, minusResult);
+        });
+        expect(result).toBe(6);
         return null;
     });
 

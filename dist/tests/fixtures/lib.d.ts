@@ -12,5 +12,7 @@ export declare function functionWithCallbackAndMultipleReturn(a: number, b: numb
 export declare const cmd: string;
 export declare const rootSquare: string;
 export declare const hello: string;
+export declare const greeting: string;
+export declare const greetingWithParams: string;
 export declare const resolvingPromise: Promise<number>;
 export declare const rejectingPromise: Promise<never>;
