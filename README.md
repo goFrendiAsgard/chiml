@@ -96,7 +96,7 @@ do:
             - ins: [n1, n2]
               out: minusResult
               do: <minus>
-        - do: <([addResult, minusResult]) => Xwrap(multiply)(addResult, minusResult)>
+        - do: <X.curry(X.reduce(multiply), 2, 1)>
         - do: <rootSquare>
 ```
 
