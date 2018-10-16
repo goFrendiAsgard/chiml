@@ -23,26 +23,6 @@ export function multiply(a: number, b: number, callback: (error: Error, result: 
 export const rootSquare = "python3 rootSquare.py";
 ```
 
-## Main Program (In Typescript, composition)
-
-```typescript
-// main.ts
-import { chiml as $ } from "chiml";
-import { add, minus, multiply, rootSquare } from "lib";
-
-export default async function main(n1: number, n2: number): Promises<number> {
-    return await $(
-        // parallel
-        $(add, n1, n2),
-        $(minus, n1, n2),
-    )
-        .then(([addResult, minusResult]) => {
-            // compose
-            return $([multiply, rootSquare], addResult, minusResult)
-        });
-}
-```
-
 ## Main Program (In Typescript, imperative)
 
 ```typescript
@@ -56,10 +36,32 @@ export default async function main(n1: number, n2: number): Promises<number> {
         $(add, n1, n2),
         $(minus, n1, n2),
     );
-    // composition
-    return await $([multiply, rootSquare], addResult, minusResult)
+    const multiplicationResult = $(multiply, addResult, minusResult);
+    return $(rootSquare, multiplicationResult);
 }
 ```
+
+## Main Program (In Typescript, free of side effect)
+
+```typescript
+// main.ts
+import { chiml as $ } from "chiml";
+import { add, minus, multiply, rootSquare } from "lib";
+
+export default async function main(n1: number, n2: number): Promises<number> {
+    return await $([
+        // piping
+        $(
+            // parallel
+            $(add, n1, n2),
+            $(minus, n1, n2),
+        ),
+        ([addResult, minusResult]) => $(multiply, addResult, minusResult),
+        rootSquare,
+    ]);
+}
+```
+
 
 ## Main Program (In Yaml)
 ```yaml
@@ -160,7 +162,7 @@ do:
 # Spec
 
 * If all arguments are `promise`s, it will do `Promise.all` and return the result
-* If the first argument is `array`, it will be composed in reverse order. I.e: `$([a, b], c, d) ---> $(b, c, d).then((result) => $(a, result))`
+* If the first argument is `array`, it will be composed in UNIX pipeline manner. I.e: `$([a, b], c, d) ---> $(a, c, d).then((result) => $(b, result))`
 * If the first argument is `string`, it wil be treated as shell command and will be executed with the rest of the arguments as shell command's arguments. The result should be a `promise`
 * If the first argument is `async function`, it will be executed with the rest of arguments as function's argument. The return value should be a promise
 * If the first argument is `function with callback`, it will be executed with the rest of arguments as function's argument. The return value should be a promise
