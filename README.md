@@ -11,15 +11,12 @@ CHIML is stands for Chimera-Lib. It is a collection of useful libraries that kee
 export function add(a: number, b: number): number {
     return a + b;
 }
-
 export function minus(a: number, b: number): Promise<number> {
     return Promise.resolve(a - b);
 }
-
 export function multiply(a: number, b: number, callback: (error: Error, result: number) => void) {
     callback(null, a * b);
 }
-
 export const rootSquare = "python3 rootSquare.py";
 ```
 
@@ -29,7 +26,6 @@ export const rootSquare = "python3 rootSquare.py";
 // main.ts
 import { chiml as $ } from "chiml";
 import { add, minus, multiply, rootSquare } from "lib";
-
 export default async function main(n1: number, n2: number): Promises<number> {
     const [addResult, minusResult] = await $(
         // parallel
@@ -47,7 +43,6 @@ export default async function main(n1: number, n2: number): Promises<number> {
 // main.ts
 import { chiml as $ } from "chiml";
 import { add, minus, multiply, rootSquare } from "lib";
-
 export default async function main(n1: number, n2: number): Promises<number> {
     return await $([
         // piping
