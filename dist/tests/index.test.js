@@ -133,7 +133,7 @@ describe("works with cmd", () => {
 });
 describe("works with composition", () => {
     it("composition works", () => __awaiter(this, void 0, void 0, function* () {
-        const result = yield index_1.chiml([lib_1.square, lib_1.minus], 9, 4);
+        const result = yield index_1.chiml([lib_1.minus, lib_1.square], 9, 4);
         expect(result).toBe(25);
         return null;
     }));
@@ -145,16 +145,27 @@ describe("work", () => {
         const [addResult, minusResult] = yield index_1.chiml(index_1.chiml(lib_1.add, n1, n2), index_1.chiml(lib_1.minus, n1, n2));
         expect(addResult).toBe(18);
         expect(minusResult).toBe(2);
-        const result = yield index_1.chiml([lib_1.rootSquare, lib_1.multiply], addResult, minusResult);
+        const result = yield index_1.chiml([lib_1.multiply, lib_1.rootSquare], addResult, minusResult);
         expect(result).toBe(6);
         return null;
     }));
-    it("simple case with parallel and composition works", () => __awaiter(this, void 0, void 0, function* () {
+    it("simple case with composition works", () => __awaiter(this, void 0, void 0, function* () {
         const n1 = 10;
         const n2 = 8;
         const result = yield index_1.chiml(index_1.chiml(lib_1.add, n1, n2), index_1.chiml(lib_1.minus, n1, n2)).then(([addResult, minusResult]) => __awaiter(this, void 0, void 0, function* () {
-            return yield index_1.chiml([lib_1.rootSquare, lib_1.multiply], addResult, minusResult);
+            return index_1.chiml([lib_1.multiply, lib_1.rootSquare], addResult, minusResult);
         }));
+        expect(result).toBe(6);
+        return null;
+    }));
+    it("simple case without side effect", () => __awaiter(this, void 0, void 0, function* () {
+        const n1 = 10;
+        const n2 = 8;
+        const result = yield index_1.chiml([
+            index_1.chiml(index_1.chiml(lib_1.add, n1, n2), index_1.chiml(lib_1.minus, n1, n2)),
+            ([r1, r2]) => index_1.chiml(lib_1.multiply, r1, r2),
+            lib_1.rootSquare,
+        ]);
         expect(result).toBe(6);
         return null;
     }));

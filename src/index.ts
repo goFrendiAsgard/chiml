@@ -196,16 +196,17 @@ export function reduce(funcOrCmd: string|IAnyFunction): (arg: any[], accumulator
  * private functions
  *********************************************************/
 
-function compose(rawActions: any[], ...args: any[]): IChimlResult {
-    const actions = rawActions.reverse();
+function compose(actions: any[], ...args: any[]): IChimlResult {
     let result: IChimlResult = Promise.resolve(null);
-    for (let i = 0; i < args.length; i++) {
+    for (let i = 0; i < actions.length; i++) {
         const action = actions[i];
         if (i === 0) {
             result = chiml(action, ...args);
             continue;
         }
-        result = result.then((arg) => chiml(action, arg));
+        result = result.then((arg) => {
+            return chiml(action, arg);
+        });
     }
     return result;
 }

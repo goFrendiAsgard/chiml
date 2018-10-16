@@ -75,16 +75,17 @@ exports.reduce = reduce;
 /*********************************************************
  * private functions
  *********************************************************/
-function compose(rawActions, ...args) {
-    const actions = rawActions.reverse();
+function compose(actions, ...args) {
     let result = Promise.resolve(null);
-    for (let i = 0; i < args.length; i++) {
+    for (let i = 0; i < actions.length; i++) {
         const action = actions[i];
         if (i === 0) {
             result = chiml(action, ...args);
             continue;
         }
-        result = result.then((arg) => chiml(action, arg));
+        result = result.then((arg) => {
+            return chiml(action, arg);
+        });
     }
     return result;
 }

@@ -38,7 +38,7 @@ export default async function main(n1: number, n2: number): Promises<number> {
     )
         .then(([addResult, minusResult]) => {
             // compose
-            return $([rootSquare, multiply], addResult, minusResult)
+            return $([multiply, rootSquare], addResult, minusResult)
         });
 }
 ```
@@ -57,7 +57,7 @@ export default async function main(n1: number, n2: number): Promises<number> {
         $(minus, n1, n2),
     );
     // composition
-    return await $([rootSquare, multiply], addResult, minusResult)
+    return await $([multiply, rootSquare], addResult, minusResult)
 }
 ```
 
@@ -82,7 +82,7 @@ do:
 
     - ins: [ addResult, minusResult ]
       out: result
-      do: [ rootSquare, multiply ]
+      do: [ multiply, rootSquare ]
 ```
 
 ## Execution

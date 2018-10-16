@@ -1,29 +1,33 @@
 export declare type IChimlResult = Promise<any>;
 export declare type IAnyFunction = (...args: any) => any;
-interface ISingleProgramSkeleton {
-    ins: string[];
-    out: string;
+interface IBranched {
+    if?: string;
 }
-interface ICompositeProgramSkeleton extends ISingleProgramSkeleton {
-    vars: string[];
-    branchCondition: IExecution;
-    loopCondition: IExecution;
-}
-interface ISingleInternalAction extends ISingleProgramSkeleton {
-    process: Promise<any> | IAnyFunction;
-}
-interface ISingleExternalAction extends ISingleProgramSkeleton {
-    command: string;
-}
-interface ISerialAction extends ICompositeProgramSkeleton {
-    series: IProgram[];
-}
-interface IParallelAction extends ICompositeProgramSkeleton {
+interface IParallel extends IBranched {
     parallel: IProgram[];
 }
-export interface IExecution {
-    args: any[];
-    program: IProgram;
+interface ISeries extends IBranched {
+    do: IProgram[];
 }
-export declare type IProgram = ISingleInternalAction | ISingleExternalAction | ISerialAction | IParallelAction;
+interface ISingleSkeleton {
+    ins: string[];
+    out: string;
+    vars?: {
+        [key: string]: string;
+    };
+}
+interface ISingle extends ISingleSkeleton {
+    do: string;
+}
+interface IMap extends ISingleSkeleton {
+    map: string;
+}
+interface IFilter extends ISingleSkeleton {
+    filter: string;
+}
+interface IReduce extends ISingleSkeleton {
+    reduce: string;
+    accumulator: string;
+}
+export declare type IProgram = IParallel | ISeries | ISingle | IMap | IFilter | IReduce;
 export {};

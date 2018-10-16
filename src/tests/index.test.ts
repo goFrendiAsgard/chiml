@@ -150,7 +150,7 @@ describe("works with cmd", () => {
 describe("works with composition", () => {
 
     it ("composition works", async () => {
-        const result = await $([square, minus], 9, 4);
+        const result = await $([minus, square], 9, 4);
         expect(result).toBe(25);
         return null;
     });
@@ -168,20 +168,37 @@ describe("work", () => {
         );
         expect(addResult).toBe(18);
         expect(minusResult).toBe(2);
-        const result = await $([rootSquare, multiply], addResult, minusResult);
+        const result = await $([multiply, rootSquare], addResult, minusResult);
         expect(result).toBe(6);
         return null;
     });
 
-    it("simple case with parallel and composition works", async () => {
+    it("simple case with composition works", async () => {
         const n1 = 10;
         const n2 = 8;
         const result = await $(
             $(add, n1, n2),
             $(minus, n1, n2),
         ).then(async ([addResult, minusResult]) => {
-            return await $([rootSquare, multiply], addResult, minusResult);
+            return $([multiply, rootSquare], addResult, minusResult);
         });
+        expect(result).toBe(6);
+        return null;
+    });
+
+    it("simple case without side effect", async () => {
+        const n1 = 10;
+        const n2 = 8;
+        const result = await $(
+            [
+                $(
+                    $(add, n1, n2),
+                    $(minus, n1, n2),
+                ),
+                ([r1, r2]) => $(multiply, r1, r2),
+                rootSquare,
+            ],
+        );
         expect(result).toBe(6);
         return null;
     });
