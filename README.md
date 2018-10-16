@@ -24,16 +24,15 @@ export const rootSquare = "python3 rootSquare.py";
 
 ```typescript
 // main.ts
-import { chiml as $ } from "chiml";
+import * as X from "chiml";
 import { add, minus, multiply, rootSquare } from "lib";
 export default async function main(n1: number, n2: number): Promises<number> {
-    const [addResult, minusResult] = await $(
-        // parallel
-        $(add, n1, n2),
-        $(minus, n1, n2),
-    );
-    const multiplicationResult = $(multiply, addResult, minusResult);
-    return $(rootSquare, multiplicationResult);
+    const [addResult, minusResult] = X.parallel(
+        X.wrap(add)(n1, n2),
+        X.wrap(minus)(n1, n2),
+    )();
+    const multResult = X.wrap(multiply)(addResult, minusResult);
+    return X.wrap(rootSquare)(multResult);
 }
 ```
 
@@ -41,19 +40,17 @@ export default async function main(n1: number, n2: number): Promises<number> {
 
 ```typescript
 // main.ts
-import { chiml as $ } from "chiml";
+import * as X from "chiml";
 import { add, minus, multiply, rootSquare } from "lib";
 export default async function main(n1: number, n2: number): Promises<number> {
-    return await $([
-        // piping
-        $(
-            // parallel
-            $(add, n1, n2),
-            $(minus, n1, n2),
+    return await X.pipe(
+        X.parallel(
+            X.wrap(add)(n1, n2),
+            X.wrap(minus)(n1, n2),
         ),
-        ([addResult, minusResult]) => $(multiply, addResult, minusResult),
+        X.curry(X.reduce(multiply), 2, 1),
         rootSquare,
-    ]);
+    )();
 }
 ```
 
@@ -99,7 +96,7 @@ do:
             - ins: [n1, n2]
               out: minusResult
               do: <minus>
-        - do: <([addResult, minusResult]) => $(multiply, addResult, minusResult)>
+        - do: <([addResult, minusResult]) => Xwrap(multiply)(addResult, minusResult)>
         - do: <rootSquare>
 ```
 
@@ -120,12 +117,12 @@ do:
 
 ```typescript
 // main.ts
-import { chiml as $, map, filter, reduce } from "chiml";
+import * as X from "chiml";
 export default async function main(): Promises<any> {
     const data: number[] = [1, 2, 3, 4, 5];
-    const squared = $(map((x) => x * x), data);
-    const even = $(filter((x) => x % 2 === 0), data);
-    const sum = $(reduce((x, y) => x + y), data, 0);
+    const squared = X.map((x) => x * x)(data);
+    const even = X.filter((x) => x % 2 === 0)( data);
+    const sum = X.reduce((x, y) => x + y)(0, data);
     return { data, even, squared, sum };
 }
 ```
@@ -173,18 +170,3 @@ do:
     "sum": 15
 }
 ```
-
-# Spec
-
-* If all arguments are `promise`s, it will do `Promise.all` and return the result
-* If the first argument is `array`, it will be composed in UNIX pipeline manner. I.e: `$([a, b], c, d) ---> $(a, c, d).then((result) => $(b, result))`
-* If the first argument is `string`, it wil be treated as shell command and will be executed with the rest of the arguments as shell command's arguments. The result should be a `promise`
-* If the first argument is `async function`, it will be executed with the rest of arguments as function's argument. The return value should be a promise
-* If the first argument is `function with callback`, it will be executed with the rest of arguments as function's argument. The return value should be a promise
-* If the first argument is `synchronous function`, it will be executed with the rest of arguments as function's argument. The return value should be a promise
-
-## Todo
-
-* Make 100% Coverage.
-* Implement `map`, `filter`, and `reduce`.
-* Implement a declarative mode of this.

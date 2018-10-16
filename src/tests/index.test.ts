@@ -1,4 +1,4 @@
-import { chiml as $, filter, map, reduce } from "../index";
+import * as X from "../index";
 import {
     add, asyncFunction, cmd, errorAsyncFunction, errorSyncFunction,
     functionWithCallback, functionWithCallbackAndMultipleReturn,
@@ -6,33 +6,17 @@ import {
     hello, minus, multiply, rejectingPromise,
     resolvingPromise, rootSquare, square, syncFunction } from "./fixtures/lib";
 
-describe("works with promises", () => {
+describe("wrap promise", () => {
 
     it ("single resolving promise works", async () => {
-        const result = await $(resolvingPromise);
+        const result = await X.wrap(resolvingPromise)();
         expect(result).toBe(73);
-        return null;
-    });
-
-    it ("multiple promise works", async () => {
-        const result = await $(resolvingPromise, resolvingPromise);
-        expect(result).toMatchObject([73, 73]);
         return null;
     });
 
     it ("single rejecting promise works", async () => {
         try {
-            const result = await $(rejectingPromise);
-            expect(result).toBeUndefined();
-        } catch (error) {
-            expect(error).toBe("rejected");
-        }
-        return null;
-    });
-
-    it ("multiple promise works", async () => {
-        try {
-            const result = await $(rejectingPromise, resolvingPromise);
+            const result = await X.wrap(rejectingPromise)();
             expect(result).toBeUndefined();
         } catch (error) {
             expect(error).toBe("rejected");
@@ -42,17 +26,17 @@ describe("works with promises", () => {
 
 });
 
-describe("works with async functions", () => {
+describe("wrap async functions", () => {
 
     it ("async function works", async () => {
-        const result = await $(asyncFunction, 4, 5);
+        const result = await X.wrap(asyncFunction)(4, 5);
         expect(result).toBe(9);
         return null;
     });
 
     it("async function that yield error works", async () => {
         try {
-            const result = await $(errorAsyncFunction, 4, 5);
+            const result = await X.wrap(errorAsyncFunction)(4, 5);
             expect(result).toBeUndefined();
         } catch (error) {
             expect(error).toBe("async function rejected");
@@ -62,17 +46,17 @@ describe("works with async functions", () => {
 
 });
 
-describe("works with sync functions", () => {
+describe("wrap sync functions", () => {
 
     it ("sync function works", async () => {
-        const result = await $(syncFunction, 4, 5);
+        const result = await X.wrap(syncFunction)(4, 5);
         expect(result).toBe(9);
         return null;
     });
 
     it("sync function that yield error works", async () => {
         try {
-            const result = await $(errorSyncFunction, 4, 5);
+            const result = await X.wrap(errorSyncFunction)(4, 5);
             expect(result).toBeUndefined();
         } catch (error) {
             expect(error.message).toBe("sync function error");
@@ -82,16 +66,16 @@ describe("works with sync functions", () => {
 
 });
 
-describe("works with functions that have node callback", () => {
+describe("wrap functions that have node callback", () => {
 
     it ("function with callback works", async () => {
-        const result = await $(functionWithCallback, 4, 5);
+        const result = await X.wrap(functionWithCallback)(4, 5);
         expect(result).toBe(9);
         return null;
     });
 
     it ("function with callback and multiple results works", async () => {
-        const result = await $(functionWithCallbackAndMultipleReturn, 4, 5);
+        const result = await X.wrap(functionWithCallbackAndMultipleReturn)(4, 5);
         expect(result[0]).toBe(9);
         expect(result[1]).toBe(-1);
         return null;
@@ -99,7 +83,7 @@ describe("works with functions that have node callback", () => {
 
     it("function with callback that yield error works", async () => {
         try {
-            const result = await $(functionWithCallbackYieldError, 4, 5);
+            const result = await X.wrap(functionWithCallbackYieldError)(4, 5);
             expect(result).toBeUndefined();
         } catch (error) {
             expect(error).toBe("callback error");
@@ -109,35 +93,35 @@ describe("works with functions that have node callback", () => {
 
 });
 
-describe("works with cmd", () => {
+describe("wrap cmd", () => {
 
     it ("cmd works", async () => {
-        const result = await $(cmd, 4, 5);
+        const result = await X.wrap(cmd)(4, 5);
         expect(result).toBe(9);
         return null;
     });
 
     it ("cmd that return a non-json-parseable string works", async () => {
-        const result = await $(hello, "world");
+        const result = await X.wrap(hello)("world");
         expect(result).toBe("Hello world");
         return null;
     });
 
     it ("cmd that has no params works", async () => {
-        const result = await $(greeting);
+        const result = await X.wrap(greeting)();
         expect(result).toBe("hello world");
         return null;
     });
 
     it ("cmd that has positional params works", async () => {
-        const result = await $(greetingWithParams, "hi", "Frodo");
+        const result = await X.wrap(greetingWithParams)("hi", "Frodo");
         expect(result).toBe("hi Frodo");
         return null;
     });
 
     it("error cmd works", async () => {
         try {
-            const result = await $("/dev/null/oraono", 4, 5);
+            const result = await X.wrap("/dev/null/oraono")(4, 5);
             expect(result).toBeUndefined();
         } catch (error) {
             expect(error).toBeDefined();
@@ -147,60 +131,59 @@ describe("works with cmd", () => {
 
 });
 
-describe("works with composition", () => {
+describe("pipe", () => {
 
-    it ("composition works", async () => {
-        const result = await $([minus, square], 9, 4);
+    it ("works", async () => {
+        const result = await X.pipe(minus, square)(9, 4);
         expect(result).toBe(25);
         return null;
     });
 
 });
 
-describe("work", () => {
+describe("parallel", () => {
 
-    it("simple case works", async () => {
-        const n1 = 10;
-        const n2 = 8;
-        const [addResult, minusResult] = await $(
-            $(add, n1, n2),
-            $(minus, n1, n2),
-        );
-        expect(addResult).toBe(18);
-        expect(minusResult).toBe(2);
-        const result = await $([multiply, rootSquare], addResult, minusResult);
-        expect(result).toBe(6);
+    it ("resolving promises works", async () => {
+        const result = await X.parallel(resolvingPromise, resolvingPromise)();
+        expect(result).toMatchObject([73, 73]);
         return null;
     });
 
-    it("simple case with composition works", async () => {
-        const n1 = 10;
-        const n2 = 8;
-        const result = await $(
-            $(add, n1, n2),
-            $(minus, n1, n2),
-        ).then(async ([addResult, minusResult]) => {
-            return $([multiply, rootSquare], addResult, minusResult);
-        });
-        expect(result).toBe(6);
+    it ("resolving and rejecting promise works", async () => {
+        try {
+            const result = await X.parallel(resolvingPromise, rejectingPromise)();
+            expect(result).toBeUndefined();
+        } catch (error) {
+            expect(error).toBe("rejected");
+        }
         return null;
     });
 
-    it("simple case without side effect", async () => {
-        const n1 = 10;
-        const n2 = 8;
-        const result = await $(
-            [
-                $(
-                    $(add, n1, n2),
-                    $(minus, n1, n2),
-                ),
-                ([r1, r2]) => $(multiply, r1, r2),
-                rootSquare,
-            ],
-        );
-        expect(result).toBe(6);
-        return null;
+});
+
+describe("currying", () => {
+
+    function myFunction(a, b, c, cb) {
+        cb(null, a + b + c);
+    }
+
+    it ("curry 1 param", async () => {
+        const addOne = X.curry(myFunction, 3, 1);
+        const result = await addOne(5, 5);
+        expect(result).toBe(11);
+    });
+
+    it ("curry 2 params", async () => {
+        const addFive = X.curry(myFunction, 3, 4, 1);
+        const result = await addFive(4);
+        expect(result).toBe(9);
+    });
+
+    it ("curry 1 param and curry again", async () => {
+        const addOne = X.curry(myFunction, 3, 1);
+        const addThree = X.curry(addOne, 2, 2);
+        const result = await addThree(5);
+        expect(result).toBe(8);
     });
 
 });
@@ -209,7 +192,7 @@ describe("map", () => {
 
     it("work with sync function", async () => {
         const data: number[] = [1, 2, 3, 4, 5];
-        const result = await $(map((x: number) => x * x), data);
+        const result = await X.map((x: number) => x * x)(data);
         expect(result).toMatchObject([1, 4, 9, 16, 25]);
         return null;
     });
@@ -220,7 +203,7 @@ describe("filter", () => {
 
     it("work with sync function", async () => {
         const data: number[] = [1, 2, 3, 4, 5];
-        const result = await $(filter((x: number) => x % 2 === 0 ), data);
+        const result = await X.filter((x: number) => x % 2 === 0 )(data);
         expect(result).toMatchObject([2, 4]);
         return null;
     });
@@ -231,8 +214,41 @@ describe("reduce", () => {
 
     it("work with sync function", async () => {
         const data: number[] = [1, 2, 3, 4, 5];
-        const result = await $(reduce((x: number, y: number) => x + y ), data, 0);
+        const result = await X.reduce((x: number, y: number) => x + y )(0, data);
         expect(result).toBe(15);
+        return null;
+    });
+
+});
+
+describe("work", () => {
+
+    it("simple case works", async () => {
+        const n1 = 10;
+        const n2 = 8;
+        const [addResult, minusResult] = await X.parallel(
+            X.wrap(add)(n1, n2),
+            X.wrap(minus)(n1, n2),
+        )();
+        expect(addResult).toBe(18);
+        expect(minusResult).toBe(2);
+        const result = await X.pipe(multiply, rootSquare)(addResult, minusResult);
+        expect(result).toBe(6);
+        return null;
+    });
+
+    it("simple case without side effect works", async () => {
+        const n1 = 10;
+        const n2 = 8;
+        const result = await X.pipe(
+            X.parallel(
+                X.wrap(add)(n1, n2),
+                X.wrap(minus)(n1, n2),
+            ),
+            X.curry(X.reduce(multiply), 2, 1),
+            rootSquare,
+        )();
+        expect(result).toBe(6);
         return null;
     });
 

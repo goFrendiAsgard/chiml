@@ -17,29 +17,28 @@ const FG_RED = "\x1b[31m";
 const FG_YELLOW = "\x1b[33m";
 const RESET_COLOR = "\x1b[0m";
 // real implementation
-function chiml(...args) {
-    const arg = args[0];
-    const restArgs = args.slice(1);
-    if (isAllPromise(args)) {
-        if (args.length === 1) {
-            // args only contain a single promise, return it
-            return arg;
-        }
-        // Every element in `args` is Promise, do Promise.all
-        return Promise.all(args);
+function wrap(arg) {
+    if (isPromise(arg)) {
+        return () => arg;
     }
-    if (Array.isArray(arg)) {
-        return compose(arg, ...restArgs);
-    }
-    // create resolver and execute the resolver
-    const result = resolveCmdOrFunction(arg, ...restArgs);
-    return result;
+    return createCmdOrFunctionResolver(arg);
 }
-exports.chiml = chiml;
+exports.wrap = wrap;
+/*********************************************************
+ * curry
+ *********************************************************/
+function curry(action, limit, ...injectArgs) {
+    const func = wrap(action);
+    return (...args) => __awaiter(this, void 0, void 0, function* () {
+        const newArgs = injectArgs.concat(args);
+        return func(...newArgs);
+    });
+}
+exports.curry = curry;
 // real implementation
 function map(funcOrCmd) {
     return (args) => {
-        const promises = args.map((element) => chiml(funcOrCmd, element));
+        const promises = args.map((element) => __awaiter(this, void 0, void 0, function* () { return wrap(funcOrCmd)(element); }));
         return Promise.all(promises);
     };
 }
@@ -47,7 +46,7 @@ exports.map = map;
 // real implementation
 function filter(funcOrCmd) {
     return (args) => {
-        const promises = args.map((element) => chiml(funcOrCmd, element));
+        const promises = args.map((element) => wrap(funcOrCmd)(element));
         return Promise.all(promises)
             .then((filteredList) => {
             const result = [];
@@ -63,72 +62,82 @@ function filter(funcOrCmd) {
 exports.filter = filter;
 // real implementation
 function reduce(funcOrCmd) {
-    return (args, accumulator) => __awaiter(this, void 0, void 0, function* () {
+    return (accumulator, args) => __awaiter(this, void 0, void 0, function* () {
         let result = accumulator;
         for (const arg of args) {
-            result = yield chiml(funcOrCmd, arg, result);
+            result = yield wrap(funcOrCmd)(arg, result);
         }
         return result;
     });
 }
 exports.reduce = reduce;
 /*********************************************************
- * private functions
+ * pipe
  *********************************************************/
-function compose(actions, ...args) {
-    let result = Promise.resolve(null);
-    for (let i = 0; i < actions.length; i++) {
-        const action = actions[i];
-        if (i === 0) {
-            result = chiml(action, ...args);
-            continue;
-        }
-        result = result.then((arg) => {
-            return chiml(action, arg);
-        });
-    }
-    return result;
-}
-function resolveCmdOrFunction(func, ...args) {
-    if (typeof func === "string") {
-        const command = composeCommand(func, args);
-        return runCommand(command);
-    }
-    return resolveFunction(func, ...args);
-}
-function resolveFunction(func, ...args) {
-    return new Promise((resolve, reject) => {
-        function callback(error, ...result) {
-            if (error) {
-                return reject(error);
+function pipe(...actions) {
+    return (...args) => __awaiter(this, void 0, void 0, function* () {
+        let result = Promise.resolve(null);
+        for (let i = 0; i < actions.length; i++) {
+            const action = actions[i];
+            if (i === 0) {
+                result = wrap(action)(...args);
+                continue;
             }
-            if (result.length === 1) {
-                return resolve(result[0]);
-            }
-            return resolve(result);
+            result = result.then((arg) => wrap(action)(arg));
         }
-        args.push(callback);
-        try {
-            const functionResult = func(...args);
-            if (isPromise(functionResult)) {
-                functionResult.then(resolve).catch(reject);
-            }
-            else if (typeof functionResult !== "undefined") {
-                resolve(functionResult);
-            }
-        }
-        catch (error) {
-            reject(error);
-        }
+        return result;
     });
 }
-function isAllPromise(args) {
-    for (const arg of args) {
-        if (!isPromise(arg)) {
-            return false;
-        }
+exports.pipe = pipe;
+/*********************************************************
+ * parallel
+ *********************************************************/
+function parallel(...actions) {
+    return () => Promise.all(actions);
+}
+exports.parallel = parallel;
+/*********************************************************
+ * private functions
+ *********************************************************/
+function createCmdOrFunctionResolver(cmdOrFunc) {
+    if (typeof cmdOrFunc === "string") {
+        return createCmdResolver(cmdOrFunc);
     }
-    return true;
+    return createFunctionResolver(cmdOrFunc);
+}
+function createCmdResolver(cmd) {
+    return (...args) => {
+        const command = composeCommand(cmd, args);
+        return runCommand(command);
+    };
+}
+function createFunctionResolver(func) {
+    return (...args) => {
+        return new Promise((resolve, reject) => {
+            function callback(error, ...result) {
+                if (error) {
+                    return reject(error);
+                }
+                if (result.length === 1) {
+                    return resolve(result[0]);
+                }
+                return resolve(result);
+            }
+            args.push(callback);
+            try {
+                const functionResult = func(...args);
+                if (isPromise(functionResult)) {
+                    functionResult.then(resolve).catch(reject);
+                }
+                else if (typeof functionResult !== "undefined") {
+                    resolve(functionResult);
+                }
+            }
+            catch (error) {
+                reject(error);
+            }
+        });
+    };
 }
 /**
  * @param arg

@@ -1,5 +1,8 @@
 import { ChildProcess, exec } from "child_process";
-import { IAnyFunction, IChimlResult } from "./interfaces";
+import {
+    IAnyFunction, IFilterFunction, IMapFunction,
+    IReduceFunction, IValue, IWrappedFunction,
+} from "./interfaces";
 
 const BRIGHT = "\x1b[1m";
 // const FG_BLUE = "\x1b[34m";
@@ -10,103 +13,86 @@ const FG_YELLOW = "\x1b[33m";
 const RESET_COLOR = "\x1b[0m";
 
 /*********************************************************
- * chiml
+ * wrap
  *********************************************************/
 
-// all are promises
-export function chiml<TResult1>(
+// promise
+export function wrap<TResult1>(
     p1: Promise<TResult1>,
-): Promise<[TResult1]>;
-export function chiml<TResult1, TResult2>(
-    p1: Promise<TResult1>, p2: Promise<TResult1>,
-): Promise<[TResult1, TResult2]>;
-export function chiml<TResult1, TResult2, TResult3>(
-    p1: Promise<TResult1>, p2: Promise<TResult1>, p3: Promise<TResult3>,
-): Promise<[TResult1, TResult2, TResult3]>;
-export function chiml<TResult1, TResult2, TResult3, TResult4>(
-    p1: Promise<TResult1>, p2: Promise<TResult1>, p3: Promise<TResult3>, p4: Promise<TResult4>,
-): Promise<[TResult1, TResult2, TResult3, TResult4]>;
-export function chiml<TResult1, TResult2, TResult3, TResult4, TResult5>(
-    p1: Promise<TResult1>, p2: Promise<TResult1>, p3: Promise<TResult3>, p4: Promise<TResult4>, p5: Promise<TResult5>,
-): Promise<[TResult1, TResult2, TResult3, TResult4, TResult5]>;
-export function chiml(...args: IChimlResult[]): IChimlResult;
-
-// async function
-export function chiml<TArgs extends any[], TResult extends IChimlResult>(
-    fn: (...args: TArgs) => TResult, ...args: TArgs): TResult;
-
-// sync function
-export function chiml<TArgs extends any[], TResult extends any>(
-    fn: (...args: TArgs) => TResult, ...args: TArgs): Promise<TResult>;
+): () => Promise<[TResult1]>;
 
 // function with callback
-export function chiml<TA1 extends any, TResult extends any>(
+export function wrap<TResult>(
+    fn: (cb: (error: any, result: TResult) => any) => any,
+): () => Promise<TResult>;
+export function wrap<TResult extends any[]>(
+    fn: (cb: (error: any, ...result: TResult) => any) => any,
+): () => Promise<TResult>;
+
+export function wrap<TA1, TResult>(
     fn: (a1: TA1, cb: (error: any, result: TResult) => any) => any,
-    a1: TA1,
-): Promise<TResult>;
-export function chiml<TA1 extends any, TResult extends any[]>(
+): (a1: TA1) => Promise<TResult>;
+export function wrap<TA1, TA2, TResult extends any[]>(
     fn: (a1: TA1, cb: (error: any, ...result: TResult) => any) => any,
-    a1: TA1,
-): Promise<TResult>;
-export function chiml<TA1 extends any, TA2 extends any, TResult extends any>(
+): (a1: TA1) => Promise<TResult>;
+
+export function wrap<TA1, TA2, TResult>(
     fn: (a1: TA1, a2: TA2, cb: (error: any, result: TResult) => any) => any,
-    a1: TA1, a2: TA2,
-): Promise<TResult>;
-export function chiml<TA1 extends any, TA2 extends any, TResult extends any[]>(
+): (a1: TA1, a2: TA2) => Promise<TResult>;
+export function wrap<TA1, TA2, TResult extends any[]>(
     fn: (a1: TA1, a2: TA2, cb: (error: any, ...result: TResult) => any) => any,
-    a1: TA1, a2: TA2,
-): Promise<TResult>;
-export function chiml<TA1 extends any, TA2 extends any, TA3 extends any, TResult extends any>(
+): (a1: TA1, a2: TA2) => Promise<TResult>;
+
+export function wrap<TA1, TA2, TA3, TResult>(
     fn: (a1: TA1, a2: TA2, a3: TA3, cb: (error: any, result: TResult) => any) => any,
-    a1: TA1, a2: TA2, a3: TA3,
-): Promise<TResult>;
-export function chiml<TA1 extends any, TA2 extends any, TA3 extends any, TResult extends any[]>(
+): (a1: TA1, a2: TA2, a3: TA3) => Promise<TResult>;
+export function wrap<TA1, TA2, TA3, TResult extends any[]>(
     fn: (a1: TA1, a2: TA2, a3: TA3, cb: (error: any, ...result: TResult) => any) => any,
-    a1: TA1, a2: TA2, a3: TA3,
-): Promise<TResult>;
-export function chiml<TA1 extends any, TA2 extends any, TA3 extends any, TA4 extends any, TResult extends any>(
+): (a1: TA1, a2: TA2, a3: TA3) => Promise<TResult>;
+
+export function wrap<TA1, TA2, TA3, TA4, TResult>(
     fn: (a1: TA1, a2: TA2, a3: TA3, a4: TA4, cb: (error: any, result: TResult) => any) => any,
-    a1: TA1, a2: TA2, a3: TA3, a4: TA4,
-): Promise<TResult>;
-export function chiml<TA1 extends any, TA2 extends any, TA3 extends any, TA4 extends any, TResult extends any[]>(
+): (a1: TA1, a2: TA2, a3: TA3, a4: TA4) => Promise<TResult>;
+export function wrap<TA1, TA2, TA3, TA4, TResult extends any[]>(
     fn: (a1: TA1, a2: TA2, a3: TA3, a4: TA4, cb: (error: any, ...result: TResult) => any) => any,
-    a1: TA1, a2: TA2, a3: TA3, a4: TA4,
-): Promise<TResult>;
-// tslint:disable-next-line:max-line-length
-export function chiml<TA1 extends any, TA2 extends any, TA3 extends any, TA4 extends any, TA5 extends any, TResult extends any>(
+): (a1: TA1, a2: TA2, a3: TA3, a4: TA4) => Promise<TResult>;
+
+export function wrap<TA1, TA2, TA3, TA4, TA5, TResult>(
     fn: (a1: TA1, a2: TA2, a3: TA3, a4: TA4, a5: TA5, cb: (error: any, result: TResult) => any) => any,
-    a1: TA1, a2: TA2, a3: TA3, a4: TA4, a5: TA5,
-): Promise<TResult>;
-// tslint:disable-next-line:max-line-length
-export function chiml<TA1 extends any, TA2 extends any, TA3 extends any, TA4 extends any, TA5 extends any, TResult extends any[]>(
+): (a1: TA1, a2: TA2, a3: TA3, a4: TA4, a5: TA5) => Promise<TResult>;
+export function wrap<TA1, TA2, TA3, TA4, TA5, TResult extends any[]>(
     fn: (a1: TA1, a2: TA2, a3: TA3, a4: TA4, a5: TA5, cb: (error: any, ...result: TResult) => any) => any,
-    a1: TA1, a2: TA2, a3: TA3, a4: TA4, a5: TA5,
-): Promise<TResult>;
+): (a1: TA1, a2: TA2, a3: TA3, a4: TA4, a5: TA5) => Promise<TResult>;
 
-// command
-export function chiml(cmd: string|any[], ...args: any[]): IChimlResult;
+// async function
+export function wrap<TArgs extends any[], TResult extends IValue>(
+    fn: (...args: TArgs) => TResult): (...args: TArgs) => TResult;
 
-// any other
-export function chiml(...args: any[]): IChimlResult;
+// sync function
+export function wrap<TArgs extends any[], TResult>(
+    fn: (...args: TArgs) => TResult): (...args: TArgs) => Promise<TResult>;
+
+// command and everything else
+export function wrap(arg: any): IWrappedFunction;
 
 // real implementation
-export function chiml(...args: any[]): IChimlResult {
-    const arg = args[0];
-    const restArgs = args.slice(1);
-    if (isAllPromise(args)) {
-        if (args.length === 1) {
-            // args only contain a single promise, return it
-            return arg;
-        }
-         // Every element in `args` is Promise, do Promise.all
-        return Promise.all(args);
+export function wrap(arg: any): IWrappedFunction {
+    if (isPromise(arg)) {
+        return () => arg as IValue;
     }
-    if (Array.isArray(arg)) {
-        return compose(arg, ...restArgs);
-    }
-    // create resolver and execute the resolver
-    const result = resolveCmdOrFunction(arg, ...restArgs);
-    return result;
+    return createCmdOrFunctionResolver(arg as string| IAnyFunction);
+}
+
+/*********************************************************
+ * curry
+ *********************************************************/
+
+export function curry(action: any, limit: number, ...injectArgs: any[]): IWrappedFunction {
+    const func = wrap(action);
+    return async (...args: any[]) => {
+        const newArgs = injectArgs.concat(args);
+        return func(...newArgs);
+    };
 }
 
 /*********************************************************
@@ -121,13 +107,13 @@ export function map<TArg, TResult>(
 export function map<TArg, TResult, TCallback extends(error: any, result: TResult) => any>(
     func: (arg: TArg, cb: TCallback) => any,
 ): (args: TArg[]) => Promise<TResult>;
-export function map<TArg, TResult extends any[]>(cmd: string): (args: TArg[]) => Promise<TResult>;
+export function map(funcOrCmd: any): IMapFunction;
 
 // real implementation
-export function map(funcOrCmd: string|IAnyFunction): (args: any[]) => IChimlResult {
+export function map(funcOrCmd: string | IAnyFunction | IValue): IMapFunction {
     return (args: any[]) => {
-        const promises: IChimlResult[] = args.map(
-            (element) => chiml(funcOrCmd, element),
+        const promises: IValue[] = args.map(
+            async (element) => wrap(funcOrCmd)(element),
         );
         return Promise.all(promises);
     };
@@ -139,19 +125,19 @@ export function map(funcOrCmd: string|IAnyFunction): (args: any[]) => IChimlResu
 
 // async & sync function
 export function filter<TArg, TResult extends TArg[]>(
-    func: (arg: TArg) => Promise<boolean>|boolean,
+    func: (arg: TArg) => Promise<TResult>|TResult,
 ): (args: TArg[]) => Promise<TResult>;
 // function that have callback
 export function filter<TArg, TResult, TCallback extends(error: any, result: boolean) => any>(
     func: (arg: TArg, cb: TCallback) => any,
 ): (args: TArg[]) => Promise<TResult>;
-export function filter<TArg, TResult extends any[]>(cmd: string): (args: TArg[]) => Promise<TResult>;
+export function filter(funcOrCmd: any): IFilterFunction;
 
 // real implementation
-export function filter(funcOrCmd: string|IAnyFunction): (args: any[]) => IChimlResult {
-    return (args: any[]) => {
-        const promises: IChimlResult[] = args.map(
-            (element) => chiml(funcOrCmd, element),
+export function filter(funcOrCmd: string | IAnyFunction | IValue): IFilterFunction {
+    return (args: any[]): IValue => {
+        const promises: IValue[] = args.map(
+            (element) => wrap(funcOrCmd)(element),
         );
         return Promise.all(promises)
             .then((filteredList: boolean[]) => {
@@ -173,84 +159,97 @@ export function filter(funcOrCmd: string|IAnyFunction): (args: any[]) => IChimlR
 // async & sync function
 export function reduce<TArg, TResult>(
     func: (arg: TArg, accumulator: TResult) => Promise<TResult>|TResult,
-): (args: TArg[], accumulator: TResult) => Promise<TResult>;
+): (accumulator: TResult, args: TArg[]) => Promise<TResult>;
 // function that have callback
 export function reduce<TArg, TResult, TCallback extends(error: any, result: TResult) => any>(
-    func: (arg: TArg, accumulator: TResult, cb: TCallback) => any,
+    func: (accumulator: TResult, args: TArg[]) => any,
 ): (args: TArg[], accumulator: TResult) => Promise<TResult>;
-export function reduce<TArg, TResult extends any[]>(
-    cmd: string): (args: TArg[], accumulator: TResult) => Promise<TResult>;
+export function reduce<TArg, TResult extends any>(
+    cmd: string): (accumulator: TResult, args: TArg[]) => Promise<TResult>;
+export function reduce(funcOrCmd: any): IReduceFunction;
 
 // real implementation
-export function reduce(funcOrCmd: string|IAnyFunction): (arg: any[], accumulator: any) => IChimlResult {
-    return async (args: any[], accumulator: any) => {
+export function reduce(funcOrCmd: any): IReduceFunction {
+    return async (accumulator: any, args: any[]) => {
         let result: any = accumulator;
         for (const arg of args) {
-            result = await chiml(funcOrCmd, arg, result);
+            result = await wrap(funcOrCmd)(arg, result);
         }
         return result;
     };
 }
 
 /*********************************************************
+ * pipe
+ *********************************************************/
+
+export function pipe(...actions: any[]): IWrappedFunction {
+    return async (...args: any[]) => {
+        let result: IValue = Promise.resolve(null);
+        for (let i = 0; i < actions.length; i++) {
+            const action = actions[i];
+            if (i === 0) {
+                result = wrap(action)(...args);
+                continue;
+            }
+            result = result.then((arg) => wrap(action)(arg));
+        }
+        return result;
+    };
+}
+
+/*********************************************************
+ * parallel
+ *********************************************************/
+
+export function parallel(...actions: IValue[]): IWrappedFunction {
+    return () => Promise.all(actions);
+}
+
+/*********************************************************
  * private functions
  *********************************************************/
 
-function compose(actions: any[], ...args: any[]): IChimlResult {
-    let result: IChimlResult = Promise.resolve(null);
-    for (let i = 0; i < actions.length; i++) {
-        const action = actions[i];
-        if (i === 0) {
-            result = chiml(action, ...args);
-            continue;
-        }
-        result = result.then((arg) => {
-            return chiml(action, arg);
-        });
+function createCmdOrFunctionResolver(cmdOrFunc: IAnyFunction | string): IWrappedFunction {
+    if (typeof cmdOrFunc === "string") {
+        return createCmdResolver(cmdOrFunc);
     }
-    return result;
+    return createFunctionResolver(cmdOrFunc);
 }
 
-function resolveCmdOrFunction(func: IAnyFunction | string, ...args: any[]): any|IChimlResult {
-    if (typeof func === "string") {
-        const command = composeCommand(func, args);
+function createCmdResolver(cmd: string): IWrappedFunction {
+    return (...args: any[]): IValue => {
+        const command = composeCommand(cmd, args);
         return runCommand(command);
-    }
-    return resolveFunction(func, ...args);
+    };
 }
 
-function resolveFunction(func: (...args: any[]) => any, ...args: any[]): IChimlResult {
-    return new Promise((resolve, reject) => {
-        function callback(error, ...result) {
-            if (error) {
-                return reject(error);
+function createFunctionResolver(func: IAnyFunction): IWrappedFunction {
+    return (...args: any[]): IValue => {
+        return new Promise((resolve, reject) => {
+            function callback(error, ...result) {
+                if (error) {
+                    return reject(error);
+                }
+                if (result.length === 1) {
+                    return resolve(result[0]);
+                }
+                return resolve(result);
             }
-            if (result.length === 1) {
-                return resolve(result[0]);
+            args.push(callback);
+            try {
+                const functionResult = func(...args);
+                if (isPromise(functionResult)) {
+                    functionResult.then(resolve).catch(reject);
+                } else if (typeof functionResult !== "undefined") {
+                    resolve(functionResult);
+                }
+            } catch (error) {
+                reject(error);
             }
-            return resolve(result);
-        }
-        args.push(callback);
-        try {
-            const functionResult = func(...args);
-            if (isPromise(functionResult)) {
-                functionResult.then(resolve).catch(reject);
-            } else if (typeof functionResult !== "undefined") {
-                resolve(functionResult);
-            }
-        } catch (error) {
-            reject(error);
-        }
-    });
-}
 
-function isAllPromise(args: any[]): boolean {
-    for (const arg of args) {
-        if (!isPromise(arg)) {
-            return false;
-        }
-    }
-    return true;
+        });
+    };
 }
 
 /**
@@ -261,7 +260,7 @@ function isPromise(arg: any): boolean {
     return arg && arg.then ? true : false;
 }
 
-function runCommand(command: string, options?: { [key: string]: any }): IChimlResult {
+function runCommand(command: string, options?: { [key: string]: any }): IValue {
     return new Promise((resolve, reject) => {
         const subProcess = exec(command, options, (error, stdout, stderr) => {
             if (error) {

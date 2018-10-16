@@ -4,31 +4,30 @@ function normalizedProgram(program: IProgram) {
     // pass
 }
 
-function isSingle(program: IProgram) {
-    return "do" in program && typeof program.do === "string";
+function isSingleStatement(program: IProgram) {
+    return "do" in program;
 }
 
-function isParallel(program: IProgram) {
+function isParallelStatement(program: IProgram) {
     return "parallel" in program && Array.isArray(program.parallel);
 }
 
-function isSeries(program: IProgram) {
+function isSerialStatement(program: IProgram) {
     return "do" in program && Array.isArray(program.do);
 }
 
-function isBranched(program: IProgram) {
-    return "if" in program && typeof program.if === "string";
+function isBranchedStatement(program: IProgram) {
+    return "if" in program;
 }
 
-function isMap(program: IProgram) {
-    return "map" in program && program.map === "string";
+function isMapStatement(program: IProgram) {
+    return "map" in program;
 }
 
-function isFilter(program: IProgram) {
-    return "filter" in program && program.filter === "string";
+function isFilterStatement(program: IProgram) {
+    return "filter" in program;
 }
 
-function isReduce(program: IProgram) {
-    return "reduce" in program && program.reduce === "string" &&
-        "accumulator" in program && program.accumulator === "string";
+function isReduceStatement(program: IProgram) {
+    return "reduce" in program && "accumulator" in program && program.accumulator === "string";
 }

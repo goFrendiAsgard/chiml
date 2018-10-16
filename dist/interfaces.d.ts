@@ -1,5 +1,9 @@
-export declare type IChimlResult = Promise<any>;
-export declare type IAnyFunction = (...args: any) => any;
+export declare type IValue = Promise<any>;
+export declare type IWrappedFunction = (...args: any[]) => IValue;
+export declare type IMapFunction = (data: any[]) => Promise<any[]>;
+export declare type IFilterFunction = (data: any[]) => Promise<any[]>;
+export declare type IReduceFunction = (data: any[], accumulator: any) => Promise<any>;
+export declare type IAnyFunction = (...args: any[]) => any;
 interface IBranched {
     if?: string;
 }
