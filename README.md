@@ -74,15 +74,12 @@ vars: [ addResult:number, minusResult:number ]
 out: result
 do:
     - parallel:
-
         - ins: [n1, n2]
           out: addResult
           do: <add>
-
         - ins: [n1, n2]
           out: minusResult
           do: <minus>
-
     - ins: [ addResult, minusResult ]
       out: result
       do: [ multiply, rootSquare ]
@@ -100,19 +97,14 @@ out: result
 do:
     - out: result
       pipe:
-
         - parallel:
-
             - ins: [n1, n2]
               out: addResult
               do: <add>
-
             - ins: [n1, n2]
               out: minusResult
               do: <minus>
-
         - do: <([addResult, minusResult]) => $(multiply, addResult, minusResult)>
-
         - do: <rootSquare>
 ```
 
@@ -158,11 +150,9 @@ do:
     - ins: data
       out: result.squared
       map: <(x) => x * x>
-
     - ins: data
       out: result.even
       filter: <(x) => x % 2 === 0>
-
     - ins: data
       out: result.even
       accumulator: 0
