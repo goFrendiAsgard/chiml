@@ -63,7 +63,8 @@ export default async function main(n1: number, n2: number): Promises<number> {
 ```
 
 
-## Main Program (In Yaml)
+## Main Program (In Yaml, imperative)
+
 ```yaml
 # main.yml
 import:
@@ -86,6 +87,35 @@ do:
       out: result
       do: [ multiply, rootSquare ]
 ```
+
+## Main Program (In Yaml, free of side effect)
+
+```yaml
+# main.yml
+import:
+    lib: [ add, minus, multiply, rootSquare ]
+ins: [ n1:number, n2:number ]
+vars: [ addResult:number, minusResult:number ]
+out: result
+do:
+    - out: result
+      pipe:
+
+        - parallel:
+
+            - ins: [n1, n2]
+              out: addResult
+              do: <add>
+
+            - ins: [n1, n2]
+              out: minusResult
+              do: <minus>
+
+        - do: <([addResult, minusResult]) => $(multiply, addResult, minusResult)>
+
+        - do: <rootSquare>
+```
+
 
 ## Execution
 
