@@ -9,6 +9,8 @@ export declare function errorAsyncFunction(a: number, b: number): Promise<never>
 export declare function functionWithCallback(a: number, b: number, cb: (error: any, result: any) => void): void;
 export declare function functionWithCallbackYieldError(a: number, b: number, cb: (error: any) => void): void;
 export declare function functionWithCallbackAndMultipleReturn(a: number, b: number, cb: (error: any, ...result: any[]) => void): void;
+export declare function multipleMinusWithCallback(a: any, b: any, c: any, cb: any): void;
+export declare function plusAndMinusWithCallback(a: any, b: any, c: any, cb: any): void;
 export declare const cmd: string;
 export declare const rootSquare: string;
 export declare const hello: string;

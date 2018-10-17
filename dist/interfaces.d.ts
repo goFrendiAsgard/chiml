@@ -4,34 +4,37 @@ export declare type IMapFunction = (data: any[]) => Promise<any[]>;
 export declare type IFilterFunction = (data: any[]) => Promise<any[]>;
 export declare type IReduceFunction = (data: any[], accumulator: any) => Promise<any>;
 export declare type IAnyFunction = (...args: any[]) => any;
-interface IBranched {
+interface IMayBeBranchedStatement {
     if?: string;
 }
-interface IParallel extends IBranched {
+interface IParallelStatement extends IMayBeBranchedStatement {
     parallel: IProgram[];
 }
-interface ISeries extends IBranched {
+interface ISerialStatement extends IMayBeBranchedStatement {
     do: IProgram[];
 }
-interface ISingleSkeleton {
+interface ISingleStatementSkeleton extends IMayBeBranchedStatement {
     ins: string[];
     out: string;
     vars?: {
         [key: string]: string;
     };
 }
-interface ISingle extends ISingleSkeleton {
-    do: string;
+interface ISingleStatement extends ISingleStatementSkeleton {
+    do: string | IProgram;
 }
-interface IMap extends ISingleSkeleton {
-    map: string;
+interface IPipeStatement extends ISingleStatementSkeleton {
+    pipe: IProgram[];
 }
-interface IFilter extends ISingleSkeleton {
-    filter: string;
+interface IMapStatement extends ISingleStatementSkeleton {
+    map: string | IProgram;
 }
-interface IReduce extends ISingleSkeleton {
-    reduce: string;
+interface IFilterStatement extends ISingleStatementSkeleton {
+    filter: string | IProgram;
+}
+interface IReduceStatement extends ISingleStatementSkeleton {
     accumulator: string;
+    reduce: string | IProgram;
 }
-export declare type IProgram = IParallel | ISeries | ISingle | IMap | IFilter | IReduce;
+export declare type IProgram = IParallelStatement | ISerialStatement | ISingleStatement | IMapStatement | IFilterStatement | IReduceStatement | IPipeStatement;
 export {};

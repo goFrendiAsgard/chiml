@@ -141,24 +141,53 @@ describe("parallel", () => {
     }));
 });
 describe("currying", () => {
-    function myFunction(a, b, c, cb) {
-        cb(null, a + b + c);
-    }
     it("curry 1 param", () => __awaiter(this, void 0, void 0, function* () {
-        const addOne = X.curry(myFunction, 3, 1);
-        const result = yield addOne(5, 5);
-        expect(result).toBe(11);
+        const twelveMinus = X.curry(lib_1.multipleMinusWithCallback, 3, [12]);
+        const result = yield twelveMinus(5, 5);
+        expect(result).toBe(2);
     }));
     it("curry 2 params", () => __awaiter(this, void 0, void 0, function* () {
-        const addFive = X.curry(myFunction, 3, 4, 1);
-        const result = yield addFive(4);
-        expect(result).toBe(9);
+        const nineMinus = X.curry(lib_1.multipleMinusWithCallback, 3, [10, 1]);
+        const result = yield nineMinus(4);
+        expect(result).toBe(5);
     }));
-    it("curry 1 params and curry again", () => __awaiter(this, void 0, void 0, function* () {
-        const addOne = X.curry(myFunction, 3, 1);
-        const addThree = X.curry(addOne, 2, 2);
-        const result = yield addThree(5);
-        expect(result).toBe(8);
+    it("curry 1 param and curry again", () => __awaiter(this, void 0, void 0, function* () {
+        const twelveMinus = X.curry(lib_1.multipleMinusWithCallback, 3, [12]);
+        const nineMinus = twelveMinus(3);
+        const result = yield nineMinus(5);
+        expect(result).toBe(4);
+    }));
+});
+describe("right currying", () => {
+    it("curry 1 param", () => __awaiter(this, void 0, void 0, function* () {
+        const minusOne = X.curryRight(lib_1.multipleMinusWithCallback, 3, [1]);
+        const result = yield minusOne(10, 3);
+        expect(result).toBe(6);
+    }));
+    it("curry 2 params", () => __awaiter(this, void 0, void 0, function* () {
+        const minusThree = X.curryRight(lib_1.multipleMinusWithCallback, 3, [2, 1]);
+        const result = yield minusThree(10);
+        expect(result).toBe(7);
+    }));
+    it("curry 1 param and curry again", () => __awaiter(this, void 0, void 0, function* () {
+        const minusOne = X.curryRight(lib_1.multipleMinusWithCallback, 3, [1]);
+        const minusThree = minusOne(2);
+        const result = yield minusThree(5);
+        expect(result).toBe(2);
+    }));
+});
+describe("left and right currying", () => {
+    it("curry left first", () => __awaiter(this, void 0, void 0, function* () {
+        const minusAndPlusTen = X.curryLeft(lib_1.plusAndMinusWithCallback, 3, [10]);
+        const plusTenMinusTwo = X.curryRight(minusAndPlusTen, 2, [2]);
+        const result = yield plusTenMinusTwo(8);
+        expect(result).toBe(16);
+    }));
+    it("curry right first", () => __awaiter(this, void 0, void 0, function* () {
+        const addAndminusTwo = X.curryRight(lib_1.plusAndMinusWithCallback, 3, [2]);
+        const plusTenMinusTwo = X.curryLeft(addAndminusTwo, 2, [10]);
+        const result = yield plusTenMinusTwo(8);
+        expect(result).toBe(16);
     }));
 });
 describe("map", () => {
@@ -199,7 +228,7 @@ describe("work", () => {
     it("simple case without side effect works", () => __awaiter(this, void 0, void 0, function* () {
         const n1 = 10;
         const n2 = 8;
-        const result = yield X.pipe(X.parallel(X.wrap(lib_1.add)(n1, n2), X.wrap(lib_1.minus)(n1, n2)), X.curry(X.reduce(lib_1.multiply), 2, 1), lib_1.rootSquare)();
+        const result = yield X.pipe(X.parallel(X.wrap(lib_1.add)(n1, n2), X.wrap(lib_1.minus)(n1, n2)), X.curry(X.reduce(lib_1.multiply), 2, [1]), lib_1.rootSquare)();
         expect(result).toBe(6);
         return null;
     }));

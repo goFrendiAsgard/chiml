@@ -18,82 +18,117 @@ const FG_YELLOW = "\x1b[33m";
 const RESET_COLOR = "\x1b[0m";
 // real implementation
 function wrap(arg) {
-    if (isPromise(arg)) {
-        return () => arg;
+    if ((typeof arg === "object" || typeof arg === "function") && "__dontWrap" in arg) {
+        return arg;
     }
-    return createCmdOrFunctionResolver(arg);
+    if (isPromise(arg)) {
+        return markAsDontWrap(() => arg);
+    }
+    return markAsDontWrap(createCmdOrFunctionResolver(arg));
 }
 exports.wrap = wrap;
 /*********************************************************
  * curry
  *********************************************************/
-function curry(action, limit, ...injectArgs) {
-    const func = wrap(action);
-    return (...args) => __awaiter(this, void 0, void 0, function* () {
+function curryLeft(action, paramCount, injectArgs) {
+    function curried(...args) {
         const newArgs = injectArgs.concat(args);
-        return func(...newArgs);
-    });
+        if (newArgs.length >= paramCount) {
+            const func = wrap(action);
+            return func(...newArgs);
+        }
+        return curryLeft(action, paramCount - injectArgs.length, newArgs);
+    }
+    return markAsDontWrap(curried);
 }
-exports.curry = curry;
+exports.curryLeft = curryLeft;
+exports.curry = curryLeft;
+/*********************************************************
+ * curryR
+ *********************************************************/
+function curryRight(action, paramCount, injectArgs) {
+    function curried(...args) {
+        const newArgs = args.concat(injectArgs);
+        if (newArgs.length >= paramCount) {
+            const func = wrap(action);
+            return func(...newArgs);
+        }
+        return curryRight(action, paramCount - injectArgs.length, newArgs);
+    }
+    return markAsDontWrap(curried);
+}
+exports.curryRight = curryRight;
 // real implementation
 function map(funcOrCmd) {
-    return (args) => {
-        const promises = args.map((element) => __awaiter(this, void 0, void 0, function* () { return wrap(funcOrCmd)(element); }));
-        return Promise.all(promises);
-    };
+    function mapped(args) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const promises = args.map((element) => __awaiter(this, void 0, void 0, function* () { return wrap(funcOrCmd)(element); }));
+            return Promise.all(promises);
+        });
+    }
+    return markAsDontWrap(mapped);
 }
 exports.map = map;
 // real implementation
 function filter(funcOrCmd) {
-    return (args) => {
-        const promises = args.map((element) => wrap(funcOrCmd)(element));
-        return Promise.all(promises)
-            .then((filteredList) => {
-            const result = [];
-            for (let i = 0; i < filteredList.length; i++) {
-                if (filteredList[i]) {
-                    result.push(args[i]);
+    function filtered(args) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const promises = args.map((element) => wrap(funcOrCmd)(element));
+            return Promise.all(promises)
+                .then((filteredList) => {
+                const result = [];
+                for (let i = 0; i < filteredList.length; i++) {
+                    if (filteredList[i]) {
+                        result.push(args[i]);
+                    }
                 }
-            }
-            return result;
+                return result;
+            });
         });
-    };
+    }
+    return markAsDontWrap(filtered);
 }
 exports.filter = filter;
 // real implementation
 function reduce(funcOrCmd) {
-    return (accumulator, args) => __awaiter(this, void 0, void 0, function* () {
-        let result = accumulator;
-        for (const arg of args) {
-            result = yield wrap(funcOrCmd)(arg, result);
-        }
-        return result;
-    });
+    function reduced(accumulator, args) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let result = accumulator;
+            for (const arg of args) {
+                result = yield wrap(funcOrCmd)(arg, result);
+            }
+            return result;
+        });
+    }
+    return markAsDontWrap(reduced);
 }
 exports.reduce = reduce;
 /*********************************************************
  * pipe
  *********************************************************/
 function pipe(...actions) {
-    return (...args) => __awaiter(this, void 0, void 0, function* () {
-        let result = Promise.resolve(null);
-        for (let i = 0; i < actions.length; i++) {
-            const action = actions[i];
-            if (i === 0) {
-                result = wrap(action)(...args);
-                continue;
+    function piped(...args) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let result = Promise.resolve(null);
+            for (let i = 0; i < actions.length; i++) {
+                const action = actions[i];
+                if (i === 0) {
+                    result = wrap(action)(...args);
+                    continue;
+                }
+                result = result.then((arg) => wrap(action)(arg));
             }
-            result = result.then((arg) => wrap(action)(arg));
-        }
-        return result;
-    });
+            return result;
+        });
+    }
+    return markAsDontWrap(piped);
 }
 exports.pipe = pipe;
 /*********************************************************
  * parallel
  *********************************************************/
 function parallel(...actions) {
-    return () => Promise.all(actions);
+    return markAsDontWrap(() => Promise.all(actions));
 }
 exports.parallel = parallel;
 /*********************************************************
@@ -123,9 +158,10 @@ function createFunctionResolver(func) {
                 }
                 return resolve(result);
             }
-            args.push(callback);
+            const newArgs = Array.from(args);
+            newArgs.push(callback);
             try {
-                const functionResult = func(...args);
+                const functionResult = func(...newArgs);
                 if (isPromise(functionResult)) {
                     functionResult.then(resolve).catch(reject);
                 }
@@ -138,6 +174,10 @@ function createFunctionResolver(func) {
             }
         });
     };
+}
+function markAsDontWrap(func) {
+    func.__dontWrap = true;
+    return func;
 }
 /**
  * @param arg

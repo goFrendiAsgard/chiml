@@ -77,22 +77,46 @@ export function wrap(arg: any): IWrappedFunction;
 
 // real implementation
 export function wrap(arg: any): IWrappedFunction {
-    if (isPromise(arg)) {
-        return () => arg as IValue;
+    if ((typeof arg === "object" || typeof arg === "function") && "__dontWrap" in arg) {
+        return arg;
     }
-    return createCmdOrFunctionResolver(arg as string| IAnyFunction);
+    if (isPromise(arg)) {
+        return markAsDontWrap(() => arg as IValue);
+    }
+    return markAsDontWrap(createCmdOrFunctionResolver(arg as string| IAnyFunction));
 }
 
 /*********************************************************
  * curry
  *********************************************************/
 
-export function curry(action: any, limit: number, ...injectArgs: any[]): IWrappedFunction {
-    const func = wrap(action);
-    return async (...args: any[]) => {
+export function curryLeft(action: any, paramCount: number, injectArgs: any[]): IAnyFunction {
+    function curried(...args: any[]) {
         const newArgs = injectArgs.concat(args);
-        return func(...newArgs);
-    };
+        if (newArgs.length >= paramCount) {
+            const func = wrap(action);
+            return func(...newArgs);
+        }
+        return curryLeft(action, paramCount - injectArgs.length, newArgs);
+    }
+    return markAsDontWrap(curried);
+}
+export const curry = curryLeft;
+
+/*********************************************************
+ * curryR
+ *********************************************************/
+
+export function curryRight(action: any, paramCount: number, injectArgs: any[]): IAnyFunction {
+    function curried(...args: any[]) {
+        const newArgs = args.concat(injectArgs);
+        if (newArgs.length >= paramCount) {
+            const func = wrap(action);
+            return func(...newArgs);
+        }
+        return curryRight(action, paramCount - injectArgs.length, newArgs);
+    }
+    return markAsDontWrap(curried);
 }
 
 /*********************************************************
@@ -111,12 +135,13 @@ export function map(funcOrCmd: any): IMapFunction;
 
 // real implementation
 export function map(funcOrCmd: string | IAnyFunction | IValue): IMapFunction {
-    return (args: any[]) => {
+    async function mapped(args: any[]) {
         const promises: IValue[] = args.map(
             async (element) => wrap(funcOrCmd)(element),
         );
         return Promise.all(promises);
-    };
+    }
+    return markAsDontWrap(mapped);
 }
 
 /*********************************************************
@@ -135,7 +160,7 @@ export function filter(funcOrCmd: any): IFilterFunction;
 
 // real implementation
 export function filter(funcOrCmd: string | IAnyFunction | IValue): IFilterFunction {
-    return (args: any[]): IValue => {
+    async function filtered(args: any[]): IValue {
         const promises: IValue[] = args.map(
             (element) => wrap(funcOrCmd)(element),
         );
@@ -149,7 +174,8 @@ export function filter(funcOrCmd: string | IAnyFunction | IValue): IFilterFuncti
                 }
                 return result;
             });
-    };
+    }
+    return markAsDontWrap(filtered);
 }
 
 /*********************************************************
@@ -170,13 +196,14 @@ export function reduce(funcOrCmd: any): IReduceFunction;
 
 // real implementation
 export function reduce(funcOrCmd: any): IReduceFunction {
-    return async (accumulator: any, args: any[]) => {
+    async function reduced(accumulator: any, args: any[]) {
         let result: any = accumulator;
         for (const arg of args) {
             result = await wrap(funcOrCmd)(arg, result);
         }
         return result;
-    };
+    }
+    return markAsDontWrap(reduced);
 }
 
 /*********************************************************
@@ -184,7 +211,7 @@ export function reduce(funcOrCmd: any): IReduceFunction {
  *********************************************************/
 
 export function pipe(...actions: any[]): IWrappedFunction {
-    return async (...args: any[]) => {
+    async function piped(...args: any[]) {
         let result: IValue = Promise.resolve(null);
         for (let i = 0; i < actions.length; i++) {
             const action = actions[i];
@@ -195,7 +222,8 @@ export function pipe(...actions: any[]): IWrappedFunction {
             result = result.then((arg) => wrap(action)(arg));
         }
         return result;
-    };
+    }
+    return markAsDontWrap(piped);
 }
 
 /*********************************************************
@@ -203,7 +231,7 @@ export function pipe(...actions: any[]): IWrappedFunction {
  *********************************************************/
 
 export function parallel(...actions: IValue[]): IWrappedFunction {
-    return () => Promise.all(actions);
+    return markAsDontWrap(() => Promise.all(actions));
 }
 
 /*********************************************************
@@ -236,9 +264,10 @@ function createFunctionResolver(func: IAnyFunction): IWrappedFunction {
                 }
                 return resolve(result);
             }
-            args.push(callback);
+            const newArgs = Array.from(args);
+            newArgs.push(callback);
             try {
-                const functionResult = func(...args);
+                const functionResult = func(...newArgs);
                 if (isPromise(functionResult)) {
                     functionResult.then(resolve).catch(reject);
                 } else if (typeof functionResult !== "undefined") {
@@ -247,9 +276,13 @@ function createFunctionResolver(func: IAnyFunction): IWrappedFunction {
             } catch (error) {
                 reject(error);
             }
-
         });
     };
+}
+
+function markAsDontWrap(func: any) {
+    func.__dontWrap = true;
+    return func;
 }
 
 /**

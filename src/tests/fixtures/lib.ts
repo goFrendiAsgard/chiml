@@ -35,6 +35,12 @@ export function functionWithCallbackYieldError(a: number, b: number, cb: (error)
 export function functionWithCallbackAndMultipleReturn(a: number, b: number, cb: (error, ...result: any[]) => void) {
     cb(null, a + b, a - b);
 }
+export function multipleMinusWithCallback(a, b, c, cb) {
+    cb(null, a - b - c);
+}
+export function plusAndMinusWithCallback(a, b, c, cb) {
+    cb(null, a + b - c);
+}
 
 const fixturesPath = path.resolve(path.dirname(path.dirname(__dirname)), "tests", "fixtures");
 const rootSquarePath = path.resolve(fixturesPath, "rootSquare.py");

@@ -3,26 +3,25 @@ Object.defineProperty(exports, "__esModule", { value: true });
 function normalizedProgram(program) {
     // pass
 }
-function isSingle(program) {
-    return "do" in program && typeof program.do === "string";
+function isSingleStatement(program) {
+    return "do" in program;
 }
-function isParallel(program) {
+function isParallelStatement(program) {
     return "parallel" in program && Array.isArray(program.parallel);
 }
-function isSeries(program) {
+function isSerialStatement(program) {
     return "do" in program && Array.isArray(program.do);
 }
-function isBranched(program) {
-    return "if" in program && typeof program.if === "string";
+function isBranchedStatement(program) {
+    return "if" in program;
 }
-function isMap(program) {
-    return "map" in program && program.map === "string";
+function isMapStatement(program) {
+    return "map" in program;
 }
-function isFilter(program) {
-    return "filter" in program && program.filter === "string";
+function isFilterStatement(program) {
+    return "filter" in program;
 }
-function isReduce(program) {
-    return "reduce" in program && program.reduce === "string" &&
-        "accumulator" in program && program.accumulator === "string";
+function isReduceStatement(program) {
+    return "reduce" in program && "accumulator" in program && program.accumulator === "string";
 }
 //# sourceMappingURL=structure.js.map

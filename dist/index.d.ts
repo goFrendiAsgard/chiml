@@ -1,4 +1,4 @@
-import { IFilterFunction, IMapFunction, IReduceFunction, IValue, IWrappedFunction } from "./interfaces";
+import { IAnyFunction, IFilterFunction, IMapFunction, IReduceFunction, IValue, IWrappedFunction } from "./interfaces";
 /*********************************************************
  * wrap
  *********************************************************/
@@ -21,7 +21,12 @@ export declare function wrap(arg: any): IWrappedFunction;
 /*********************************************************
  * curry
  *********************************************************/
-export declare function curry(action: any, limit: number, ...injectArgs: any[]): IWrappedFunction;
+export declare function curryLeft(action: any, paramCount: number, injectArgs: any[]): IAnyFunction;
+export declare const curry: typeof curryLeft;
+/*********************************************************
+ * curryR
+ *********************************************************/
+export declare function curryRight(action: any, paramCount: number, injectArgs: any[]): IAnyFunction;
 /*********************************************************
  * map
  *********************************************************/

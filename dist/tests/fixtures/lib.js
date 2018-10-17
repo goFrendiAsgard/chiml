@@ -42,6 +42,14 @@ function functionWithCallbackAndMultipleReturn(a, b, cb) {
     cb(null, a + b, a - b);
 }
 exports.functionWithCallbackAndMultipleReturn = functionWithCallbackAndMultipleReturn;
+function multipleMinusWithCallback(a, b, c, cb) {
+    cb(null, a - b - c);
+}
+exports.multipleMinusWithCallback = multipleMinusWithCallback;
+function plusAndMinusWithCallback(a, b, c, cb) {
+    cb(null, a + b - c);
+}
+exports.plusAndMinusWithCallback = plusAndMinusWithCallback;
 const fixturesPath = path.resolve(path.dirname(path.dirname(__dirname)), "tests", "fixtures");
 const rootSquarePath = path.resolve(fixturesPath, "rootSquare.py");
 const cmdPath = path.resolve(fixturesPath, "add.py");

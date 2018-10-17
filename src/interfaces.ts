@@ -1,3 +1,4 @@
+
 export type IValue = Promise<any>;
 export type IWrappedFunction = (...args: any[]) => IValue;
 export type IMapFunction = (data: any[]) => Promise<any[]>;
