@@ -190,3 +190,7 @@ export default X.declarative({
     "sum": 15
 }
 ```
+
+# TODO
+
+* X.declarative is better to take a function that has `ctx` parameter as it's argument.
