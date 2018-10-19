@@ -90,7 +90,7 @@ export function wrap(arg: any): IWrappedFunction {
  * curry
  *********************************************************/
 
-export function curryLeft(action: any, paramCount: number, injectArgs: any[]): IAnyFunction {
+export function curryLeft(action: any, paramCount: number, injectArgs: any[] = []): IAnyFunction {
     function curried(...args: any[]) {
         const newArgs = injectArgs.concat(args);
         if (newArgs.length >= paramCount) {
@@ -104,10 +104,10 @@ export function curryLeft(action: any, paramCount: number, injectArgs: any[]): I
 export const curry = curryLeft;
 
 /*********************************************************
- * curryR
+ * curryRight
  *********************************************************/
 
-export function curryRight(action: any, paramCount: number, injectArgs: any[]): IAnyFunction {
+export function curryRight(action: any, paramCount: number, injectArgs: any[] = []): IAnyFunction {
     function curried(...args: any[]) {
         const newArgs = args.concat(injectArgs);
         if (newArgs.length >= paramCount) {

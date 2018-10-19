@@ -30,7 +30,7 @@ exports.wrap = wrap;
 /*********************************************************
  * curry
  *********************************************************/
-function curryLeft(action, paramCount, injectArgs) {
+function curryLeft(action, paramCount, injectArgs = []) {
     function curried(...args) {
         const newArgs = injectArgs.concat(args);
         if (newArgs.length >= paramCount) {
@@ -46,7 +46,7 @@ exports.curry = curryLeft;
 /*********************************************************
  * curryR
  *********************************************************/
-function curryRight(action, paramCount, injectArgs) {
+function curryRight(action, paramCount, injectArgs = []) {
     function curried(...args) {
         const newArgs = args.concat(injectArgs);
         if (newArgs.length >= paramCount) {

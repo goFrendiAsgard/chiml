@@ -164,19 +164,19 @@ describe("parallel", () => {
 describe("currying", () => {
 
     it ("curry 1 param", async () => {
-        const twelveMinus = X.curry(multipleMinusWithCallback, 3, [12]);
+        const twelveMinus = X.curry(multipleMinusWithCallback, 3)(12);
         const result = await twelveMinus(5, 5);
         expect(result).toBe(2);
     });
 
     it ("curry 2 params", async () => {
-        const nineMinus = X.curry(multipleMinusWithCallback, 3, [10, 1]);
+        const nineMinus = X.curry(multipleMinusWithCallback, 3)(10, 1);
         const result = await nineMinus(4);
         expect(result).toBe(5);
     });
 
     it ("curry 1 param and curry again", async () => {
-        const twelveMinus = X.curry(multipleMinusWithCallback, 3, [12]);
+        const twelveMinus = X.curry(multipleMinusWithCallback, 3)(12);
         const nineMinus = twelveMinus(3);
         const result = await nineMinus(5);
         expect(result).toBe(4);
@@ -187,19 +187,19 @@ describe("currying", () => {
 describe("right currying", () => {
 
     it ("curry 1 param", async () => {
-        const minusOne = X.curryRight(multipleMinusWithCallback, 3, [1]);
+        const minusOne = X.curryRight(multipleMinusWithCallback, 3)(1);
         const result = await minusOne(10, 3);
         expect(result).toBe(6);
     });
 
     it ("curry 2 params", async () => {
-        const minusThree = X.curryRight(multipleMinusWithCallback, 3, [2, 1]);
+        const minusThree = X.curryRight(multipleMinusWithCallback, 3)(2, 1);
         const result = await minusThree(10);
         expect(result).toBe(7);
     });
 
     it ("curry 1 param and curry again", async () => {
-        const minusOne = X.curryRight(multipleMinusWithCallback, 3, [1]);
+        const minusOne = X.curryRight(multipleMinusWithCallback, 3)(1);
         const minusThree = minusOne(2);
         const result = await minusThree(5);
         expect(result).toBe(2);
@@ -210,14 +210,14 @@ describe("right currying", () => {
 describe("left and right currying", () => {
 
     it ("curry left first", async () => {
-        const minusAndPlusTen = X.curryLeft(plusAndMinusWithCallback, 3, [10]);
+        const minusAndPlusTen = X.curryLeft(plusAndMinusWithCallback, 3)(10);
         const plusTenMinusTwo = X.curryRight(minusAndPlusTen, 2, [2]);
         const result = await plusTenMinusTwo(8);
         expect(result).toBe(16);
     });
 
     it ("curry right first", async () => {
-        const addAndminusTwo = X.curryRight(plusAndMinusWithCallback, 3, [2]);
+        const addAndminusTwo = X.curryRight(plusAndMinusWithCallback, 3)(2);
         const plusTenMinusTwo = X.curryLeft(addAndminusTwo, 2, [10]);
         const result = await plusTenMinusTwo(8);
         expect(result).toBe(16);
@@ -282,7 +282,7 @@ describe("work", () => {
                 X.wrap(add)(n1, n2),
                 X.wrap(minus)(n1, n2),
             ),
-            X.curry(X.reduce(multiply), 2, [1]),
+            X.curry(X.reduce(multiply), 2)(1),
             rootSquare,
         )();
         expect(result).toBe(6);

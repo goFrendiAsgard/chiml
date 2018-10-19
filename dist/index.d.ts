@@ -21,12 +21,12 @@ export declare function wrap(arg: any): IWrappedFunction;
 /*********************************************************
  * curry
  *********************************************************/
-export declare function curryLeft(action: any, paramCount: number, injectArgs: any[]): IAnyFunction;
+export declare function curryLeft(action: any, paramCount: number, injectArgs?: any[]): IAnyFunction;
 export declare const curry: typeof curryLeft;
 /*********************************************************
  * curryR
  *********************************************************/
-export declare function curryRight(action: any, paramCount: number, injectArgs: any[]): IAnyFunction;
+export declare function curryRight(action: any, paramCount: number, injectArgs?: any[]): IAnyFunction;
 /*********************************************************
  * map
  *********************************************************/

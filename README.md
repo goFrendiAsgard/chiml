@@ -20,7 +20,7 @@ export function multiply(a: number, b: number, callback: (error: Error, result: 
 export const rootSquare = "python3 rootSquare.py";
 ```
 
-## Main Program (In Typescript, imperative)
+## Main Program (Imperative)
 
 ```typescript
 // main.ts
@@ -36,7 +36,7 @@ export default async function main(n1: number, n2: number): Promises<number> {
 }
 ```
 
-## Main Program (In Typescript, free of side effect)
+## Main Program (Functional)
 
 ```typescript
 // main.ts
@@ -48,72 +48,88 @@ export default async function main(n1: number, n2: number): Promises<number> {
             X.wrap(add)(n1, n2),
             X.wrap(minus)(n1, n2),
         ),
-        X.curry(X.reduce(multiply), 2, [1]),
+        X.curry(X.reduce(multiply), 2)(1),
         rootSquare,
     )();
 }
 ```
 
+## Main Program (Declarative)
 
-## Main Program (In Yaml, imperative)
-
-```yaml
-# main.yml
-import:
-    lib: [ add, minus, multiply, rootSquare ]
-ins: [ n1:number, n2:number ]
-vars: [ addResult:number, minusResult:number ]
-out: result
-do:
-    - parallel:
-        - ins: [n1, n2]
-          out: addResult
-          do: <add>
-        - ins: [n1, n2]
-          out: minusResult
-          do: <minus>
-    - ins: [ addResult, minusResult ]
-      out: result
-      pipe: [ multiply, rootSquare ]
+```typescript
+// main.ts
+import * as X from "chiml";
+import { add, minus, multiply, rootSquare } from "lib";
+export default X.declarative({
+    ins: ["n1: number", "n2: number"],
+    vars: ["addResult: number", "minusResult: number"],
+    out: "result",
+    do: [
+        parallel: [
+            {
+                ins: ["n1", "n2"],
+                out: "addResult"
+                do: "<add>"
+            },
+            {
+                ins: ["n1", "n2"],
+                out: "minusResult"
+                do: "<minus>"
+            },
+        ],
+        {
+            ins: ["addResult", "minusResult"],
+            out: "result",
+            pipe: ["<multiply>", "<rootSquare>"]
+        }
+    ]
+});
 ```
 
-## Main Program (In Yaml, free of side effect)
+## Main Program (Declarative + Functional)
 
-```yaml
-# main.yml
-import:
-    lib: [ add, minus, multiply, rootSquare ]
-ins: [ n1:number, n2:number ]
-vars: [ addResult:number, minusResult:number ]
-out: result
-do:
-    - out: result
-      pipe:
-        - parallel:
-            - ins: [n1, n2]
-              out: addResult
-              do: <add>
-            - ins: [n1, n2]
-              out: minusResult
-              do: <minus>
-        - do: <X.curry(X.reduce(multiply), 2, [1])>
-        - do: <rootSquare>
+```typescript
+// main.ts
+import * as X from "chiml";
+import { add, minus, multiply, rootSquare } from "lib";
+export default X.declarative({
+    ins: ["n1: number", "n2: number"],
+    vars: ["addResult: number", "minusResult: number"],
+    out: "result",
+    do: {
+        out: "result",
+        pipe: [
+            {
+                parallel: [
+                    {
+                        ins: ["n1", "n2"],
+                        out: "addResult"
+                        do: "<add>"
+                    },
+                    {
+                        ins: ["n1", "n2"],
+                        out: "minusResult"
+                        do: "<minus>"
+                    },
+                ]
+            },
+            { do: "<X.curry(X.reduce(multiply), 2)(1)>" },
+            { do: "<rootSquare>" },
+        ]
+    }
+});
 ```
-
 
 ## Execution
 
 ```
 > chie main.ts 10 8
 6
-
-> chie main.yml 10 8
-6
 ```
 
 # Example 2
 
-## Main Program (In Typescript)
+## Main Program (Imperative)
 
 ```typescript
 // main.ts
@@ -127,42 +143,46 @@ export default async function main(): Promises<any> {
 }
 ```
 
-## Main Program (In Yaml)
+## Main Program (Declarative)
 
-```yaml
-# main.yml
-vars:
-    data:number[]: [1, 2, 3, 4, 5]
-    result:{[key: string]: number[]}:
-        squared: []
-        even: []
-        sum: []
-out: result
-do:
-    - ins: data
-      out: result.squared
-      map: <(x) => x * x>
-    - ins: data
-      out: result.even
-      filter: <(x) => x % 2 === 0>
-    - ins: data
-      out: result.even
-      accumulator: 0
-      reduce: <(x, y) => x + y>
+```typescript
+// main.ts
+import * as X from "chiml";
+export default X.declarative({
+    vars: {
+        "data: number[]": [1, 2, 3, 4, 5],
+        result: {
+            squared: [],
+            even: [],
+            sum: []
+        }
+    },
+    out: "result",
+    do: [
+        {
+            ins: data,
+            out: "result.squared",
+            map: "<(x) => x * x>"
+        },
+        {
+            ins: data,
+            out: "result.even",
+            filter: "<(x) => x % 2 === 0>"
+        },
+        {
+            ins: data,
+            out: "result.sum",
+            accumulator: 0,
+            reduce: "<(x, y) => x + x>"
+        },
+    ]
+});
 ```
 
 ## Execution
 
 ```
 > chie main.ts
-{
-    "data": [ 1, 2, 3, 4, 5 ],
-    "even": [ 2, 4 ],
-    "squared": [ 1, 4, 9, 16, 25 ],
-    "sum": 15
-}
-
-> chie main.yml
 {
     "data": [ 1, 2, 3, 4, 5 ],
     "even": [ 2, 4 ],
