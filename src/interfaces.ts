@@ -1,9 +1,8 @@
-
 export type IValue = Promise<any>;
 export type IWrappedFunction = (...args: any[]) => IValue;
 export type IMapFunction = (data: any[]) => Promise<any[]>;
 export type IFilterFunction = (data: any[]) => Promise<any[]>;
-export type IReduceFunction = (data: any[], accumulator: any) => Promise<any>;
+export type IReduceFunction = (data: any[], accumulator: any) => IValue;
 export type IAnyFunction = (...args: any[]) => any;
 
 interface IMayBeBranchedStatement {

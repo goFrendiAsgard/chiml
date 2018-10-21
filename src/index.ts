@@ -66,11 +66,13 @@ export function wrap<TA1, TA2, TA3, TA4, TA5, TResult extends any[]>(
 
 // async function
 export function wrap<TArgs extends any[], TResult extends IValue>(
-    fn: (...args: TArgs) => TResult): (...args: TArgs) => TResult;
+    fn: (...args: TArgs) => TResult,
+): (...args: TArgs) => TResult;
 
 // sync function
 export function wrap<TArgs extends any[], TResult>(
-    fn: (...args: TArgs) => TResult): (...args: TArgs) => Promise<TResult>;
+    fn: (...args: TArgs) => TResult,
+): (...args: TArgs) => Promise<TResult>;
 
 // command and everything else
 export function wrap(arg: any): IWrappedFunction;
@@ -87,19 +89,49 @@ export function wrap(arg: any): IWrappedFunction {
 }
 
 /*********************************************************
- * curry
+ * pipe
  *********************************************************/
 
-export function curryLeft(action: any, paramCount: number, injectArgs: any[] = []): IAnyFunction {
-    function curried(...args: any[]) {
-        const newArgs = injectArgs.concat(args);
-        if (newArgs.length >= paramCount) {
-            const func = wrap(action);
-            return func(...newArgs);
+function internalPipe(...actions: any[]): IWrappedFunction {
+    async function piped(...args: any[]) {
+        let result: IValue = Promise.resolve(null);
+        for (let i = 0; i < actions.length; i++) {
+            const action = wrap(actions[i]);
+            if (i === 0) {
+                result = await action(...args);
+                continue;
+            }
+            result = await action(result);
         }
-        return curryLeft(action, paramCount - injectArgs.length, newArgs);
+        return result;
     }
-    return markAsDontWrap(curried);
+    return markAsDontWrap(piped);
+}
+
+export function pipe(...actions: any[]): IWrappedFunction {
+    return internalPipe(...actions);
+}
+
+/*********************************************************
+ * compose
+ *********************************************************/
+
+export function compose(...actions: any[]): IWrappedFunction {
+    const newActions = actions.reverse();
+    return pipe(...newActions);
+}
+
+/*********************************************************
+ * placeHolder
+ *********************************************************/
+export const placeHolder = {isPlaceHolder: true};
+
+/*********************************************************
+ * curryLeft
+ *********************************************************/
+
+export function curryLeft(fn: any, arity): IAnyFunction | IWrappedFunction {
+    return internalCurry(fn, arity, [], "left");
 }
 export const curry = curryLeft;
 
@@ -107,16 +139,36 @@ export const curry = curryLeft;
  * curryRight
  *********************************************************/
 
-export function curryRight(action: any, paramCount: number, injectArgs: any[] = []): IAnyFunction {
-    function curried(...args: any[]) {
-        const newArgs = args.concat(injectArgs);
-        if (newArgs.length >= paramCount) {
-            const func = wrap(action);
-            return func(...newArgs);
+export function curryRight(fn: any, arity): IAnyFunction | IWrappedFunction {
+    return internalCurry(fn, arity, [], "right");
+}
+
+function internalCurry(fn, arity, memo, mode) {
+    return (...args) => {
+        let argIndex = 0;
+        // newArgs is memo with all placeHolder replaced by args's element
+        let newArgs = memo.map((arg) => {
+            if (isPlaceHolder(arg) && argIndex < args.length) {
+                const val = args[argIndex];
+                argIndex ++;
+                return val;
+            }
+            return arg;
+        });
+        for (let i = argIndex; i < args.length; i++) {
+            newArgs.push(args[i]);
         }
-        return curryRight(action, paramCount - injectArgs.length, newArgs);
-    }
-    return markAsDontWrap(curried);
+        const isPlaceHolderFound = newArgs.filter(isPlaceHolder).length > 0;
+        // no placeholder found and newArgs's count is greater than arity
+        if (!isPlaceHolderFound && (newArgs.length >= arity)) {
+            if (mode !== "left") {
+                newArgs = newArgs.reverse();
+            }
+            const newFn = wrap(fn);
+            return newFn(...newArgs);
+        }
+        return internalCurry(fn, arity, newArgs, mode);
+    };
 }
 
 /*********************************************************
@@ -136,8 +188,9 @@ export function map(funcOrCmd: any): IMapFunction;
 // real implementation
 export function map(funcOrCmd: string | IAnyFunction | IValue): IMapFunction {
     async function mapped(args: any[]) {
+        const func = wrap(funcOrCmd);
         const promises: IValue[] = args.map(
-            async (element) => wrap(funcOrCmd)(element),
+            async (element) => func(element),
         );
         return Promise.all(promises);
     }
@@ -161,8 +214,9 @@ export function filter(funcOrCmd: any): IFilterFunction;
 // real implementation
 export function filter(funcOrCmd: string | IAnyFunction | IValue): IFilterFunction {
     async function filtered(args: any[]): IValue {
+        const func = wrap(funcOrCmd);
         const promises: IValue[] = args.map(
-            (element) => wrap(funcOrCmd)(element),
+            (element) => func(element),
         );
         return Promise.all(promises)
             .then((filteredList: boolean[]) => {
@@ -197,33 +251,14 @@ export function reduce(funcOrCmd: any): IReduceFunction;
 // real implementation
 export function reduce(funcOrCmd: any): IReduceFunction {
     async function reduced(accumulator: any, args: any[]) {
+        const func = wrap(funcOrCmd);
         let result: any = accumulator;
         for (const arg of args) {
-            result = await wrap(funcOrCmd)(arg, result);
+            result = await func(arg, result);
         }
         return result;
     }
     return markAsDontWrap(reduced);
-}
-
-/*********************************************************
- * pipe
- *********************************************************/
-
-export function pipe(...actions: any[]): IWrappedFunction {
-    async function piped(...args: any[]) {
-        let result: IValue = Promise.resolve(null);
-        for (let i = 0; i < actions.length; i++) {
-            const action = actions[i];
-            if (i === 0) {
-                result = wrap(action)(...args);
-                continue;
-            }
-            result = result.then((arg) => wrap(action)(arg));
-        }
-        return result;
-    }
-    return markAsDontWrap(piped);
 }
 
 /*********************************************************
@@ -283,6 +318,10 @@ function createFunctionResolver(func: IAnyFunction): IWrappedFunction {
 function markAsDontWrap(func: any) {
     func.__dontWrap = true;
     return func;
+}
+
+function isPlaceHolder(obj) {
+   return typeof obj === "object" && obj && obj.isPlaceHolder;
 }
 
 /**

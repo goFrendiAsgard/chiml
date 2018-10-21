@@ -48,7 +48,7 @@ export default async function main(n1: number, n2: number): Promises<number> {
             X.wrap(add)(n1, n2),
             X.wrap(minus)(n1, n2),
         ),
-        X.curry(X.reduce(multiply), 2)(1),
+        X.curry(X.reduce(X.wrap(multiply)), 2)(1),
         rootSquare,
     )();
 }

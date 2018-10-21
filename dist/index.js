@@ -28,41 +28,89 @@ function wrap(arg) {
 }
 exports.wrap = wrap;
 /*********************************************************
- * curry
+ * pipe
  *********************************************************/
-function curryLeft(action, paramCount, injectArgs = []) {
-    function curried(...args) {
-        const newArgs = injectArgs.concat(args);
-        if (newArgs.length >= paramCount) {
-            const func = wrap(action);
-            return func(...newArgs);
-        }
-        return curryLeft(action, paramCount - injectArgs.length, newArgs);
+function internalPipe(...actions) {
+    function piped(...args) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let result = Promise.resolve(null);
+            for (let i = 0; i < actions.length; i++) {
+                const action = wrap(actions[i]);
+                if (i === 0) {
+                    result = yield action(...args);
+                    continue;
+                }
+                result = yield action(result);
+            }
+            return result;
+        });
     }
-    return markAsDontWrap(curried);
+    return markAsDontWrap(piped);
+}
+function pipe(...actions) {
+    return internalPipe(...actions);
+}
+exports.pipe = pipe;
+/*********************************************************
+ * compose
+ *********************************************************/
+function compose(...actions) {
+    const newActions = actions.reverse();
+    return pipe(...newActions);
+}
+exports.compose = compose;
+/*********************************************************
+ * placeHolder
+ *********************************************************/
+exports.placeHolder = { isPlaceHolder: true };
+/*********************************************************
+ * curryLeft
+ *********************************************************/
+function curryLeft(fn, arity) {
+    return internalCurry(fn, arity, [], "left");
 }
 exports.curryLeft = curryLeft;
 exports.curry = curryLeft;
 /*********************************************************
- * curryR
+ * curryRight
  *********************************************************/
-function curryRight(action, paramCount, injectArgs = []) {
-    function curried(...args) {
-        const newArgs = args.concat(injectArgs);
-        if (newArgs.length >= paramCount) {
-            const func = wrap(action);
-            return func(...newArgs);
-        }
-        return curryRight(action, paramCount - injectArgs.length, newArgs);
-    }
-    return markAsDontWrap(curried);
+function curryRight(fn, arity) {
+    return internalCurry(fn, arity, [], "right");
 }
 exports.curryRight = curryRight;
+function internalCurry(fn, arity, memo, mode) {
+    return (...args) => {
+        let argIndex = 0;
+        // newArgs is memo with all placeHolder replaced by args's element
+        let newArgs = memo.map((arg) => {
+            if (isPlaceHolder(arg) && argIndex < args.length) {
+                const val = args[argIndex];
+                argIndex++;
+                return val;
+            }
+            return arg;
+        });
+        for (let i = argIndex; i < args.length; i++) {
+            newArgs.push(args[i]);
+        }
+        const isPlaceHolderFound = newArgs.filter(isPlaceHolder).length > 0;
+        // no placeholder found and newArgs's count is greater than arity
+        if (!isPlaceHolderFound && (newArgs.length >= arity)) {
+            if (mode !== "left") {
+                newArgs = newArgs.reverse();
+            }
+            const newFn = wrap(fn);
+            return newFn(...newArgs);
+        }
+        return internalCurry(fn, arity, newArgs, mode);
+    };
+}
 // real implementation
 function map(funcOrCmd) {
     function mapped(args) {
         return __awaiter(this, void 0, void 0, function* () {
-            const promises = args.map((element) => __awaiter(this, void 0, void 0, function* () { return wrap(funcOrCmd)(element); }));
+            const func = wrap(funcOrCmd);
+            const promises = args.map((element) => __awaiter(this, void 0, void 0, function* () { return func(element); }));
             return Promise.all(promises);
         });
     }
@@ -73,7 +121,8 @@ exports.map = map;
 function filter(funcOrCmd) {
     function filtered(args) {
         return __awaiter(this, void 0, void 0, function* () {
-            const promises = args.map((element) => wrap(funcOrCmd)(element));
+            const func = wrap(funcOrCmd);
+            const promises = args.map((element) => func(element));
             return Promise.all(promises)
                 .then((filteredList) => {
                 const result = [];
@@ -93,9 +142,10 @@ exports.filter = filter;
 function reduce(funcOrCmd) {
     function reduced(accumulator, args) {
         return __awaiter(this, void 0, void 0, function* () {
+            const func = wrap(funcOrCmd);
             let result = accumulator;
             for (const arg of args) {
-                result = yield wrap(funcOrCmd)(arg, result);
+                result = yield func(arg, result);
             }
             return result;
         });
@@ -103,27 +153,6 @@ function reduce(funcOrCmd) {
     return markAsDontWrap(reduced);
 }
 exports.reduce = reduce;
-/*********************************************************
- * pipe
- *********************************************************/
-function pipe(...actions) {
-    function piped(...args) {
-        return __awaiter(this, void 0, void 0, function* () {
-            let result = Promise.resolve(null);
-            for (let i = 0; i < actions.length; i++) {
-                const action = actions[i];
-                if (i === 0) {
-                    result = wrap(action)(...args);
-                    continue;
-                }
-                result = result.then((arg) => wrap(action)(arg));
-            }
-            return result;
-        });
-    }
-    return markAsDontWrap(piped);
-}
-exports.pipe = pipe;
 /*********************************************************
  * parallel
  *********************************************************/
@@ -178,6 +207,9 @@ function createFunctionResolver(func) {
 function markAsDontWrap(func) {
     func.__dontWrap = true;
     return func;
+}
+function isPlaceHolder(obj) {
+    return typeof obj === "object" && obj && obj.isPlaceHolder;
 }
 /**
  * @param arg

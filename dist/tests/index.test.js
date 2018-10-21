@@ -118,7 +118,15 @@ describe("wrap cmd", () => {
 });
 describe("pipe", () => {
     it("works", () => __awaiter(this, void 0, void 0, function* () {
-        const result = yield X.pipe(lib_1.minus, lib_1.square)(9, 4);
+        const result = yield X.pipe(X.wrap(lib_1.minus), X.wrap(lib_1.square))(9, 4);
+        expect(result).toBe(25);
+        return null;
+    }));
+});
+describe("compose", () => {
+    it("works", () => __awaiter(this, void 0, void 0, function* () {
+        console.log(X.compose(lib_1.square, lib_1.minus));
+        const result = yield X.compose(X.wrap(lib_1.square), X.wrap(lib_1.minus))(9, 4);
         expect(result).toBe(25);
         return null;
     }));
@@ -145,49 +153,56 @@ describe("currying", () => {
         const twelveMinus = X.curry(lib_1.multipleMinusWithCallback, 3)(12);
         const result = yield twelveMinus(5, 5);
         expect(result).toBe(2);
+        return null;
     }));
     it("curry 2 params", () => __awaiter(this, void 0, void 0, function* () {
         const nineMinus = X.curry(lib_1.multipleMinusWithCallback, 3)(10, 1);
         const result = yield nineMinus(4);
         expect(result).toBe(5);
+        return null;
     }));
     it("curry 1 param and curry again", () => __awaiter(this, void 0, void 0, function* () {
         const twelveMinus = X.curry(lib_1.multipleMinusWithCallback, 3)(12);
         const nineMinus = twelveMinus(3);
         const result = yield nineMinus(5);
         expect(result).toBe(4);
+        return null;
     }));
 });
 describe("right currying", () => {
     it("curry 1 param", () => __awaiter(this, void 0, void 0, function* () {
         const minusOne = X.curryRight(lib_1.multipleMinusWithCallback, 3)(1);
-        const result = yield minusOne(10, 3);
+        const result = yield minusOne(3, 10);
         expect(result).toBe(6);
+        return null;
     }));
     it("curry 2 params", () => __awaiter(this, void 0, void 0, function* () {
         const minusThree = X.curryRight(lib_1.multipleMinusWithCallback, 3)(2, 1);
         const result = yield minusThree(10);
         expect(result).toBe(7);
+        return null;
     }));
     it("curry 1 param and curry again", () => __awaiter(this, void 0, void 0, function* () {
         const minusOne = X.curryRight(lib_1.multipleMinusWithCallback, 3)(1);
         const minusThree = minusOne(2);
         const result = yield minusThree(5);
         expect(result).toBe(2);
+        return null;
     }));
 });
-describe("left and right currying", () => {
-    it("curry left first", () => __awaiter(this, void 0, void 0, function* () {
-        const minusAndPlusTen = X.curryLeft(lib_1.plusAndMinusWithCallback, 3)(10);
-        const plusTenMinusTwo = X.curryRight(minusAndPlusTen, 2, [2]);
-        const result = yield plusTenMinusTwo(8);
-        expect(result).toBe(16);
+describe("curry with placeholder", () => {
+    it("curry placeholder, complete parameter count", () => __awaiter(this, void 0, void 0, function* () {
+        const minusTwoAndPlusTen = X.curryLeft(lib_1.plusAndMinusWithCallback, 3)(10, X.placeHolder, 2);
+        const result = yield minusTwoAndPlusTen(5);
+        expect(result).toBe(13);
+        return null;
     }));
-    it("curry right first", () => __awaiter(this, void 0, void 0, function* () {
-        const addAndminusTwo = X.curryRight(lib_1.plusAndMinusWithCallback, 3)(2);
-        const plusTenMinusTwo = X.curryLeft(addAndminusTwo, 2, [10]);
-        const result = yield plusTenMinusTwo(8);
-        expect(result).toBe(16);
+    it("curry placeholder, incomplete parameter count", () => __awaiter(this, void 0, void 0, function* () {
+        const minusTwo = X.curryLeft(lib_1.plusAndMinusWithCallback, 3)(X.placeHolder, X.placeHolder, 2);
+        const plusTenMinusTwo = minusTwo(10);
+        const result = yield plusTenMinusTwo(5);
+        expect(result).toBe(13);
+        return null;
     }));
 });
 describe("map", () => {

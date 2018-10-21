@@ -134,7 +134,24 @@ describe("wrap cmd", () => {
 describe("pipe", () => {
 
     it ("works", async () => {
-        const result = await X.pipe(minus, square)(9, 4);
+        const result = await X.pipe(
+            X.wrap(minus),
+            X.wrap(square),
+        )(9, 4);
+        expect(result).toBe(25);
+        return null;
+    });
+
+});
+
+describe("compose", () => {
+
+    it ("works", async () => {
+        console.log(X.compose(square, minus));
+        const result = await X.compose(
+            X.wrap(square),
+            X.wrap(minus),
+        )(9, 4);
         expect(result).toBe(25);
         return null;
     });
@@ -144,14 +161,20 @@ describe("pipe", () => {
 describe("parallel", () => {
 
     it ("resolving promises works", async () => {
-        const result = await X.parallel(resolvingPromise, resolvingPromise)();
+        const result = await X.parallel(
+            resolvingPromise,
+            resolvingPromise,
+        )();
         expect(result).toMatchObject([73, 73]);
         return null;
     });
 
     it ("resolving and rejecting promise works", async () => {
         try {
-            const result = await X.parallel(resolvingPromise, rejectingPromise)();
+            const result = await X.parallel(
+                resolvingPromise,
+                rejectingPromise,
+            )();
             expect(result).toBeUndefined();
         } catch (error) {
             expect(error).toBe("rejected");
@@ -167,12 +190,14 @@ describe("currying", () => {
         const twelveMinus = X.curry(multipleMinusWithCallback, 3)(12);
         const result = await twelveMinus(5, 5);
         expect(result).toBe(2);
+        return null;
     });
 
     it ("curry 2 params", async () => {
         const nineMinus = X.curry(multipleMinusWithCallback, 3)(10, 1);
         const result = await nineMinus(4);
         expect(result).toBe(5);
+        return null;
     });
 
     it ("curry 1 param and curry again", async () => {
@@ -180,6 +205,7 @@ describe("currying", () => {
         const nineMinus = twelveMinus(3);
         const result = await nineMinus(5);
         expect(result).toBe(4);
+        return null;
     });
 
 });
@@ -188,14 +214,16 @@ describe("right currying", () => {
 
     it ("curry 1 param", async () => {
         const minusOne = X.curryRight(multipleMinusWithCallback, 3)(1);
-        const result = await minusOne(10, 3);
+        const result = await minusOne(3, 10);
         expect(result).toBe(6);
+        return null;
     });
 
     it ("curry 2 params", async () => {
         const minusThree = X.curryRight(multipleMinusWithCallback, 3)(2, 1);
         const result = await minusThree(10);
         expect(result).toBe(7);
+        return null;
     });
 
     it ("curry 1 param and curry again", async () => {
@@ -203,24 +231,26 @@ describe("right currying", () => {
         const minusThree = minusOne(2);
         const result = await minusThree(5);
         expect(result).toBe(2);
+        return null;
     });
 
 });
 
-describe("left and right currying", () => {
+describe("curry with placeholder", () => {
 
-    it ("curry left first", async () => {
-        const minusAndPlusTen = X.curryLeft(plusAndMinusWithCallback, 3)(10);
-        const plusTenMinusTwo = X.curryRight(minusAndPlusTen, 2, [2]);
-        const result = await plusTenMinusTwo(8);
-        expect(result).toBe(16);
+    it ("curry placeholder, complete parameter count", async () => {
+        const minusTwoAndPlusTen = X.curryLeft(plusAndMinusWithCallback, 3)(10, X.placeHolder, 2);
+        const result = await minusTwoAndPlusTen(5);
+        expect(result).toBe(13);
+        return null;
     });
 
-    it ("curry right first", async () => {
-        const addAndminusTwo = X.curryRight(plusAndMinusWithCallback, 3)(2);
-        const plusTenMinusTwo = X.curryLeft(addAndminusTwo, 2, [10]);
-        const result = await plusTenMinusTwo(8);
-        expect(result).toBe(16);
+    it ("curry placeholder, incomplete parameter count", async () => {
+        const minusTwo = X.curryLeft(plusAndMinusWithCallback, 3)(X.placeHolder, X.placeHolder, 2);
+        const plusTenMinusTwo = minusTwo(10);
+        const result = await plusTenMinusTwo(5);
+        expect(result).toBe(13);
+        return null;
     });
 
 });

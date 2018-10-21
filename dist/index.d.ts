@@ -18,15 +18,26 @@ export declare function wrap<TA1, TA2, TA3, TA4, TA5, TResult extends any[]>(fn:
 export declare function wrap<TArgs extends any[], TResult extends IValue>(fn: (...args: TArgs) => TResult): (...args: TArgs) => TResult;
 export declare function wrap<TArgs extends any[], TResult>(fn: (...args: TArgs) => TResult): (...args: TArgs) => Promise<TResult>;
 export declare function wrap(arg: any): IWrappedFunction;
+export declare function pipe(...actions: any[]): IWrappedFunction;
 /*********************************************************
- * curry
+ * compose
  *********************************************************/
-export declare function curryLeft(action: any, paramCount: number, injectArgs?: any[]): IAnyFunction;
+export declare function compose(...actions: any[]): IWrappedFunction;
+/*********************************************************
+ * placeHolder
+ *********************************************************/
+export declare const placeHolder: {
+    isPlaceHolder: boolean;
+};
+/*********************************************************
+ * curryLeft
+ *********************************************************/
+export declare function curryLeft(fn: any, arity: any): IAnyFunction | IWrappedFunction;
 export declare const curry: typeof curryLeft;
 /*********************************************************
- * curryR
+ * curryRight
  *********************************************************/
-export declare function curryRight(action: any, paramCount: number, injectArgs?: any[]): IAnyFunction;
+export declare function curryRight(fn: any, arity: any): IAnyFunction | IWrappedFunction;
 /*********************************************************
  * map
  *********************************************************/
@@ -46,10 +57,6 @@ export declare function reduce<TArg, TResult>(func: (arg: TArg, accumulator: TRe
 export declare function reduce<TArg, TResult, TCallback extends (error: any, result: TResult) => any>(func: (accumulator: TResult, args: TArg[]) => any): (args: TArg[], accumulator: TResult) => Promise<TResult>;
 export declare function reduce<TArg, TResult extends any>(cmd: string): (accumulator: TResult, args: TArg[]) => Promise<TResult>;
 export declare function reduce(funcOrCmd: any): IReduceFunction;
-/*********************************************************
- * pipe
- *********************************************************/
-export declare function pipe(...actions: any[]): IWrappedFunction;
 /*********************************************************
  * parallel
  *********************************************************/
