@@ -20,76 +20,8 @@ export const _ = { __isPlaceHolder: true };
 /*********************************************************
  * wrap
  *********************************************************/
-
-// promise
-export function wrap<TResult1>(
-    p1: Promise<TResult1>,
-): () => Promise<[TResult1]>;
-
-// function with callback, no parameters
-export function wrap<TResult>(
-    fn: (cb: (error: any, result: TResult) => any) => any,
-): () => Promise<TResult>;
-export function wrap<TResult extends any[]>(
-    fn: (cb: (error: any, ...result: TResult) => any) => any,
-): () => Promise<TResult>;
-
-// function with callback, single parameter
-export function wrap<TA1, TResult>(
-    fn: (a1: TA1, cb: (error: any, result: TResult) => any) => any,
-): (a1: TA1) => Promise<TResult>;
-export function wrap<TA1, TA2, TResult extends any[]>(
-    fn: (a1: TA1, cb: (error: any, ...result: TResult) => any) => any,
-): (a1: TA1) => Promise<TResult>;
-
-// function with callback, two parameters
-export function wrap<TA1, TA2, TResult>(
-    fn: (a1: TA1, a2: TA2, cb: (error: any, result: TResult) => any) => any,
-): (a1: TA1, a2: TA2) => Promise<TResult>;
-export function wrap<TA1, TA2, TResult extends any[]>(
-    fn: (a1: TA1, a2: TA2, cb: (error: any, ...result: TResult) => any) => any,
-): (a1: TA1, a2: TA2) => Promise<TResult>;
-
-// function with callback, three parameters
-export function wrap<TA1, TA2, TA3, TResult>(
-    fn: (a1: TA1, a2: TA2, a3: TA3, cb: (error: any, result: TResult) => any) => any,
-): (a1: TA1, a2: TA2, a3: TA3) => Promise<TResult>;
-export function wrap<TA1, TA2, TA3, TResult extends any[]>(
-    fn: (a1: TA1, a2: TA2, a3: TA3, cb: (error: any, ...result: TResult) => any) => any,
-): (a1: TA1, a2: TA2, a3: TA3) => Promise<TResult>;
-
-// function with callback, four parameters
-export function wrap<TA1, TA2, TA3, TA4, TResult>(
-    fn: (a1: TA1, a2: TA2, a3: TA3, a4: TA4, cb: (error: any, result: TResult) => any) => any,
-): (a1: TA1, a2: TA2, a3: TA3, a4: TA4) => Promise<TResult>;
-export function wrap<TA1, TA2, TA3, TA4, TResult extends any[]>(
-    fn: (a1: TA1, a2: TA2, a3: TA3, a4: TA4, cb: (error: any, ...result: TResult) => any) => any,
-): (a1: TA1, a2: TA2, a3: TA3, a4: TA4) => Promise<TResult>;
-
-// function with callback, five parameters
-export function wrap<TA1, TA2, TA3, TA4, TA5, TResult>(
-    fn: (a1: TA1, a2: TA2, a3: TA3, a4: TA4, a5: TA5, cb: (error: any, result: TResult) => any) => any,
-): (a1: TA1, a2: TA2, a3: TA3, a4: TA4, a5: TA5) => Promise<TResult>;
-export function wrap<TA1, TA2, TA3, TA4, TA5, TResult extends any[]>(
-    fn: (a1: TA1, a2: TA2, a3: TA3, a4: TA4, a5: TA5, cb: (error: any, ...result: TResult) => any) => any,
-): (a1: TA1, a2: TA2, a3: TA3, a4: TA4, a5: TA5) => Promise<TResult>;
-
-// async function
-export function wrap<TArgs extends any[], TResult extends IValue>(
-    fn: (...args: TArgs) => TResult,
-): (...args: TArgs) => TResult;
-
-// sync function
-export function wrap<TArgs extends any[], TResult>(
-    fn: (...args: TArgs) => TResult,
-): (...args: TArgs) => Promise<TResult>;
-
-// command and everything else
-export function wrap(arg: any): IWrappedFunction;
-
-// real implementation
-export function wrap(cmdOrFunc: any): IWrappedFunction {
-    return internalWrap(cmdOrFunc);
+export function wrap(cmdOrFunc: any, arity: number = 0): IWrappedFunction | IAnyFunction {
+    return internalWrap(cmdOrFunc, arity);
 }
 
 /*********************************************************
@@ -125,21 +57,6 @@ export function curryRight(fn: any, arity): IAnyFunction | IWrappedFunction {
 /*********************************************************
  * map
  *********************************************************/
-
-// async & sync function
-export function map<TArg, TResult>(
-    func: (arg: TArg) => Promise<TResult>|TResult,
-): (args: TArg[]) => Promise<TResult>;
-
-// function that have callback
-export function map<TArg, TResult, TCallback extends(error: any, result: TResult) => any>(
-    func: (arg: TArg, cb: TCallback) => any,
-): (args: TArg[]) => Promise<TResult>;
-
-// any others
-export function map(funcOrCmd: any): IMapFunction;
-
-// real implementation
 export function map(funcOrCmd: any): IMapFunction {
     return internalMap(funcOrCmd);
 }
@@ -147,21 +64,6 @@ export function map(funcOrCmd: any): IMapFunction {
 /*********************************************************
  * filter
  *********************************************************/
-
-// async & sync function
-export function filter<TArg, TResult extends TArg[]>(
-    func: (arg: TArg) => Promise<TResult>|TResult,
-): (args: TArg[]) => Promise<TResult>;
-
-// function that have callback
-export function filter<TArg, TResult, TCallback extends(error: any, result: boolean) => any>(
-    func: (arg: TArg, cb: TCallback) => any,
-): (args: TArg[]) => Promise<TResult>;
-
-// any others
-export function filter(funcOrCmd: any): IFilterFunction;
-
-// real implementation
 export function filter(funcOrCmd: any): IFilterFunction {
     return internalFilter(funcOrCmd);
 }
@@ -169,26 +71,6 @@ export function filter(funcOrCmd: any): IFilterFunction {
 /*********************************************************
  * reduce
  *********************************************************/
-
-// async & sync function
-export function reduce<TArg, TResult>(
-    func: (arg: TArg, accumulator: TResult) => Promise<TResult>|TResult,
-): (accumulator: TResult, args: TArg[]) => Promise<TResult>;
-
-// function that have callback
-export function reduce<TArg, TResult, TCallback extends(error: any, result: TResult) => any>(
-    func: (accumulator: TResult, args: TArg[]) => any,
-): (args: TArg[], accumulator: TResult) => Promise<TResult>;
-
-// cmd
-export function reduce<TArg, TResult extends any>(
-    cmd: string,
-): (accumulator: TResult, args: TArg[]) => Promise<TResult>;
-
-// any others
-export function reduce(funcOrCmd: any): IReduceFunction;
-
-// real implementation
 export function reduce(funcOrCmd: any): IReduceFunction {
     return internalReduce(funcOrCmd);
 }
@@ -196,8 +78,14 @@ export function reduce(funcOrCmd: any): IReduceFunction {
 /*********************************************************
  * parallel
  *********************************************************/
-export function parallel(...funcOrCmds: any[]): IWrappedFunction {
-    return internalParallel(...funcOrCmds);
+export function parallel(...funcOrCmds: any[]): IWrappedFunction | IAnyFunction {
+    if (funcOrCmds.length === 2) {
+        const [ realFuncOrCmds, arity ] = funcOrCmds;
+        if (Array.isArray(realFuncOrCmds) && Number.isInteger(arity)) {
+            return internalParallel(realFuncOrCmds, arity);
+        }
+    }
+    return internalParallel(funcOrCmds, 0);
 }
 
 /*********************************************************
@@ -212,7 +100,7 @@ function isWrappedFunction(func: any) {
     return (typeof func === "object" || typeof func === "function") && "__isWrapped" in func;
 }
 
-function internalWrap(cmdOrFunc: any): IWrappedFunction {
+function internalWrap(cmdOrFunc: any, arity: number = 0): IWrappedFunction {
     // if function is already wrapped, just return it without any modification
     if (isWrappedFunction(cmdOrFunc)) {
         return cmdOrFunc;
@@ -223,11 +111,13 @@ function internalWrap(cmdOrFunc: any): IWrappedFunction {
         func = (() => cmdOrFunc) as IWrappedFunction;
     } else if (typeof cmdOrFunc === "string") {
         func = createCmdResolver(cmdOrFunc) as IWrappedFunction;
-    } else {
+    } else if (typeof cmdOrFunc === "function") {
         func = createFunctionResolver(cmdOrFunc) as IWrappedFunction;
+    } else {
+        func = (() => Promise.resolve(cmdOrFunc)) as IWrappedFunction;
     }
     func.__isWrapped = true;
-    return func;
+    return internalCurry(func, arity, [], "left") as IWrappedFunction;
 }
 
 function internalCurry(fn, arity, memo, mode) {
@@ -251,10 +141,11 @@ function internalCurry(fn, arity, memo, mode) {
             if (mode !== "left") {
                 newArgs = newArgs.reverse();
             }
-            const newFn = internalWrap(fn);
-            return newFn(...newArgs);
+            const realFn = internalWrap(fn);
+            return realFn(...newArgs);
         }
-        return internalCurry(fn, arity, newArgs, mode);
+        const newFn = internalCurry(fn, arity, newArgs, mode);
+        return newFn;
     };
 }
 
@@ -318,10 +209,10 @@ function internalReduce(funcOrCmd: any): IReduceFunction {
         return result;
     }
     reduced.__isWrapped = true;
-    return reduced;
+    return internalCurry(reduced, 2, [], "left") as IReduceFunction;
 }
 
-function internalParallel(...funcOrCmds: any[]): IWrappedFunction {
+function internalParallel(funcOrCmds: any[], arity: number): IWrappedFunction | IAnyFunction {
     function paralleled(...args: any[]) {
         const promises = funcOrCmds.map((funcOrCmd) => {
             if (isPromise(funcOrCmd)) {
@@ -333,7 +224,7 @@ function internalParallel(...funcOrCmds: any[]): IWrappedFunction {
         return Promise.all(promises);
     }
     paralleled.__isWrapped = true;
-    return paralleled;
+    return internalCurry(paralleled, arity, [], "left");
 }
 
 function createCmdResolver(cmd: string): IAnyFunction {

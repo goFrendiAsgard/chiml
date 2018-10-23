@@ -5,7 +5,7 @@ export declare function square(x: number): number;
 export declare const syncFunction: typeof add;
 export declare function errorSyncFunction(a: number, b: number): void;
 export declare function asyncFunction(a: number, b: number): Promise<number>;
-export declare function errorAsyncFunction(a: number, b: number): Promise<never>;
+export declare function errorAsyncFunction(a: number, b: number): Promise<number>;
 export declare function functionWithCallback(a: number, b: number, cb: (error: any, result: any) => void): void;
 export declare function functionWithCallbackYieldError(a: number, b: number, cb: (error: any) => void): void;
 export declare function functionWithCallbackAndMultipleReturn(a: number, b: number, cb: (error: any, ...result: any[]) => void): void;

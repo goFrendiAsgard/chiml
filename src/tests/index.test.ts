@@ -6,6 +6,16 @@ import {
     hello, minus, multipleMinusWithCallback, multiply, plusAndMinusWithCallback, rejectingPromise,
     resolvingPromise, rootSquare, square, syncFunction } from "./fixtures/lib";
 
+describe("wrap non promise and non function", () => {
+
+    it ("single number works", async () => {
+        const result = await X.wrap(8)();
+        expect(result).toBe(8);
+        return null;
+    });
+
+});
+
 describe("wrap promise", () => {
 
     it ("single resolving promise works", async () => {
@@ -70,6 +80,13 @@ describe("wrap functions that have node callback", () => {
 
     it ("function with callback works", async () => {
         const result = await X.wrap(functionWithCallback)(4, 5);
+        expect(result).toBe(9);
+        return null;
+    });
+
+    it ("function with callback works", async () => {
+        const fn = X.wrap(functionWithCallback, 2)(4);
+        const result = await fn(5);
         expect(result).toBe(9);
         return null;
     });
@@ -147,7 +164,6 @@ describe("pipe", () => {
 describe("compose", () => {
 
     it ("works", async () => {
-        console.log(X.compose(square, minus));
         const result = await X.compose(
             X.wrap(square),
             X.wrap(minus),

@@ -20,10 +20,10 @@ export const syncFunction = add;
 export function errorSyncFunction(a: number, b: number) {
     throw(new Error("sync function error"));
 }
-export function asyncFunction(a: number, b: number) {
+export function asyncFunction(a: number, b: number): Promise<number> {
     return Promise.resolve(a + b);
 }
-export function errorAsyncFunction(a: number, b: number) {
+export function errorAsyncFunction(a: number, b: number): Promise<number> {
     return Promise.reject("async function rejected");
 }
 export function functionWithCallback(a: number, b: number, cb: (error, result) => void) {

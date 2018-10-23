@@ -10,6 +10,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const X = require("../index");
 const lib_1 = require("./fixtures/lib");
+describe("wrap non promise and non function", () => {
+    it("single number works", () => __awaiter(this, void 0, void 0, function* () {
+        const result = yield X.wrap(8)();
+        expect(result).toBe(8);
+        return null;
+    }));
+});
 describe("wrap promise", () => {
     it("single resolving promise works", () => __awaiter(this, void 0, void 0, function* () {
         const result = yield X.wrap(lib_1.resolvingPromise)();
@@ -64,6 +71,12 @@ describe("wrap sync functions", () => {
 describe("wrap functions that have node callback", () => {
     it("function with callback works", () => __awaiter(this, void 0, void 0, function* () {
         const result = yield X.wrap(lib_1.functionWithCallback)(4, 5);
+        expect(result).toBe(9);
+        return null;
+    }));
+    it("function with callback works", () => __awaiter(this, void 0, void 0, function* () {
+        const fn = X.wrap(lib_1.functionWithCallback, 2)(4);
+        const result = yield fn(5);
         expect(result).toBe(9);
         return null;
     }));
@@ -125,7 +138,6 @@ describe("pipe", () => {
 });
 describe("compose", () => {
     it("works", () => __awaiter(this, void 0, void 0, function* () {
-        console.log(X.compose(lib_1.square, lib_1.minus));
         const result = yield X.compose(X.wrap(lib_1.square), X.wrap(lib_1.minus))(9, 4);
         expect(result).toBe(25);
         return null;
@@ -248,7 +260,7 @@ describe("work", () => {
     it("simple case without side effect works", () => __awaiter(this, void 0, void 0, function* () {
         const n1 = 10;
         const n2 = 8;
-        const result = yield X.pipe(X.parallel(X.wrap(lib_1.add)(n1, n2), X.wrap(lib_1.minus)(n1, n2)), X.curry(X.reduce(lib_1.multiply), 2)(1), lib_1.rootSquare)();
+        const result = yield X.pipe(X.parallel(lib_1.add, lib_1.minus), X.curry(X.reduce(lib_1.multiply), 2)(1), lib_1.rootSquare)(n1, n2);
         expect(result).toBe(6);
         return null;
     }));

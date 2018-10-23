@@ -2,7 +2,7 @@ export declare type IValue = Promise<any>;
 export declare type IWrappedFunction = IWrappedObject & ((...args: any[]) => IValue);
 export declare type IMapFunction = IWrappedObject & ((data: any[]) => Promise<any[]>);
 export declare type IFilterFunction = IWrappedObject & ((data: any[]) => Promise<any[]>);
-export declare type IReduceFunction = IWrappedObject & ((data: any[], accumulator: any) => IValue);
+export declare type IReduceFunction = any;
 export declare type IAnyFunction = (...args: any[]) => any;
 interface IWrappedObject {
     __isWrapped: boolean;

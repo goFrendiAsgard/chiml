@@ -20,9 +20,11 @@ const RESET_COLOR = "\x1b[0m";
  * placeHolder
  *********************************************************/
 exports._ = { __isPlaceHolder: true };
-// real implementation
-function wrap(cmdOrFunc) {
-    return internalWrap(cmdOrFunc);
+/*********************************************************
+ * wrap
+ *********************************************************/
+function wrap(cmdOrFunc, arity = 0) {
+    return internalWrap(cmdOrFunc, arity);
 }
 exports.wrap = wrap;
 /*********************************************************
@@ -55,17 +57,23 @@ function curryRight(fn, arity) {
     return internalCurry(fn, arity, [], "right");
 }
 exports.curryRight = curryRight;
-// real implementation
+/*********************************************************
+ * map
+ *********************************************************/
 function map(funcOrCmd) {
     return internalMap(funcOrCmd);
 }
 exports.map = map;
-// real implementation
+/*********************************************************
+ * filter
+ *********************************************************/
 function filter(funcOrCmd) {
     return internalFilter(funcOrCmd);
 }
 exports.filter = filter;
-// real implementation
+/*********************************************************
+ * reduce
+ *********************************************************/
 function reduce(funcOrCmd) {
     return internalReduce(funcOrCmd);
 }
@@ -74,7 +82,13 @@ exports.reduce = reduce;
  * parallel
  *********************************************************/
 function parallel(...funcOrCmds) {
-    return internalParallel(...funcOrCmds);
+    if (funcOrCmds.length === 2) {
+        const [realFuncOrCmds, arity] = funcOrCmds;
+        if (Array.isArray(realFuncOrCmds) && Number.isInteger(arity)) {
+            return internalParallel(realFuncOrCmds, arity);
+        }
+    }
+    return internalParallel(funcOrCmds, 0);
 }
 exports.parallel = parallel;
 /*********************************************************
@@ -86,7 +100,7 @@ function isPlaceHolder(obj) {
 function isWrappedFunction(func) {
     return (typeof func === "object" || typeof func === "function") && "__isWrapped" in func;
 }
-function internalWrap(cmdOrFunc) {
+function internalWrap(cmdOrFunc, arity = 0) {
     // if function is already wrapped, just return it without any modification
     if (isWrappedFunction(cmdOrFunc)) {
         return cmdOrFunc;
@@ -99,11 +113,14 @@ function internalWrap(cmdOrFunc) {
     else if (typeof cmdOrFunc === "string") {
         func = createCmdResolver(cmdOrFunc);
     }
-    else {
+    else if (typeof cmdOrFunc === "function") {
         func = createFunctionResolver(cmdOrFunc);
     }
+    else {
+        func = (() => Promise.resolve(cmdOrFunc));
+    }
     func.__isWrapped = true;
-    return func;
+    return internalCurry(func, arity, [], "left");
 }
 function internalCurry(fn, arity, memo, mode) {
     return (...args) => {
@@ -126,10 +143,11 @@ function internalCurry(fn, arity, memo, mode) {
             if (mode !== "left") {
                 newArgs = newArgs.reverse();
             }
-            const newFn = internalWrap(fn);
-            return newFn(...newArgs);
+            const realFn = internalWrap(fn);
+            return realFn(...newArgs);
         }
-        return internalCurry(fn, arity, newArgs, mode);
+        const newFn = internalCurry(fn, arity, newArgs, mode);
+        return newFn;
     };
 }
 function internalPipe(...actions) {
@@ -193,9 +211,9 @@ function internalReduce(funcOrCmd) {
         });
     }
     reduced.__isWrapped = true;
-    return reduced;
+    return internalCurry(reduced, 2, [], "left");
 }
-function internalParallel(...funcOrCmds) {
+function internalParallel(funcOrCmds, arity) {
     function paralleled(...args) {
         const promises = funcOrCmds.map((funcOrCmd) => {
             if (isPromise(funcOrCmd)) {
@@ -207,7 +225,7 @@ function internalParallel(...funcOrCmds) {
         return Promise.all(promises);
     }
     paralleled.__isWrapped = true;
-    return paralleled;
+    return internalCurry(paralleled, arity, [], "left");
 }
 function createCmdResolver(cmd) {
     return (...args) => {
