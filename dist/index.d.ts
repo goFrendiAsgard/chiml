@@ -1,5 +1,11 @@
 import { IAnyFunction, IFilterFunction, IMapFunction, IReduceFunction, IValue, IWrappedFunction } from "./interfaces";
 /*********************************************************
+ * placeHolder
+ *********************************************************/
+export declare const _: {
+    __isPlaceHolder: boolean;
+};
+/*********************************************************
  * wrap
  *********************************************************/
 export declare function wrap<TResult1>(p1: Promise<TResult1>): () => Promise<[TResult1]>;
@@ -18,17 +24,14 @@ export declare function wrap<TA1, TA2, TA3, TA4, TA5, TResult extends any[]>(fn:
 export declare function wrap<TArgs extends any[], TResult extends IValue>(fn: (...args: TArgs) => TResult): (...args: TArgs) => TResult;
 export declare function wrap<TArgs extends any[], TResult>(fn: (...args: TArgs) => TResult): (...args: TArgs) => Promise<TResult>;
 export declare function wrap(arg: any): IWrappedFunction;
+/*********************************************************
+ * pipe
+ *********************************************************/
 export declare function pipe(...actions: any[]): IWrappedFunction;
 /*********************************************************
  * compose
  *********************************************************/
 export declare function compose(...actions: any[]): IWrappedFunction;
-/*********************************************************
- * placeHolder
- *********************************************************/
-export declare const placeHolder: {
-    isPlaceHolder: boolean;
-};
 /*********************************************************
  * curryLeft
  *********************************************************/
@@ -60,4 +63,4 @@ export declare function reduce(funcOrCmd: any): IReduceFunction;
 /*********************************************************
  * parallel
  *********************************************************/
-export declare function parallel(...actions: IValue[]): IWrappedFunction;
+export declare function parallel(...funcOrCmds: any[]): IWrappedFunction;

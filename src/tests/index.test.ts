@@ -182,6 +182,15 @@ describe("parallel", () => {
         return null;
     });
 
+    it ("work with non-promise parameter", async () => {
+        const result = await X.parallel(
+            add,
+            minus,
+        )(5, 3);
+        expect(result).toMatchObject([8, 2]);
+        return null;
+    });
+
 });
 
 describe("currying", () => {
@@ -239,14 +248,14 @@ describe("right currying", () => {
 describe("curry with placeholder", () => {
 
     it ("curry placeholder, complete parameter count", async () => {
-        const minusTwoAndPlusTen = X.curryLeft(plusAndMinusWithCallback, 3)(10, X.placeHolder, 2);
+        const minusTwoAndPlusTen = X.curryLeft(plusAndMinusWithCallback, 3)(10, X._, 2);
         const result = await minusTwoAndPlusTen(5);
         expect(result).toBe(13);
         return null;
     });
 
     it ("curry placeholder, incomplete parameter count", async () => {
-        const minusTwo = X.curryLeft(plusAndMinusWithCallback, 3)(X.placeHolder, X.placeHolder, 2);
+        const minusTwo = X.curryLeft(plusAndMinusWithCallback, 3)(X._, X._, 2);
         const plusTenMinusTwo = minusTwo(10);
         const result = await plusTenMinusTwo(5);
         expect(result).toBe(13);
@@ -309,12 +318,12 @@ describe("work", () => {
         const n2 = 8;
         const result = await X.pipe(
             X.parallel(
-                X.wrap(add)(n1, n2),
-                X.wrap(minus)(n1, n2),
+                add,
+                minus,
             ),
             X.curry(X.reduce(multiply), 2)(1),
             rootSquare,
-        )();
+        )(n1, n2);
         expect(result).toBe(6);
         return null;
     });

@@ -16,37 +16,18 @@ const FG_RED = "\x1b[31m";
 // const FG_WHITE = "\x1b[37m";
 const FG_YELLOW = "\x1b[33m";
 const RESET_COLOR = "\x1b[0m";
+/*********************************************************
+ * placeHolder
+ *********************************************************/
+exports._ = { __isPlaceHolder: true };
 // real implementation
-function wrap(arg) {
-    if ((typeof arg === "object" || typeof arg === "function") && "__dontWrap" in arg) {
-        return arg;
-    }
-    if (isPromise(arg)) {
-        return markAsDontWrap(() => arg);
-    }
-    return markAsDontWrap(createCmdOrFunctionResolver(arg));
+function wrap(cmdOrFunc) {
+    return internalWrap(cmdOrFunc);
 }
 exports.wrap = wrap;
 /*********************************************************
  * pipe
  *********************************************************/
-function internalPipe(...actions) {
-    function piped(...args) {
-        return __awaiter(this, void 0, void 0, function* () {
-            let result = Promise.resolve(null);
-            for (let i = 0; i < actions.length; i++) {
-                const action = wrap(actions[i]);
-                if (i === 0) {
-                    result = yield action(...args);
-                    continue;
-                }
-                result = yield action(result);
-            }
-            return result;
-        });
-    }
-    return markAsDontWrap(piped);
-}
 function pipe(...actions) {
     return internalPipe(...actions);
 }
@@ -59,10 +40,6 @@ function compose(...actions) {
     return pipe(...newActions);
 }
 exports.compose = compose;
-/*********************************************************
- * placeHolder
- *********************************************************/
-exports.placeHolder = { isPlaceHolder: true };
 /*********************************************************
  * curryLeft
  *********************************************************/
@@ -78,6 +55,56 @@ function curryRight(fn, arity) {
     return internalCurry(fn, arity, [], "right");
 }
 exports.curryRight = curryRight;
+// real implementation
+function map(funcOrCmd) {
+    return internalMap(funcOrCmd);
+}
+exports.map = map;
+// real implementation
+function filter(funcOrCmd) {
+    return internalFilter(funcOrCmd);
+}
+exports.filter = filter;
+// real implementation
+function reduce(funcOrCmd) {
+    return internalReduce(funcOrCmd);
+}
+exports.reduce = reduce;
+/*********************************************************
+ * parallel
+ *********************************************************/
+function parallel(...funcOrCmds) {
+    return internalParallel(...funcOrCmds);
+}
+exports.parallel = parallel;
+/*********************************************************
+ * private functions
+ *********************************************************/
+function isPlaceHolder(obj) {
+    return typeof obj === "object" && obj && obj.__isPlaceHolder;
+}
+function isWrappedFunction(func) {
+    return (typeof func === "object" || typeof func === "function") && "__isWrapped" in func;
+}
+function internalWrap(cmdOrFunc) {
+    // if function is already wrapped, just return it without any modification
+    if (isWrappedFunction(cmdOrFunc)) {
+        return cmdOrFunc;
+    }
+    // Otherwise, create resolver and mark it as wrapped object
+    let func;
+    if (isPromise(cmdOrFunc)) {
+        func = (() => cmdOrFunc);
+    }
+    else if (typeof cmdOrFunc === "string") {
+        func = createCmdResolver(cmdOrFunc);
+    }
+    else {
+        func = createFunctionResolver(cmdOrFunc);
+    }
+    func.__isWrapped = true;
+    return func;
+}
 function internalCurry(fn, arity, memo, mode) {
     return (...args) => {
         let argIndex = 0;
@@ -99,29 +126,45 @@ function internalCurry(fn, arity, memo, mode) {
             if (mode !== "left") {
                 newArgs = newArgs.reverse();
             }
-            const newFn = wrap(fn);
+            const newFn = internalWrap(fn);
             return newFn(...newArgs);
         }
         return internalCurry(fn, arity, newArgs, mode);
     };
 }
-// real implementation
-function map(funcOrCmd) {
+function internalPipe(...actions) {
+    function piped(...args) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let result = Promise.resolve(null);
+            for (let i = 0; i < actions.length; i++) {
+                const action = internalWrap(actions[i]);
+                if (i === 0) {
+                    result = yield action(...args);
+                    continue;
+                }
+                result = yield action(result);
+            }
+            return result;
+        });
+    }
+    piped.__isWrapped = true;
+    return piped;
+}
+function internalMap(funcOrCmd) {
     function mapped(args) {
         return __awaiter(this, void 0, void 0, function* () {
-            const func = wrap(funcOrCmd);
+            const func = internalWrap(funcOrCmd);
             const promises = args.map((element) => __awaiter(this, void 0, void 0, function* () { return func(element); }));
             return Promise.all(promises);
         });
     }
-    return markAsDontWrap(mapped);
+    mapped.__isWrapped = true;
+    return mapped;
 }
-exports.map = map;
-// real implementation
-function filter(funcOrCmd) {
+function internalFilter(funcOrCmd) {
     function filtered(args) {
         return __awaiter(this, void 0, void 0, function* () {
-            const func = wrap(funcOrCmd);
+            const func = internalWrap(funcOrCmd);
             const promises = args.map((element) => func(element));
             return Promise.all(promises)
                 .then((filteredList) => {
@@ -135,14 +178,13 @@ function filter(funcOrCmd) {
             });
         });
     }
-    return markAsDontWrap(filtered);
+    filtered.__isWrapped = true;
+    return filtered;
 }
-exports.filter = filter;
-// real implementation
-function reduce(funcOrCmd) {
+function internalReduce(funcOrCmd) {
     function reduced(accumulator, args) {
         return __awaiter(this, void 0, void 0, function* () {
-            const func = wrap(funcOrCmd);
+            const func = internalWrap(funcOrCmd);
             let result = accumulator;
             for (const arg of args) {
                 result = yield func(arg, result);
@@ -150,24 +192,22 @@ function reduce(funcOrCmd) {
             return result;
         });
     }
-    return markAsDontWrap(reduced);
+    reduced.__isWrapped = true;
+    return reduced;
 }
-exports.reduce = reduce;
-/*********************************************************
- * parallel
- *********************************************************/
-function parallel(...actions) {
-    return markAsDontWrap(() => Promise.all(actions));
-}
-exports.parallel = parallel;
-/*********************************************************
- * private functions
- *********************************************************/
-function createCmdOrFunctionResolver(cmdOrFunc) {
-    if (typeof cmdOrFunc === "string") {
-        return createCmdResolver(cmdOrFunc);
+function internalParallel(...funcOrCmds) {
+    function paralleled(...args) {
+        const promises = funcOrCmds.map((funcOrCmd) => {
+            if (isPromise(funcOrCmd)) {
+                return funcOrCmd;
+            }
+            const func = internalWrap(funcOrCmd);
+            return func(...args);
+        });
+        return Promise.all(promises);
     }
-    return createFunctionResolver(cmdOrFunc);
+    paralleled.__isWrapped = true;
+    return paralleled;
 }
 function createCmdResolver(cmd) {
     return (...args) => {
@@ -203,13 +243,6 @@ function createFunctionResolver(func) {
             }
         });
     };
-}
-function markAsDontWrap(func) {
-    func.__dontWrap = true;
-    return func;
-}
-function isPlaceHolder(obj) {
-    return typeof obj === "object" && obj && obj.isPlaceHolder;
 }
 /**
  * @param arg
