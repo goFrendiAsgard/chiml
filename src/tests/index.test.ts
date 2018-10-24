@@ -1,4 +1,5 @@
 import * as X from "../index";
+import { IReduceFunction } from "../interfaces";
 import {
     add, asyncFunction, cmd, errorAsyncFunction, errorSyncFunction,
     functionWithCallback, functionWithCallbackAndMultipleReturn,
@@ -85,7 +86,7 @@ describe("wrap functions that have node callback", () => {
     });
 
     it ("function with callback works", async () => {
-        const fn = X.wrap(functionWithCallback, 2)(4);
+        const fn = X.curry(functionWithCallback, 2)(4);
         const result = await fn(5);
         expect(result).toBe(9);
         return null;
@@ -199,11 +200,20 @@ describe("parallel", () => {
     });
 
     it ("work with non-promise parameter", async () => {
-        const result = await X.parallel(
-            add,
-            minus,
-        )(5, 3);
+        const result = await X.parallel(add, minus)(5, 3);
         expect(result).toMatchObject([8, 2]);
+        return null;
+    });
+
+    it ("work with non-promise parameter, curried", async () => {
+        const result = await X.parallel([add, minus], 2)(5)(3);
+        expect(result).toMatchObject([8, 2]);
+        return null;
+    });
+
+    it ("work with non-promise and more than two parameter", async () => {
+        const result = await X.parallel(add, minus, multiply)(5, 3);
+        expect(result).toMatchObject([8, 2, 15]);
         return null;
     });
 
@@ -264,14 +274,14 @@ describe("right currying", () => {
 describe("curry with placeholder", () => {
 
     it ("curry placeholder, complete parameter count", async () => {
-        const minusTwoAndPlusTen = X.curryLeft(plusAndMinusWithCallback, 3)(10, X._, 2);
+        const minusTwoAndPlusTen = X.curry(plusAndMinusWithCallback, 3)(10, X._, 2);
         const result = await minusTwoAndPlusTen(5);
         expect(result).toBe(13);
         return null;
     });
 
     it ("curry placeholder, incomplete parameter count", async () => {
-        const minusTwo = X.curryLeft(plusAndMinusWithCallback, 3)(X._, X._, 2);
+        const minusTwo = X.curry(plusAndMinusWithCallback, 3)(X._, X._, 2);
         const plusTenMinusTwo = minusTwo(10);
         const result = await plusTenMinusTwo(5);
         expect(result).toBe(13);
@@ -304,9 +314,18 @@ describe("filter", () => {
 
 describe("reduce", () => {
 
+    const reducedFunction: IReduceFunction = X.reduce((x: number, y: number) => x + y );
+
     it("work with sync function", async () => {
         const data: number[] = [1, 2, 3, 4, 5];
-        const result = await X.reduce((x: number, y: number) => x + y )(0, data);
+        const result = await reducedFunction(0, data);
+        expect(result).toBe(15);
+        return null;
+    });
+
+    it("work with sync function, curried", async () => {
+        const data: number[] = [1, 2, 3, 4, 5];
+        const result = await reducedFunction(0)(data);
         expect(result).toBe(15);
         return null;
     });

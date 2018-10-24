@@ -23,27 +23,12 @@ exports._ = { __isPlaceHolder: true };
 /*********************************************************
  * wrap
  *********************************************************/
-function wrap(cmdOrFunc, arity = 0) {
-    return internalWrap(cmdOrFunc, arity);
+function wrap(cmdOrFunc) {
+    return internalCurry(cmdOrFunc, 0, [], "left");
 }
 exports.wrap = wrap;
 /*********************************************************
- * pipe
- *********************************************************/
-function pipe(...actions) {
-    return internalPipe(...actions);
-}
-exports.pipe = pipe;
-/*********************************************************
- * compose
- *********************************************************/
-function compose(...actions) {
-    const newActions = actions.reverse();
-    return pipe(...newActions);
-}
-exports.compose = compose;
-/*********************************************************
- * curryLeft
+ * curryLeft & curry
  *********************************************************/
 function curryLeft(fn, arity) {
     return internalCurry(fn, arity, [], "left");
@@ -79,28 +64,45 @@ function reduce(funcOrCmd) {
 }
 exports.reduce = reduce;
 /*********************************************************
+ * pipe
+ *********************************************************/
+function pipe(...actions) {
+    return callInternal(actions, internalPipe);
+}
+exports.pipe = pipe;
+/*********************************************************
+ * compose
+ *********************************************************/
+function compose(...actions) {
+    return callInternal(actions, internalCompose);
+}
+exports.compose = compose;
+/*********************************************************
  * parallel
  *********************************************************/
 function parallel(...funcOrCmds) {
-    if (funcOrCmds.length === 2) {
-        const [realFuncOrCmds, arity] = funcOrCmds;
-        if (Array.isArray(realFuncOrCmds) && Number.isInteger(arity)) {
-            return internalParallel(realFuncOrCmds, arity);
-        }
-    }
-    return internalParallel(funcOrCmds, 0);
+    return callInternal(funcOrCmds, internalParallel);
 }
 exports.parallel = parallel;
 /*********************************************************
  * private functions
  *********************************************************/
+function callInternal(funcOrCmds, internalFunction) {
+    if (funcOrCmds.length === 2) {
+        const [realFuncOrCmds, arity] = funcOrCmds;
+        if (Array.isArray(realFuncOrCmds) && Number.isInteger(arity)) {
+            return internalFunction(realFuncOrCmds, arity);
+        }
+    }
+    return internalFunction(funcOrCmds, 0);
+}
 function isPlaceHolder(obj) {
     return typeof obj === "object" && obj && obj.__isPlaceHolder;
 }
 function isWrappedFunction(func) {
     return (typeof func === "object" || typeof func === "function") && "__isWrapped" in func;
 }
-function internalWrap(cmdOrFunc, arity = 0) {
+function internalWrap(cmdOrFunc) {
     // if function is already wrapped, just return it without any modification
     if (isWrappedFunction(cmdOrFunc)) {
         return cmdOrFunc;
@@ -120,10 +122,10 @@ function internalWrap(cmdOrFunc, arity = 0) {
         func = (() => Promise.resolve(cmdOrFunc));
     }
     func.__isWrapped = true;
-    return internalCurry(func, arity, [], "left");
+    return func;
 }
 function internalCurry(fn, arity, memo, mode) {
-    return (...args) => {
+    function curried(...args) {
         let argIndex = 0;
         // newArgs is memo with all placeHolder replaced by args's element
         let newArgs = memo.map((arg) => {
@@ -147,10 +149,13 @@ function internalCurry(fn, arity, memo, mode) {
             return realFn(...newArgs);
         }
         const newFn = internalCurry(fn, arity, newArgs, mode);
+        newFn.__isWrapped = true;
         return newFn;
-    };
+    }
+    curried.__isWrapped = true;
+    return curried;
 }
-function internalPipe(...actions) {
+function internalPipe(actions, arity) {
     function piped(...args) {
         return __awaiter(this, void 0, void 0, function* () {
             let result = Promise.resolve(null);
@@ -166,7 +171,10 @@ function internalPipe(...actions) {
         });
     }
     piped.__isWrapped = true;
-    return piped;
+    return internalCurry(piped, arity, [], "left");
+}
+function internalCompose(actions, arity) {
+    return internalPipe(actions.reverse(), arity);
 }
 function internalMap(funcOrCmd) {
     function mapped(args) {

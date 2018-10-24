@@ -1,7 +1,7 @@
 import { ChildProcess, exec } from "child_process";
 import {
     IAnyFunction, IFilterFunction, IMapFunction,
-    IReduceFunction, IValue, IWrappedFunction,
+    IReduceFunction, IWrappedFunction,
 } from "./interfaces";
 
 const BRIGHT = "\x1b[1m";
@@ -20,29 +20,14 @@ export const _ = { __isPlaceHolder: true };
 /*********************************************************
  * wrap
  *********************************************************/
-export function wrap(cmdOrFunc: any, arity: number = 0): IWrappedFunction | IAnyFunction {
-    return internalWrap(cmdOrFunc, arity);
+export function wrap(cmdOrFunc: any): IWrappedFunction {
+    return internalCurry(cmdOrFunc, 0, [], "left");
 }
 
 /*********************************************************
- * pipe
+ * curryLeft & curry
  *********************************************************/
-export function pipe(...actions: any[]): IWrappedFunction {
-    return internalPipe(...actions);
-}
-
-/*********************************************************
- * compose
- *********************************************************/
-export function compose(...actions: any[]): IWrappedFunction {
-    const newActions = actions.reverse();
-    return pipe(...newActions);
-}
-
-/*********************************************************
- * curryLeft
- *********************************************************/
-export function curryLeft(fn: any, arity): IAnyFunction | IWrappedFunction {
+export function curryLeft(fn: any, arity): IWrappedFunction {
     return internalCurry(fn, arity, [], "left");
 }
 export const curry = curryLeft;
@@ -50,7 +35,7 @@ export const curry = curryLeft;
 /*********************************************************
  * curryRight
  *********************************************************/
-export function curryRight(fn: any, arity): IAnyFunction | IWrappedFunction {
+export function curryRight(fn: any, arity): IWrappedFunction {
     return internalCurry(fn, arity, [], "right");
 }
 
@@ -76,21 +61,42 @@ export function reduce(funcOrCmd: any): IReduceFunction {
 }
 
 /*********************************************************
+ * pipe
+ *********************************************************/
+export function pipe(...actions: any[]): IWrappedFunction {
+    return callInternal(actions, internalPipe);
+}
+
+/*********************************************************
+ * compose
+ *********************************************************/
+export function compose(...actions: any[]): IWrappedFunction {
+    return callInternal(actions, internalCompose);
+}
+
+/*********************************************************
  * parallel
  *********************************************************/
-export function parallel(...funcOrCmds: any[]): IWrappedFunction | IAnyFunction {
-    if (funcOrCmds.length === 2) {
-        const [ realFuncOrCmds, arity ] = funcOrCmds;
-        if (Array.isArray(realFuncOrCmds) && Number.isInteger(arity)) {
-            return internalParallel(realFuncOrCmds, arity);
-        }
-    }
-    return internalParallel(funcOrCmds, 0);
+export function parallel(...funcOrCmds: any[]): IWrappedFunction {
+    return callInternal(funcOrCmds, internalParallel);
 }
 
 /*********************************************************
  * private functions
  *********************************************************/
+
+function callInternal(
+    funcOrCmds: any[],
+    internalFunction: (args: any[], arity: number) => IWrappedFunction,
+): IWrappedFunction {
+    if (funcOrCmds.length === 2) {
+        const [ realFuncOrCmds, arity ] = funcOrCmds;
+        if (Array.isArray(realFuncOrCmds) && Number.isInteger(arity)) {
+            return internalFunction(realFuncOrCmds, arity);
+        }
+    }
+    return internalFunction(funcOrCmds, 0);
+}
 
 function isPlaceHolder(obj: any) {
    return typeof obj === "object" && obj && obj.__isPlaceHolder;
@@ -100,7 +106,7 @@ function isWrappedFunction(func: any) {
     return (typeof func === "object" || typeof func === "function") && "__isWrapped" in func;
 }
 
-function internalWrap(cmdOrFunc: any, arity: number = 0): IWrappedFunction {
+function internalWrap(cmdOrFunc: any): IWrappedFunction {
     // if function is already wrapped, just return it without any modification
     if (isWrappedFunction(cmdOrFunc)) {
         return cmdOrFunc;
@@ -117,11 +123,11 @@ function internalWrap(cmdOrFunc: any, arity: number = 0): IWrappedFunction {
         func = (() => Promise.resolve(cmdOrFunc)) as IWrappedFunction;
     }
     func.__isWrapped = true;
-    return internalCurry(func, arity, [], "left") as IWrappedFunction;
+    return func;
 }
 
-function internalCurry(fn, arity, memo, mode) {
-    return (...args) => {
+function internalCurry(fn, arity, memo, mode): IWrappedFunction {
+    function curried(...args) {
         let argIndex = 0;
         // newArgs is memo with all placeHolder replaced by args's element
         let newArgs = memo.map((arg) => {
@@ -144,14 +150,17 @@ function internalCurry(fn, arity, memo, mode) {
             const realFn = internalWrap(fn);
             return realFn(...newArgs);
         }
-        const newFn = internalCurry(fn, arity, newArgs, mode);
+        const newFn = internalCurry(fn, arity, newArgs, mode) as IWrappedFunction;
+        newFn.__isWrapped = true;
         return newFn;
-    };
+    }
+    curried.__isWrapped = true;
+    return curried;
 }
 
-function internalPipe(...actions: any[]): IWrappedFunction {
+function internalPipe(actions: any[], arity: number): IWrappedFunction {
     async function piped(...args: any[]) {
-        let result: IValue = Promise.resolve(null);
+        let result: Promise<any> = Promise.resolve(null);
         for (let i = 0; i < actions.length; i++) {
             const action = internalWrap(actions[i]);
             if (i === 0) {
@@ -163,13 +172,17 @@ function internalPipe(...actions: any[]): IWrappedFunction {
         return result;
     }
     piped.__isWrapped = true;
-    return piped;
+    return internalCurry(piped, arity, [], "left");
+}
+
+function internalCompose(actions: any[], arity: number): IWrappedFunction {
+    return internalPipe(actions.reverse(), arity);
 }
 
 function internalMap(funcOrCmd: any): IMapFunction {
     async function mapped(args: any[]) {
         const func = internalWrap(funcOrCmd);
-        const promises: IValue[] = args.map(
+        const promises: Array<Promise<any>> = args.map(
             async (element) => func(element),
         );
         return Promise.all(promises);
@@ -179,9 +192,9 @@ function internalMap(funcOrCmd: any): IMapFunction {
 }
 
 function internalFilter(funcOrCmd: any): IFilterFunction {
-    async function filtered(args: any[]): IValue {
+    async function filtered(args: any[]): Promise<any> {
         const func = internalWrap(funcOrCmd);
-        const promises: IValue[] = args.map(
+        const promises: Array<Promise<any>> = args.map(
             (element) => func(element),
         );
         return Promise.all(promises)
@@ -212,7 +225,7 @@ function internalReduce(funcOrCmd: any): IReduceFunction {
     return internalCurry(reduced, 2, [], "left") as IReduceFunction;
 }
 
-function internalParallel(funcOrCmds: any[], arity: number): IWrappedFunction | IAnyFunction {
+function internalParallel(funcOrCmds: any[], arity: number): IWrappedFunction {
     function paralleled(...args: any[]) {
         const promises = funcOrCmds.map((funcOrCmd) => {
             if (isPromise(funcOrCmd)) {
@@ -228,14 +241,14 @@ function internalParallel(funcOrCmds: any[], arity: number): IWrappedFunction | 
 }
 
 function createCmdResolver(cmd: string): IAnyFunction {
-    return (...args: any[]): IValue => {
+    return (...args: any[]): Promise<any> => {
         const command = composeCommand(cmd, args);
         return runCommand(command);
     };
 }
 
 function createFunctionResolver(func: IAnyFunction): IAnyFunction {
-    return (...args: any[]): IValue => {
+    return (...args: any[]): Promise<any> => {
         return new Promise((resolve, reject) => {
             function callback(error, ...result) {
                 if (error) {
@@ -270,7 +283,7 @@ function isPromise(arg: any): boolean {
     return arg && arg.then ? true : false;
 }
 
-function runCommand(command: string, options?: { [key: string]: any }): IValue {
+function runCommand(command: string, options?: { [key: string]: any }): Promise<any> {
     return new Promise((resolve, reject) => {
         const subProcess = exec(command, options, (error, stdout, stderr) => {
             if (error) {

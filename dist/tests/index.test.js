@@ -75,7 +75,7 @@ describe("wrap functions that have node callback", () => {
         return null;
     }));
     it("function with callback works", () => __awaiter(this, void 0, void 0, function* () {
-        const fn = X.wrap(lib_1.functionWithCallback, 2)(4);
+        const fn = X.curry(lib_1.functionWithCallback, 2)(4);
         const result = yield fn(5);
         expect(result).toBe(9);
         return null;
@@ -164,6 +164,16 @@ describe("parallel", () => {
         expect(result).toMatchObject([8, 2]);
         return null;
     }));
+    it("work with non-promise parameter, curried", () => __awaiter(this, void 0, void 0, function* () {
+        const result = yield X.parallel([lib_1.add, lib_1.minus], 2)(5)(3);
+        expect(result).toMatchObject([8, 2]);
+        return null;
+    }));
+    it("work with non-promise and more than two parameter", () => __awaiter(this, void 0, void 0, function* () {
+        const result = yield X.parallel(lib_1.add, lib_1.minus, lib_1.multiply)(5, 3);
+        expect(result).toMatchObject([8, 2, 15]);
+        return null;
+    }));
 });
 describe("currying", () => {
     it("curry 1 param", () => __awaiter(this, void 0, void 0, function* () {
@@ -209,13 +219,13 @@ describe("right currying", () => {
 });
 describe("curry with placeholder", () => {
     it("curry placeholder, complete parameter count", () => __awaiter(this, void 0, void 0, function* () {
-        const minusTwoAndPlusTen = X.curryLeft(lib_1.plusAndMinusWithCallback, 3)(10, X._, 2);
+        const minusTwoAndPlusTen = X.curry(lib_1.plusAndMinusWithCallback, 3)(10, X._, 2);
         const result = yield minusTwoAndPlusTen(5);
         expect(result).toBe(13);
         return null;
     }));
     it("curry placeholder, incomplete parameter count", () => __awaiter(this, void 0, void 0, function* () {
-        const minusTwo = X.curryLeft(lib_1.plusAndMinusWithCallback, 3)(X._, X._, 2);
+        const minusTwo = X.curry(lib_1.plusAndMinusWithCallback, 3)(X._, X._, 2);
         const plusTenMinusTwo = minusTwo(10);
         const result = yield plusTenMinusTwo(5);
         expect(result).toBe(13);
@@ -239,9 +249,16 @@ describe("filter", () => {
     }));
 });
 describe("reduce", () => {
+    const reducedFunction = X.reduce((x, y) => x + y);
     it("work with sync function", () => __awaiter(this, void 0, void 0, function* () {
         const data = [1, 2, 3, 4, 5];
-        const result = yield X.reduce((x, y) => x + y)(0, data);
+        const result = yield reducedFunction(0, data);
+        expect(result).toBe(15);
+        return null;
+    }));
+    it("work with sync function, curried", () => __awaiter(this, void 0, void 0, function* () {
+        const data = [1, 2, 3, 4, 5];
+        const result = yield reducedFunction(0)(data);
         expect(result).toBe(15);
         return null;
     }));

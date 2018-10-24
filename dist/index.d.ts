@@ -1,4 +1,4 @@
-import { IAnyFunction, IFilterFunction, IMapFunction, IReduceFunction, IWrappedFunction } from "./interfaces";
+import { IFilterFunction, IMapFunction, IReduceFunction, IWrappedFunction } from "./interfaces";
 /*********************************************************
  * placeHolder
  *********************************************************/
@@ -8,24 +8,16 @@ export declare const _: {
 /*********************************************************
  * wrap
  *********************************************************/
-export declare function wrap(cmdOrFunc: any, arity?: number): IWrappedFunction | IAnyFunction;
+export declare function wrap(cmdOrFunc: any): IWrappedFunction;
 /*********************************************************
- * pipe
+ * curryLeft & curry
  *********************************************************/
-export declare function pipe(...actions: any[]): IWrappedFunction;
-/*********************************************************
- * compose
- *********************************************************/
-export declare function compose(...actions: any[]): IWrappedFunction;
-/*********************************************************
- * curryLeft
- *********************************************************/
-export declare function curryLeft(fn: any, arity: any): IAnyFunction | IWrappedFunction;
+export declare function curryLeft(fn: any, arity: any): IWrappedFunction;
 export declare const curry: typeof curryLeft;
 /*********************************************************
  * curryRight
  *********************************************************/
-export declare function curryRight(fn: any, arity: any): IAnyFunction | IWrappedFunction;
+export declare function curryRight(fn: any, arity: any): IWrappedFunction;
 /*********************************************************
  * map
  *********************************************************/
@@ -39,6 +31,14 @@ export declare function filter(funcOrCmd: any): IFilterFunction;
  *********************************************************/
 export declare function reduce(funcOrCmd: any): IReduceFunction;
 /*********************************************************
+ * pipe
+ *********************************************************/
+export declare function pipe(...actions: any[]): IWrappedFunction;
+/*********************************************************
+ * compose
+ *********************************************************/
+export declare function compose(...actions: any[]): IWrappedFunction;
+/*********************************************************
  * parallel
  *********************************************************/
-export declare function parallel(...funcOrCmds: any[]): IWrappedFunction | IAnyFunction;
+export declare function parallel(...funcOrCmds: any[]): IWrappedFunction;
