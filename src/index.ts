@@ -82,6 +82,39 @@ export function parallel(...funcOrCmds: any[]): IWrappedFunction {
 }
 
 /*********************************************************
+ * add, subtract, multiply, divide, modulo, negate
+ *********************************************************/
+export const add = curry((n1: number, n2: number) => n1 + n2, 2);
+export const subtract = curry((n1: number, n2: number) => n1 - n2, 2);
+export const multiply = curry((n1: number, n2: number) => n1 * n2, 2);
+export const divide = curry((n1: number, n2: number) => n1 / n2, 2);
+export const modulo = curry((n1: number, n2: number) => n1 % n2, 2);
+export const negate = wrap((n: number) => -n);
+
+/*********************************************************
+ * and, or, not
+ *********************************************************/
+export const and = curry((n1: boolean, n2: boolean) => n1 && n2, 2);
+export const or = curry((n1: boolean, n2: boolean) => n1 || n2, 2);
+export const not = wrap((n: boolean) => !n);
+
+/*********************************************************
+ * eq, gt, gte, lt, lte, neq
+ *********************************************************/
+export const eq = curry((n1: any, n2: any) => n1 === n2, 2);
+export const gt = curry((n1: any, n2: any) => n1 > n2, 2);
+export const gte = curry((n1: any, n2: any) => n1 >= n2, 2);
+export const lt = curry((n1: any, n2: any) => n1 < n2, 2);
+export const lte = curry((n1: any, n2: any) => n1 <= n2, 2);
+export const neq = curry((n1: any, n2: any) => n1 !== n2, 2);
+
+/*********************************************************
+ * T, F
+ *********************************************************/
+export const F = wrap(() => false);
+export const T = wrap(() => true);
+
+/*********************************************************
  * private functions
  *********************************************************/
 
