@@ -85,6 +85,42 @@ function parallel(...funcOrCmds) {
 }
 exports.parallel = parallel;
 /*********************************************************
+ * cond
+ *********************************************************/
+function condition(...ifThens) {
+    return internalCondition(ifThens);
+}
+exports.condition = condition;
+/*********************************************************
+ * add, subtract, multiply, divide, modulo, negate
+ *********************************************************/
+exports.add = exports.curry((n1, n2) => n1 + n2, 2);
+exports.subtract = exports.curry((n1, n2) => n1 - n2, 2);
+exports.multiply = exports.curry((n1, n2) => n1 * n2, 2);
+exports.divide = exports.curry((n1, n2) => n1 / n2, 2);
+exports.modulo = exports.curry((n1, n2) => n1 % n2, 2);
+exports.negate = exports.curry((n) => -n, 1);
+/*********************************************************
+ * and, or, not
+ *********************************************************/
+exports.and = exports.curry((n1, n2) => n1 && n2, 2);
+exports.or = exports.curry((n1, n2) => n1 || n2, 2);
+exports.not = wrap((n) => !n);
+/*********************************************************
+ * eq, gt, gte, lt, lte, neq
+ *********************************************************/
+exports.eq = exports.curry((n1, n2) => n1 === n2, 2);
+exports.gt = exports.curry((n1, n2) => n1 > n2, 2);
+exports.gte = exports.curry((n1, n2) => n1 >= n2, 2);
+exports.lt = exports.curry((n1, n2) => n1 < n2, 2);
+exports.lte = exports.curry((n1, n2) => n1 <= n2, 2);
+exports.neq = exports.curry((n1, n2) => n1 !== n2, 2);
+/*********************************************************
+ * T, F
+ *********************************************************/
+exports.F = wrap(() => false);
+exports.T = wrap(() => true);
+/*********************************************************
  * private functions
  *********************************************************/
 function callInternal(funcOrCmds, internalFunction) {
@@ -139,7 +175,7 @@ function internalCurry(fn, arity, memo, mode) {
         for (let i = argIndex; i < args.length; i++) {
             newArgs.push(args[i]);
         }
-        const isPlaceHolderFound = newArgs.filter(isPlaceHolder).length > 0;
+        const isPlaceHolderFound = newArgs.length > 0 && newArgs.filter(isPlaceHolder).length > 0;
         // no placeholder found and newArgs's count is greater than arity
         if (!isPlaceHolderFound && (newArgs.length >= arity)) {
             if (mode !== "left") {
@@ -234,6 +270,23 @@ function internalParallel(funcOrCmds, arity) {
     }
     paralleled.__isWrapped = true;
     return internalCurry(paralleled, arity, [], "left");
+}
+function internalCondition(ifThens) {
+    function conditioned(...args) {
+        return __awaiter(this, void 0, void 0, function* () {
+            for (const rawIfThen of ifThens) {
+                const ifThen = rawIfThen.map(wrap);
+                const [cond, action] = ifThen;
+                const conditionResult = yield cond(...args);
+                if (conditionResult) {
+                    return yield action(...args);
+                }
+            }
+            return null;
+        });
+    }
+    conditioned.__isWrapped = true;
+    return conditioned;
 }
 function createCmdResolver(cmd) {
     return (...args) => {

@@ -4,6 +4,7 @@ export declare type IMapFunction = IWrappedObject & ((data: any[]) => Promise<an
 export declare type IFilterFunction = IWrappedObject & ((data: any[]) => Promise<any[]>);
 export declare type IReduceFunction = IWrappedObject & IRealReduceFunction & ICurriedReduceFunction;
 export declare type IAnyFunction = (...args: any[]) => any;
+export declare type ISingleIfThen = [any, any];
 interface IWrappedObject {
     __isWrapped: boolean;
 }

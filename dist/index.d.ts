@@ -1,4 +1,4 @@
-import { IFilterFunction, IMapFunction, IReduceFunction, IWrappedFunction } from "./interfaces";
+import { IFilterFunction, IMapFunction, IReduceFunction, ISingleIfThen, IWrappedFunction } from "./interfaces";
 /*********************************************************
  * placeHolder
  *********************************************************/
@@ -42,3 +42,36 @@ export declare function compose(...actions: any[]): IWrappedFunction;
  * parallel
  *********************************************************/
 export declare function parallel(...funcOrCmds: any[]): IWrappedFunction;
+/*********************************************************
+ * cond
+ *********************************************************/
+export declare function condition(...ifThens: ISingleIfThen[]): IWrappedFunction;
+/*********************************************************
+ * add, subtract, multiply, divide, modulo, negate
+ *********************************************************/
+export declare const add: IWrappedFunction;
+export declare const subtract: IWrappedFunction;
+export declare const multiply: IWrappedFunction;
+export declare const divide: IWrappedFunction;
+export declare const modulo: IWrappedFunction;
+export declare const negate: IWrappedFunction;
+/*********************************************************
+ * and, or, not
+ *********************************************************/
+export declare const and: IWrappedFunction;
+export declare const or: IWrappedFunction;
+export declare const not: IWrappedFunction;
+/*********************************************************
+ * eq, gt, gte, lt, lte, neq
+ *********************************************************/
+export declare const eq: IWrappedFunction;
+export declare const gt: IWrappedFunction;
+export declare const gte: IWrappedFunction;
+export declare const lt: IWrappedFunction;
+export declare const lte: IWrappedFunction;
+export declare const neq: IWrappedFunction;
+/*********************************************************
+ * T, F
+ *********************************************************/
+export declare const F: IWrappedFunction;
+export declare const T: IWrappedFunction;

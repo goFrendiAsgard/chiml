@@ -364,3 +364,107 @@ describe("work", () => {
     });
 
 });
+
+describe("arithmetic", () => {
+
+    it("add works", async () => {
+        const result = await X.add(4, 5);
+        expect(result).toBe(9);
+        return null;
+    });
+
+    it("add works with currying", async () => {
+        const result = await X.add(4)(5);
+        expect(result).toBe(9);
+        return null;
+    });
+
+    it("subtract works", async () => {
+        const result = await X.subtract(4, 5);
+        expect(result).toBe(-1);
+        return null;
+    });
+
+    it("subtract works with currying", async () => {
+        const result = await X.subtract(4)(5);
+        expect(result).toBe(-1);
+        return null;
+    });
+
+    it("multiply works", async () => {
+        const result = await X.multiply(4, 5);
+        expect(result).toBe(20);
+        return null;
+    });
+
+    it("multiply works with currying", async () => {
+        const result = await X.multiply(4)(5);
+        expect(result).toBe(20);
+        return null;
+    });
+
+    it("divide works", async () => {
+        const result = await X.divide(20, 5);
+        expect(result).toBe(4);
+        return null;
+    });
+
+    it("divide works with currying", async () => {
+        const result = await X.divide(20)(5);
+        expect(result).toBe(4);
+        return null;
+    });
+
+    it("modulo works", async () => {
+        const result = await X.modulo(23, 5);
+        expect(result).toBe(3);
+        return null;
+    });
+
+    it("modulo works with currying", async () => {
+        const result = await X.modulo(23)(5);
+        expect(result).toBe(3);
+        return null;
+    });
+
+    it("negate works", async () => {
+        const result = await X.negate(23);
+        expect(result).toBe(-23);
+        return null;
+    });
+
+});
+
+describe("logic", () => {
+
+    it("and works", async () => {
+        const result = await X.and(false, true);
+        expect(result).toBe(false);
+        return null;
+    });
+
+    it("and works with currying", async () => {
+        const result = await X.and(false)(true);
+        expect(result).toBe(false);
+        return null;
+    });
+
+    it("or works", async () => {
+        const result = await X.or(false, true);
+        expect(result).toBe(true);
+        return null;
+    });
+
+    it("or works with currying", async () => {
+        const result = await X.or(false)(true);
+        expect(result).toBe(true);
+        return null;
+    });
+
+    it("`not` works", async () => {
+        const result = await X.not(true);
+        expect(result).toBe(false);
+        return null;
+    });
+
+});

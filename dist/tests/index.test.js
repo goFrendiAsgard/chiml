@@ -282,4 +282,88 @@ describe("work", () => {
         return null;
     }));
 });
+describe("arithmetic", () => {
+    it("add works", () => __awaiter(this, void 0, void 0, function* () {
+        const result = yield X.add(4, 5);
+        expect(result).toBe(9);
+        return null;
+    }));
+    it("add works with currying", () => __awaiter(this, void 0, void 0, function* () {
+        const result = yield X.add(4)(5);
+        expect(result).toBe(9);
+        return null;
+    }));
+    it("subtract works", () => __awaiter(this, void 0, void 0, function* () {
+        const result = yield X.subtract(4, 5);
+        expect(result).toBe(-1);
+        return null;
+    }));
+    it("subtract works with currying", () => __awaiter(this, void 0, void 0, function* () {
+        const result = yield X.subtract(4)(5);
+        expect(result).toBe(-1);
+        return null;
+    }));
+    it("multiply works", () => __awaiter(this, void 0, void 0, function* () {
+        const result = yield X.multiply(4, 5);
+        expect(result).toBe(20);
+        return null;
+    }));
+    it("multiply works with currying", () => __awaiter(this, void 0, void 0, function* () {
+        const result = yield X.multiply(4)(5);
+        expect(result).toBe(20);
+        return null;
+    }));
+    it("divide works", () => __awaiter(this, void 0, void 0, function* () {
+        const result = yield X.divide(20, 5);
+        expect(result).toBe(4);
+        return null;
+    }));
+    it("divide works with currying", () => __awaiter(this, void 0, void 0, function* () {
+        const result = yield X.divide(20)(5);
+        expect(result).toBe(4);
+        return null;
+    }));
+    it("modulo works", () => __awaiter(this, void 0, void 0, function* () {
+        const result = yield X.modulo(23, 5);
+        expect(result).toBe(3);
+        return null;
+    }));
+    it("modulo works with currying", () => __awaiter(this, void 0, void 0, function* () {
+        const result = yield X.modulo(23)(5);
+        expect(result).toBe(3);
+        return null;
+    }));
+    it("negate works", () => __awaiter(this, void 0, void 0, function* () {
+        const result = yield X.negate(23);
+        expect(result).toBe(-23);
+        return null;
+    }));
+});
+describe("logic", () => {
+    it("and works", () => __awaiter(this, void 0, void 0, function* () {
+        const result = yield X.and(false, true);
+        expect(result).toBe(false);
+        return null;
+    }));
+    it("and works with currying", () => __awaiter(this, void 0, void 0, function* () {
+        const result = yield X.and(false)(true);
+        expect(result).toBe(false);
+        return null;
+    }));
+    it("or works", () => __awaiter(this, void 0, void 0, function* () {
+        const result = yield X.or(false, true);
+        expect(result).toBe(true);
+        return null;
+    }));
+    it("or works with currying", () => __awaiter(this, void 0, void 0, function* () {
+        const result = yield X.or(false)(true);
+        expect(result).toBe(true);
+        return null;
+    }));
+    it("`not` works", () => __awaiter(this, void 0, void 0, function* () {
+        const result = yield X.not(true);
+        expect(result).toBe(false);
+        return null;
+    }));
+});
 //# sourceMappingURL=index.test.js.map

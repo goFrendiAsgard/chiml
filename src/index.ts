@@ -1,7 +1,7 @@
 import { ChildProcess, exec } from "child_process";
 import {
     IAnyFunction, IFilterFunction, IMapFunction,
-    IReduceFunction, IWrappedFunction,
+    IReduceFunction, ISingleIfThen, IWrappedFunction,
 } from "./interfaces";
 
 const BRIGHT = "\x1b[1m";
@@ -82,6 +82,13 @@ export function parallel(...funcOrCmds: any[]): IWrappedFunction {
 }
 
 /*********************************************************
+ * cond
+ *********************************************************/
+export function condition(...ifThens: ISingleIfThen[]): IWrappedFunction {
+    return internalCondition(ifThens);
+}
+
+/*********************************************************
  * add, subtract, multiply, divide, modulo, negate
  *********************************************************/
 export const add = curry((n1: number, n2: number) => n1 + n2, 2);
@@ -89,7 +96,7 @@ export const subtract = curry((n1: number, n2: number) => n1 - n2, 2);
 export const multiply = curry((n1: number, n2: number) => n1 * n2, 2);
 export const divide = curry((n1: number, n2: number) => n1 / n2, 2);
 export const modulo = curry((n1: number, n2: number) => n1 % n2, 2);
-export const negate = wrap((n: number) => -n);
+export const negate = curry((n: number) => -n, 1);
 
 /*********************************************************
  * and, or, not
@@ -174,7 +181,7 @@ function internalCurry(fn, arity, memo, mode): IWrappedFunction {
         for (let i = argIndex; i < args.length; i++) {
             newArgs.push(args[i]);
         }
-        const isPlaceHolderFound = newArgs.filter(isPlaceHolder).length > 0;
+        const isPlaceHolderFound = newArgs.length > 0 && newArgs.filter(isPlaceHolder).length > 0;
         // no placeholder found and newArgs's count is greater than arity
         if (!isPlaceHolderFound && (newArgs.length >= arity)) {
             if (mode !== "left") {
@@ -271,6 +278,22 @@ function internalParallel(funcOrCmds: any[], arity: number): IWrappedFunction {
     }
     paralleled.__isWrapped = true;
     return internalCurry(paralleled, arity, [], "left");
+}
+
+function internalCondition(ifThens: ISingleIfThen[]): IWrappedFunction {
+    async function conditioned(...args: any[]): Promise<any> {
+        for (const rawIfThen of ifThens) {
+            const ifThen = rawIfThen.map(wrap);
+            const [cond, action] = ifThen;
+            const conditionResult = await cond(...args);
+            if (conditionResult) {
+                return await action(...args);
+            }
+        }
+        return null;
+    }
+    conditioned.__isWrapped = true;
+    return conditioned;
 }
 
 function createCmdResolver(cmd: string): IAnyFunction {
