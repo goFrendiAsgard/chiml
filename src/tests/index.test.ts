@@ -468,3 +468,103 @@ describe("logic", () => {
     });
 
 });
+
+describe("comparison", () => {
+
+    it("eq works", async () => {
+        const result = await X.eq(4, 5);
+        expect(result).toBe(false);
+        return null;
+    });
+
+    it("eq works with currying", async () => {
+        const result = await X.eq(4)(4);
+        expect(result).toBe(true);
+        return null;
+    });
+
+    it("neq works", async () => {
+        const result = await X.neq(4, 5);
+        expect(result).toBe(true);
+        return null;
+    });
+
+    it("neq works with currying", async () => {
+        const result = await X.neq(4)(4);
+        expect(result).toBe(false);
+        return null;
+    });
+
+    it("gt works", async () => {
+        const result = await X.gt(4, 5);
+        expect(result).toBe(false);
+        return null;
+    });
+
+    it("gt with equal values works", async () => {
+        const result = await X.gt(4, 4);
+        expect(result).toBe(false);
+        return null;
+    });
+
+    it("gt works with currying", async () => {
+        const result = await X.gt(5)(4);
+        expect(result).toBe(true);
+        return null;
+    });
+
+    it("lt works", async () => {
+        const result = await X.lt(4, 5);
+        expect(result).toBe(true);
+        return null;
+    });
+
+    it("lt with equal values works", async () => {
+        const result = await X.lt(4, 4);
+        expect(result).toBe(false);
+        return null;
+    });
+
+    it("lt works with currying", async () => {
+        const result = await X.lt(5)(4);
+        expect(result).toBe(false);
+        return null;
+    });
+
+    it("gte works", async () => {
+        const result = await X.gte(4, 5);
+        expect(result).toBe(false);
+        return null;
+    });
+
+    it("gte with equal values works", async () => {
+        const result = await X.gte(4, 4);
+        expect(result).toBe(true);
+        return null;
+    });
+
+    it("gte works with currying", async () => {
+        const result = await X.gte(5)(4);
+        expect(result).toBe(true);
+        return null;
+    });
+
+    it("lte works", async () => {
+        const resulte = await X.lte(4, 5);
+        expect(resulte).toBe(true);
+        return null;
+    });
+
+    it("lte with equal values works", async () => {
+        const resulte = await X.lte(4, 4);
+        expect(resulte).toBe(true);
+        return null;
+    });
+
+    it("lte works with currying", async () => {
+        const resulte = await X.lte(5)(4);
+        expect(resulte).toBe(false);
+        return null;
+    });
+
+});

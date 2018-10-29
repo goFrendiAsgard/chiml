@@ -366,4 +366,86 @@ describe("logic", () => {
         return null;
     }));
 });
+describe("comparison", () => {
+    it("eq works", () => __awaiter(this, void 0, void 0, function* () {
+        const result = yield X.eq(4, 5);
+        expect(result).toBe(false);
+        return null;
+    }));
+    it("eq works with currying", () => __awaiter(this, void 0, void 0, function* () {
+        const result = yield X.eq(4)(4);
+        expect(result).toBe(true);
+        return null;
+    }));
+    it("neq works", () => __awaiter(this, void 0, void 0, function* () {
+        const result = yield X.neq(4, 5);
+        expect(result).toBe(true);
+        return null;
+    }));
+    it("neq works with currying", () => __awaiter(this, void 0, void 0, function* () {
+        const result = yield X.neq(4)(4);
+        expect(result).toBe(false);
+        return null;
+    }));
+    it("gt works", () => __awaiter(this, void 0, void 0, function* () {
+        const result = yield X.gt(4, 5);
+        expect(result).toBe(false);
+        return null;
+    }));
+    it("gt with equal values works", () => __awaiter(this, void 0, void 0, function* () {
+        const result = yield X.gt(4, 4);
+        expect(result).toBe(false);
+        return null;
+    }));
+    it("gt works with currying", () => __awaiter(this, void 0, void 0, function* () {
+        const result = yield X.gt(5)(4);
+        expect(result).toBe(true);
+        return null;
+    }));
+    it("lt works", () => __awaiter(this, void 0, void 0, function* () {
+        const result = yield X.lt(4, 5);
+        expect(result).toBe(true);
+        return null;
+    }));
+    it("lt with equal values works", () => __awaiter(this, void 0, void 0, function* () {
+        const result = yield X.lt(4, 4);
+        expect(result).toBe(false);
+        return null;
+    }));
+    it("lt works with currying", () => __awaiter(this, void 0, void 0, function* () {
+        const result = yield X.lt(5)(4);
+        expect(result).toBe(false);
+        return null;
+    }));
+    it("gte works", () => __awaiter(this, void 0, void 0, function* () {
+        const result = yield X.gte(4, 5);
+        expect(result).toBe(false);
+        return null;
+    }));
+    it("gte with equal values works", () => __awaiter(this, void 0, void 0, function* () {
+        const result = yield X.gte(4, 4);
+        expect(result).toBe(true);
+        return null;
+    }));
+    it("gte works with currying", () => __awaiter(this, void 0, void 0, function* () {
+        const result = yield X.gte(5)(4);
+        expect(result).toBe(true);
+        return null;
+    }));
+    it("lte works", () => __awaiter(this, void 0, void 0, function* () {
+        const resulte = yield X.lte(4, 5);
+        expect(resulte).toBe(true);
+        return null;
+    }));
+    it("lte with equal values works", () => __awaiter(this, void 0, void 0, function* () {
+        const resulte = yield X.lte(4, 4);
+        expect(resulte).toBe(true);
+        return null;
+    }));
+    it("lte works with currying", () => __awaiter(this, void 0, void 0, function* () {
+        const resulte = yield X.lte(5)(4);
+        expect(resulte).toBe(false);
+        return null;
+    }));
+});
 //# sourceMappingURL=index.test.js.map
