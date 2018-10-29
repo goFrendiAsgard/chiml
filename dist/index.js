@@ -87,8 +87,8 @@ exports.parallel = parallel;
 /*********************************************************
  * cond
  *********************************************************/
-function condition(...ifThens) {
-    return internalCondition(ifThens);
+function condition(ifThens, arity) {
+    return internalCondition(ifThens, arity);
 }
 exports.condition = condition;
 /*********************************************************
@@ -271,7 +271,7 @@ function internalParallel(funcOrCmds, arity) {
     paralleled.__isWrapped = true;
     return internalCurry(paralleled, arity, [], "left");
 }
-function internalCondition(ifThens) {
+function internalCondition(ifThens, arity) {
     function conditioned(...args) {
         return __awaiter(this, void 0, void 0, function* () {
             for (const rawIfThen of ifThens) {
@@ -286,7 +286,7 @@ function internalCondition(ifThens) {
         });
     }
     conditioned.__isWrapped = true;
-    return conditioned;
+    return internalCurry(conditioned, arity, [], "left");
 }
 function createCmdResolver(cmd) {
     return (...args) => {

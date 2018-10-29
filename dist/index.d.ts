@@ -45,7 +45,7 @@ export declare function parallel(...funcOrCmds: any[]): IWrappedFunction;
 /*********************************************************
  * cond
  *********************************************************/
-export declare function condition(...ifThens: ISingleIfThen[]): IWrappedFunction;
+export declare function condition(ifThens: ISingleIfThen[], arity: number): IWrappedFunction;
 /*********************************************************
  * add, subtract, multiply, divide, modulo, negate
  *********************************************************/

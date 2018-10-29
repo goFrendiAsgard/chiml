@@ -345,6 +345,11 @@ describe("logic", () => {
         expect(result).toBe(false);
         return null;
     }));
+    it("and works (true and true)", () => __awaiter(this, void 0, void 0, function* () {
+        const result = yield X.and(true, true);
+        expect(result).toBe(true);
+        return null;
+    }));
     it("and works with currying", () => __awaiter(this, void 0, void 0, function* () {
         const result = yield X.and(false)(true);
         expect(result).toBe(false);
@@ -433,18 +438,52 @@ describe("comparison", () => {
         return null;
     }));
     it("lte works", () => __awaiter(this, void 0, void 0, function* () {
-        const resulte = yield X.lte(4, 5);
-        expect(resulte).toBe(true);
+        const result = yield X.lte(4, 5);
+        expect(result).toBe(true);
         return null;
     }));
     it("lte with equal values works", () => __awaiter(this, void 0, void 0, function* () {
-        const resulte = yield X.lte(4, 4);
-        expect(resulte).toBe(true);
+        const result = yield X.lte(4, 4);
+        expect(result).toBe(true);
         return null;
     }));
     it("lte works with currying", () => __awaiter(this, void 0, void 0, function* () {
-        const resulte = yield X.lte(5)(4);
-        expect(resulte).toBe(false);
+        const result = yield X.lte(5)(4);
+        expect(result).toBe(false);
+        return null;
+    }));
+});
+describe("condition", () => {
+    it("works for first condition", () => __awaiter(this, void 0, void 0, function* () {
+        const result = yield X.condition([
+            [X.lt, X.add],
+            [X.gt, X.subtract],
+        ], 2)(4, 5);
+        expect(result).toBe(9);
+        return null;
+    }));
+    it("works for first condition, curried", () => __awaiter(this, void 0, void 0, function* () {
+        const result = yield X.condition([
+            [X.lt, X.add],
+            [X.gt, X.subtract],
+        ], 2)(4)(5);
+        expect(result).toBe(9);
+        return null;
+    }));
+    it("works for second condition", () => __awaiter(this, void 0, void 0, function* () {
+        const result = yield X.condition([
+            [X.lt, X.add],
+            [X.gt, X.subtract],
+        ], 2)(5, 4);
+        expect(result).toBe(1);
+        return null;
+    }));
+    it("works for invalid condition", () => __awaiter(this, void 0, void 0, function* () {
+        const result = yield X.condition([
+            [X.lt, X.add],
+            [X.gt, X.subtract],
+        ], 2)(4, 4);
+        expect(result).toBe(null);
         return null;
     }));
 });

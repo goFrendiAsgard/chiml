@@ -443,6 +443,12 @@ describe("logic", () => {
         return null;
     });
 
+    it("and works (true and true)", async () => {
+        const result = await X.and(true, true);
+        expect(result).toBe(true);
+        return null;
+    });
+
     it("and works with currying", async () => {
         const result = await X.and(false)(true);
         expect(result).toBe(false);
@@ -550,20 +556,68 @@ describe("comparison", () => {
     });
 
     it("lte works", async () => {
-        const resulte = await X.lte(4, 5);
-        expect(resulte).toBe(true);
+        const result = await X.lte(4, 5);
+        expect(result).toBe(true);
         return null;
     });
 
     it("lte with equal values works", async () => {
-        const resulte = await X.lte(4, 4);
-        expect(resulte).toBe(true);
+        const result = await X.lte(4, 4);
+        expect(result).toBe(true);
         return null;
     });
 
     it("lte works with currying", async () => {
-        const resulte = await X.lte(5)(4);
-        expect(resulte).toBe(false);
+        const result = await X.lte(5)(4);
+        expect(result).toBe(false);
+        return null;
+    });
+
+});
+
+describe("condition", () => {
+
+    it("works for first condition", async () => {
+        const result = await X.condition(
+            [
+                [X.lt, X.add],
+                [X.gt, X.subtract],
+            ], 2,
+        )(4, 5);
+        expect(result).toBe(9);
+        return null;
+    });
+
+    it("works for first condition, curried", async () => {
+        const result = await X.condition(
+            [
+                [X.lt, X.add],
+                [X.gt, X.subtract],
+            ], 2,
+        )(4)(5);
+        expect(result).toBe(9);
+        return null;
+    });
+
+    it("works for second condition", async () => {
+        const result = await X.condition(
+            [
+                [X.lt, X.add],
+                [X.gt, X.subtract],
+            ], 2,
+        )(5, 4);
+        expect(result).toBe(1);
+        return null;
+    });
+
+    it("works for invalid condition", async () => {
+        const result = await X.condition(
+            [
+                [X.lt, X.add],
+                [X.gt, X.subtract],
+            ], 2,
+        )(4, 4);
+        expect(result).toBe(null);
         return null;
     });
 

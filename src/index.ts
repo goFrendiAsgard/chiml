@@ -84,8 +84,8 @@ export function parallel(...funcOrCmds: any[]): IWrappedFunction {
 /*********************************************************
  * cond
  *********************************************************/
-export function condition(...ifThens: ISingleIfThen[]): IWrappedFunction {
-    return internalCondition(ifThens);
+export function condition(ifThens: ISingleIfThen[], arity: number): IWrappedFunction {
+    return internalCondition(ifThens, arity);
 }
 
 /*********************************************************
@@ -280,7 +280,7 @@ function internalParallel(funcOrCmds: any[], arity: number): IWrappedFunction {
     return internalCurry(paralleled, arity, [], "left");
 }
 
-function internalCondition(ifThens: ISingleIfThen[]): IWrappedFunction {
+function internalCondition(ifThens: ISingleIfThen[], arity): IWrappedFunction {
     async function conditioned(...args: any[]): Promise<any> {
         for (const rawIfThen of ifThens) {
             const ifThen = rawIfThen.map(wrap);
@@ -293,7 +293,7 @@ function internalCondition(ifThens: ISingleIfThen[]): IWrappedFunction {
         return null;
     }
     conditioned.__isWrapped = true;
-    return conditioned;
+    return internalCurry(conditioned, arity, [], "left");
 }
 
 function createCmdResolver(cmd: string): IAnyFunction {
