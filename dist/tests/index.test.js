@@ -487,4 +487,16 @@ describe("condition", () => {
         return null;
     }));
 });
+describe("T & F", () => {
+    it("T works", () => __awaiter(this, void 0, void 0, function* () {
+        const result = yield X.T();
+        expect(result).toBe(true);
+        return null;
+    }));
+    it("F works", () => __awaiter(this, void 0, void 0, function* () {
+        const result = yield X.F();
+        expect(result).toBe(false);
+        return null;
+    }));
+});
 //# sourceMappingURL=index.test.js.map

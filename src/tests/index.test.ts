@@ -622,3 +622,19 @@ describe("condition", () => {
     });
 
 });
+
+describe("T & F", () => {
+
+    it("T works", async () => {
+        const result = await X.T();
+        expect(result).toBe(true);
+        return null;
+    });
+
+    it("F works", async () => {
+        const result = await X.F();
+        expect(result).toBe(false);
+        return null;
+    });
+
+});
