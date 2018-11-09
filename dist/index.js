@@ -1,4 +1,12 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const child_process_1 = require("child_process");
 const R = require("ramda");
@@ -10,33 +18,41 @@ const FG_RED = "\x1b[31m";
 const FG_YELLOW = "\x1b[33m";
 const RESET_COLOR = "\x1b[0m";
 exports.X = Object.assign({}, R, {
-    command, nodeback, parallel, promise,
-    then: R.curry(then),
+    convergeInput,
+    parallel: R.curry(parallel),
+    wrapCommand: R.curry(wrapCommand),
+    wrapNodeback: R.curry(wrapNodeback),
+    wrapSync: R.curry(wrapSync),
 });
-function then(fn) {
-    function func(p) {
-        return p.then(fn);
+function convergeInput(fn) {
+    function func(arr) {
+        return fn(...arr);
     }
     return func;
 }
-function promise(arg) {
-    return Promise.resolve(arg);
-}
-function parallel(arity, functions) {
+function parallel(arity, fnList) {
     function func(...args) {
-        const pResults = functions.map((fn) => fn(...args));
-        return Promise.all(pResults);
+        const promises = fnList.map((fn) => fn(...args));
+        return Promise.all(promises);
     }
     return R.curryN(arity, func);
 }
-function command(arity, stringCommand) {
+function wrapSync(arity, fn) {
+    function func(...args) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return Promise.resolve(fn(...args));
+        });
+    }
+    return R.curryN(arity, func);
+}
+function wrapCommand(arity, stringCommand) {
     function func(...args) {
         const composedStringCommand = getEchoPipedStringCommand(stringCommand, args);
         return runStringCommand(composedStringCommand);
     }
     return R.curryN(arity, func);
 }
-function nodeback(arity, fn) {
+function wrapNodeback(arity, fn) {
     function func(...args) {
         return new Promise((resolve, reject) => {
             function callback(error, ...result) {

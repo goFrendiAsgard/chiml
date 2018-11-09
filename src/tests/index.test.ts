@@ -1,19 +1,21 @@
 import { X } from "../index";
 import { asyncMinus, commandRootSquare, nodebackMultiply, syncAdd } from "./fixtures/lib";
 
-describe("wrap non promise and non function", () => {
+describe("Piping work", () => {
 
-    it ("single number works", async () => {
-        const addAndMinus = X.parallel(2, [syncAdd, asyncMinus]);
-        const multiply = X.then(
-            X.reduce(X.nodeback(2, nodebackMultiply), 1),
+    it ("pipe", async () => {
+        // composition
+        const asyncRootSquare = X.wrapCommand(1, commandRootSquare);
+        const asyncMultiply = X.wrapNodeback(2, nodebackMultiply);
+        const asyncAdd = X.wrapSync(2, syncAdd);
+        const asyncAddAndMinus = X.parallel(2, [asyncAdd, asyncMinus]);
+        const convergedAsyncMultiply = X.convergeInput(asyncMultiply);
+        const main: (a: number, b: number) => Promise<number> = X.pipeP(
+            asyncAddAndMinus,
+            convergedAsyncMultiply,
+            asyncRootSquare,
         );
-        const rootSquare = X.then(
-            X.command(1, commandRootSquare),
-        );
-        const main = (...args) => {
-            return rootSquare(multiply(addAndMinus(...args)));
-        };
+        // action
         const result = await main(10, 6);
         expect(result).toBe(8);
         return null;

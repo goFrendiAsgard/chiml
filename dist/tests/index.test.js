@@ -10,14 +10,16 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const index_1 = require("../index");
 const lib_1 = require("./fixtures/lib");
-describe("wrap non promise and non function", () => {
-    it("single number works", () => __awaiter(this, void 0, void 0, function* () {
-        const addAndMinus = index_1.X.parallel(2, [lib_1.syncAdd, lib_1.asyncMinus]);
-        const multiply = index_1.X.then(index_1.X.reduce(index_1.X.nodeback(2, lib_1.nodebackMultiply), 1));
-        const rootSquare = index_1.X.then(index_1.X.command(1, lib_1.commandRootSquare));
-        const main = (...args) => {
-            return rootSquare(multiply(addAndMinus(...args)));
-        };
+describe("Piping work", () => {
+    it("pipe", () => __awaiter(this, void 0, void 0, function* () {
+        // composition
+        const asyncRootSquare = index_1.X.wrapCommand(1, lib_1.commandRootSquare);
+        const asyncMultiply = index_1.X.wrapNodeback(2, lib_1.nodebackMultiply);
+        const asyncAdd = index_1.X.wrapSync(2, lib_1.syncAdd);
+        const asyncAddAndMinus = index_1.X.parallel(2, [asyncAdd, lib_1.asyncMinus]);
+        const convergedAsyncMultiply = index_1.X.convergeInput(asyncMultiply);
+        const main = index_1.X.pipeP(asyncAddAndMinus, convergedAsyncMultiply, asyncRootSquare);
+        // action
         const result = yield main(10, 6);
         expect(result).toBe(8);
         return null;

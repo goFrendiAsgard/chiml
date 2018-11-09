@@ -10,30 +10,36 @@ const FG_YELLOW = "\x1b[33m";
 const RESET_COLOR = "\x1b[0m";
 
 export const X = Object.assign({}, R, {
-    command, nodeback, parallel, promise,
-    then: R.curry(then),
+    convergeInput,
+    parallel: R.curry(parallel),
+    wrapCommand: R.curry(wrapCommand),
+    wrapNodeback: R.curry(wrapNodeback),
+    wrapSync: R.curry(wrapSync),
 });
 
-function then(fn: (...args: any[]) => any): (arg: Promise<any>) => Promise<any> {
-    function func(p: Promise<any>) {
-        return p.then(fn);
+function convergeInput(fn: (...args: any[]) => Promise<any>) {
+    function func(arr: any[]): Promise<any> {
+        return fn(...arr);
     }
     return func;
 }
 
-function promise(arg: any) {
-    return Promise.resolve(arg);
-}
-
-function parallel(arity: number, functions: Array<(...args: any[]) => any>): (...args: any[]) => any {
+function parallel(arity: number, fnList: Array<(...args: any[]) => Promise<any>>) {
     function func(...args: any[]): Promise<any> {
-        const pResults: Array<Promise<any>> = functions.map((fn) => fn(...args));
-        return Promise.all(pResults);
+        const promises: Array<Promise<any>> = fnList.map((fn) => fn(...args));
+        return Promise.all(promises);
     }
     return R.curryN(arity, func);
 }
 
-function command(arity: number, stringCommand: string): (...args: any[]) => any {
+function wrapSync(arity: number, fn: (...args: any[]) => any) {
+    async function func(...args: any[]): Promise<any> {
+        return Promise.resolve(fn(...args));
+    }
+    return R.curryN(arity, func);
+}
+
+function wrapCommand(arity: number, stringCommand: string): (...args: any[]) => any {
     function func(...args: any[]): Promise<any> {
         const composedStringCommand = getEchoPipedStringCommand(stringCommand, args);
         return runStringCommand(composedStringCommand);
@@ -41,7 +47,7 @@ function command(arity: number, stringCommand: string): (...args: any[]) => any 
     return R.curryN(arity, func);
 }
 
-function nodeback(arity: number, fn: (...args: any[]) => any): (...args: any[]) => any {
+function wrapNodeback(arity: number, fn: (...args: any[]) => any): (...args: any[]) => any {
     function func(...args: any[]): Promise<any> {
         return new Promise((resolve, reject) => {
             function callback(error, ...result) {

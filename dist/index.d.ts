@@ -1,13 +1,10 @@
 import * as R from "ramda";
 export declare const X: R.Static & {
-    command: typeof command;
-    nodeback: typeof nodeback;
-    parallel: typeof parallel;
-    promise: typeof promise;
-    then: R.CurriedFunction2<(...args: any[]) => any, {}, (arg: Promise<any>) => Promise<any>>;
+    convergeInput: typeof convergeInput;
+    parallel: R.CurriedFunction2<number, ((...args: any[]) => Promise<any>)[], (...a: any[]) => any>;
+    wrapCommand: R.CurriedFunction2<number, string, (...args: any[]) => any>;
+    wrapNodeback: R.CurriedFunction2<number, (...args: any[]) => any, (...args: any[]) => any>;
+    wrapSync: R.CurriedFunction2<number, (...args: any[]) => any, (...a: any[]) => any>;
 };
-declare function promise(arg: any): Promise<any>;
-declare function parallel(arity: number, functions: Array<(...args: any[]) => any>): (...args: any[]) => any;
-declare function command(arity: number, stringCommand: string): (...args: any[]) => any;
-declare function nodeback(arity: number, fn: (...args: any[]) => any): (...args: any[]) => any;
+declare function convergeInput(fn: (...args: any[]) => Promise<any>): (arr: any[]) => Promise<any>;
 export {};
