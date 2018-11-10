@@ -1,5 +1,6 @@
 import { ChildProcess, exec } from "child_process";
 import * as R from "ramda";
+import { AnyAsyncFunction, AnyFunction, IDeclarativeConfig } from "./interfaces/descriptor";
 
 const BRIGHT = "\x1b[1m";
 // const FG_BLUE = "\x1b[34m";
@@ -10,44 +11,60 @@ const FG_YELLOW = "\x1b[33m";
 const RESET_COLOR = "\x1b[0m";
 
 export const X = Object.assign({}, R, {
-    convergeInput,
-    parallel: R.curry(parallel),
-    wrapCommand: R.curry(wrapCommand),
-    wrapNodeback: R.curry(wrapNodeback),
-    wrapSync: R.curry(wrapSync),
+    declarative,
+    foldInput,
+    spreadInput,
+    parallel,
+    wrapCommand,
+    wrapNodeback,
+    wrapSync,
 });
 
-function convergeInput(fn: (...args: any[]) => Promise<any>) {
-    function func(arr: any[]): Promise<any> {
+function declarative(declarativeConfig: IDeclarativeConfig): AnyFunction {
+    const { vals, comp, main } = declarativeConfig;
+    const defaultAction = "<identity>";
+    const dictionary = { ...vals };
+    return (...args: any[]) => console.dir(args);
+}
+
+function spreadInput<TArg, TResult>(fn: (arr: TArg[]) => TResult): (...args: TArg[]) => TResult {
+    function func(...args: TArg[]): TResult {
+        return fn(args);
+    }
+    return func;
+}
+
+function foldInput<TArg, TResult>(fn: (...args: TArg[]) => TResult): (arr: TArg[]) => TResult {
+    function func(arr: any[]): any {
         return fn(...arr);
     }
     return func;
 }
 
-function parallel(arity: number, fnList: Array<(...args: any[]) => Promise<any>>) {
+function parallel(...fnList: AnyAsyncFunction[]): AnyAsyncFunction {
     function func(...args: any[]): Promise<any> {
         const promises: Array<Promise<any>> = fnList.map((fn) => fn(...args));
         return Promise.all(promises);
     }
-    return R.curryN(arity, func);
+    return func;
 }
 
-function wrapSync(arity: number, fn: (...args: any[]) => any) {
-    async function func(...args: any[]): Promise<any> {
+function wrapSync<TArg, TResult>(fn: (...args: TArg[]) => TResult): (...args: TArg[]) => Promise<TResult> {
+    async function func(...args: TArg[]): Promise<TResult> {
         return Promise.resolve(fn(...args));
     }
-    return R.curryN(arity, func);
+    return func;
 }
 
-function wrapCommand(arity: number, stringCommand: string): (...args: any[]) => any {
+function wrapCommand(stringCommand: string): AnyAsyncFunction {
     function func(...args: any[]): Promise<any> {
         const composedStringCommand = getEchoPipedStringCommand(stringCommand, args);
         return runStringCommand(composedStringCommand);
     }
-    return R.curryN(arity, func);
+    return func;
 }
 
-function wrapNodeback(arity: number, fn: (...args: any[]) => any): (...args: any[]) => any {
+function wrapNodeback(fn: AnyFunction): AnyAsyncFunction {
     function func(...args: any[]): Promise<any> {
         return new Promise((resolve, reject) => {
             function callback(error, ...result) {
@@ -60,14 +77,11 @@ function wrapNodeback(arity: number, fn: (...args: any[]) => any): (...args: any
                 return resolve(result);
             }
             const newArgs = Array.from(args);
-            if (newArgs.length < arity) {
-                newArgs.push(undefined);
-            }
             newArgs.push(callback);
             fn(...newArgs);
         });
     }
-    return R.curryN(arity, func);
+    return func;
 }
 
 function runStringCommand(stringCommand: string, options?: { [key: string]: any }): Promise<any> {

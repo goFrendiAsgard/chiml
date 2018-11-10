@@ -2,7 +2,15 @@
 
 CHIML is stands for Chimera-Lib. It is a collection of useful libraries that keep you sane while doing some typescript.
 
-# Example 1
+# Goals
+
+* Creating a declarative composition tool to let developers build software based on pre-existing components (either written in Javascript or any other language).
+* Promoting strong composition structure.
+* Minimizing runtime-error by checking everything at first.
+* Eliminating the use of vm module.
+* Eliminating magics while reducing verbosity.
+
+# Example
 
 ## User's Library
 
@@ -28,10 +36,10 @@ import { X } from "chiml";
 import { asyncMinus, commandRootSquare, nodebackMultiply, syncAdd } from "./lib";
 
 export default function main(a: number, b: number): Promise<void> {
-    const asyncRootSquare = X.wrapCommand(1, commandRootSquare);
-    const asyncMultiply = X.wrapNodeback(2, nodebackMultiply);
-    const asyncAdd = X.wrapSync(2, syncAdd);
-    const asyncAddAndMinus = X.parallel(2, [asyncAdd, asyncMinus]);
+    const asyncRootSquare = X.wrapCommand(commandRootSquare);
+    const asyncMultiply = X.wrapNodeback(nodebackMultiply);
+    const asyncAdd = X.wrapSync(syncAdd);
+    const asyncAddAndMinus = X.parallel(asyncAdd, asyncMinus);
     const convergedAsyncMultiply = X.convergeInput(asyncMultiply);
     const main: (a: number, b: number) => Promise<number> = X.pipeP(
         asyncAddAndMinus,
@@ -39,7 +47,7 @@ export default function main(a: number, b: number): Promise<void> {
         asyncRootSquare,
     );
     // action
-    return await main(a, b);
+    return main(a, b);
 }
 ```
 
@@ -51,34 +59,40 @@ import { X } from "chiml";
 import { asyncMinus, commandRootSquare, nodebackMultiply, syncAdd } from "./lib";
 
 export default const main = X.declarative({
-    // define can contains any valid javascript object
-    define: { asyncMinus, commandRootSquare, nodebackMultiply, syncAdd, X },
-    // declare and main should only contains valid JSON object
-    declare: {
+    // vals can contains any values/JavaScript object
+    vals: { asyncMinus, commandRootSquare, nodebackMultiply, syncAdd, ...X },
+    // comp should only contains valid JSON object
+    comp: {
         asyncRootSquare: {
-            X.wrapCommand: [1, "<commandRootSquare>"],
+            vals: ["<commandRootSquare>"],
+            pipe: "wrapCommand",
         },
         asyncMultiply: {
-            X.wrapNodeback: [2, "<nodebackMultiply>"],
+            vals: ["<nodebackMultiply>"],
+            pipe: "wrapCommand",
         },
         asyncAdd: {
-            X.wrapSync: [2, "<syncAdd>"],
+            vals: ["<syncAdd>"],
+            pipe: "wrapCommand",
         },
         asyncAddAndMinus: {
-            X.parallel: [2, ["<asyncAdd>", "<asyncMinus>"]],
+            vals: ["<asyncAdd>", "<asyncMinus>"],
+            pipe: "wrapCommand",
         },
         convergedAsyncMultiply: {
-            X.convergeInput: "<asyncMultiply>",
-        ],
+            vals: ["<asyncMultiply>"],
+            pipe: "wrapCommand",
+        },
         main: {
-            X.pipeP: [
+            vals: [
                 "<asyncAddAndMinus>",
                 "<convergedAsyncMultiply>",
                 "<asyncRootSquare>",
             ],
+            pipe: "pipeP",
         },
     },
-    do: "<main>",
+    main: "<main>",
 });
 ```
 

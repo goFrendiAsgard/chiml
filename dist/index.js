@@ -17,27 +17,49 @@ const FG_RED = "\x1b[31m";
 // const FG_WHITE = "\x1b[37m";
 const FG_YELLOW = "\x1b[33m";
 const RESET_COLOR = "\x1b[0m";
+const parallelN = R.curry(internalParallel);
+const wrapCommandN = R.curry(internalWrapCommand);
+const wrapNodebackN = R.curry(internalWrapNodeback);
+const wrapSyncN = R.curry(internalWrapSync);
+const parallel = parallelN(0);
+const wrapCommand = wrapCommandN(0);
+const wrapNodeback = wrapNodebackN(0);
+const wrapSync = wrapSyncN(0);
 exports.X = Object.assign({}, R, {
     convergeInput,
-    parallel: R.curry(parallel),
-    wrapCommand: R.curry(wrapCommand),
-    wrapNodeback: R.curry(wrapNodeback),
-    wrapSync: R.curry(wrapSync),
+    declarative,
+    parallel,
+    parallelN,
+    wrapCommand,
+    wrapCommandN,
+    wrapNodeback,
+    wrapNodebackN,
+    wrapSync,
+    wrapSyncN,
 });
+function declarative(declarativeConfig) {
+    const { definition, declaration, action } = declarativeConfig;
+    const defaultAction = "<identity>";
+    const realDefinition = Object.assign({}, exports.X, definition);
+    const realDeclaration = Object.assign({ defaultAction }, declaration);
+    const realAction = action || "defaultAction";
+    const dictionary = Object.assign({}, definition);
+    return (...args) => console.dir(args);
+}
 function convergeInput(fn) {
     function func(arr) {
         return fn(...arr);
     }
     return func;
 }
-function parallel(arity, fnList) {
+function internalParallel(arity, fnList) {
     function func(...args) {
         const promises = fnList.map((fn) => fn(...args));
         return Promise.all(promises);
     }
     return R.curryN(arity, func);
 }
-function wrapSync(arity, fn) {
+function internalWrapSync(arity, fn) {
     function func(...args) {
         return __awaiter(this, void 0, void 0, function* () {
             return Promise.resolve(fn(...args));
@@ -45,14 +67,14 @@ function wrapSync(arity, fn) {
     }
     return R.curryN(arity, func);
 }
-function wrapCommand(arity, stringCommand) {
+function internalWrapCommand(arity, stringCommand) {
     function func(...args) {
         const composedStringCommand = getEchoPipedStringCommand(stringCommand, args);
         return runStringCommand(composedStringCommand);
     }
     return R.curryN(arity, func);
 }
-function wrapNodeback(arity, fn) {
+function internalWrapNodeback(arity, fn) {
     function func(...args) {
         return new Promise((resolve, reject) => {
             function callback(error, ...result) {
