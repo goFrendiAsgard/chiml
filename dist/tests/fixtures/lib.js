@@ -16,4 +16,3 @@ function nodebackMultiply(a, b, callback) {
 }
 exports.nodebackMultiply = nodebackMultiply;
 exports.commandRootSquare = `python3 ${rootSquarePath}`;
-//# sourceMappingURL=lib.js.map

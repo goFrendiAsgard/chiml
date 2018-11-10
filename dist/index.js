@@ -222,4 +222,3 @@ function _getDoubleQuotedString(str) {
     const newStr = str.replace(/"/g, "\\\"");
     return `"${newStr}"`;
 }
-//# sourceMappingURL=index.js.map

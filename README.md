@@ -35,7 +35,7 @@ export const commandRootSquare = "python3 rootSquare.py";
 import { X } from "chiml";
 import { asyncMinus, commandRootSquare, nodebackMultiply, syncAdd } from "./lib";
 
-export default function main(a: number, b: number): Promise<void> {
+export function main(a: number, b: number): Promise<void> {
     const asyncRootSquare = X.wrapCommand(commandRootSquare);
     const asyncMultiply = X.wrapNodeback(nodebackMultiply);
     const asyncAdd = X.wrapSync(syncAdd);
@@ -58,7 +58,7 @@ export default function main(a: number, b: number): Promise<void> {
 import { X } from "chiml";
 import { asyncMinus, commandRootSquare, nodebackMultiply, syncAdd } from "./lib";
 
-export default const main = X.declarative({
+export const main = X.declarative({
     // vals can contains any values/JavaScript object
     vals: { asyncMinus, commandRootSquare, nodebackMultiply, syncAdd, ...X },
     // comp should only contains valid JSON object

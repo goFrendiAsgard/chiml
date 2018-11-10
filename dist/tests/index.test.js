@@ -223,4 +223,3 @@ describe("declarative style", () => {
         }
     });
 });
-//# sourceMappingURL=index.test.js.map

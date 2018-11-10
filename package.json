@@ -4,8 +4,7 @@
   "description": "Typescripting",
   "main": "dist/index.js",
   "bin": {
-    "chie": "dist/tools/chie.js",
-    "chic": "dist/tools/chic.js"
+    "chie": "chie.js"
   },
   "scripts": {
     "lint": "tslint -c tslint.json 'src/**/*.{ts,tsx}'",
