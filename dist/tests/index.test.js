@@ -10,8 +10,98 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const index_1 = require("../index");
 const lib_1 = require("./fixtures/lib");
-describe("Case", () => {
-    it("Imperative Style", () => __awaiter(this, void 0, void 0, function* () {
+describe("foldInput", () => {
+    it("works", () => {
+        const fn = (...args) => index_1.X.sum(args);
+        const foldedFn = index_1.X.foldInput(fn);
+        const result = foldedFn([1, 2, 3]);
+        expect(result).toBe(6);
+    });
+});
+describe("spreadInput", () => {
+    it("works", () => {
+        const fn = (args) => index_1.X.sum(args);
+        const spreadedFn = index_1.X.spreadInput(fn);
+        const result = spreadedFn(1, 2, 3);
+        expect(result).toBe(6);
+    });
+});
+describe("wrapSync", () => {
+    it("works", () => __awaiter(this, void 0, void 0, function* () {
+        const fn = (args) => index_1.X.sum(args);
+        const wrapped = index_1.X.wrapSync(fn);
+        const result = yield wrapped([1, 2, 3]);
+        expect(result).toBe(6);
+        return null;
+    }));
+});
+describe("wrapNodeback", () => {
+    it("works", () => __awaiter(this, void 0, void 0, function* () {
+        const fn = (a, b, cb) => cb(null, a + b);
+        const wrapped = index_1.X.wrapNodeback(fn);
+        const result = yield wrapped(4, 5);
+        expect(result).toBe(9);
+        return null;
+    }));
+    it("works on multiple-return", () => __awaiter(this, void 0, void 0, function* () {
+        const fn = (a, b, cb) => cb(null, a + b, a - b);
+        const wrapped = index_1.X.wrapNodeback(fn);
+        const result = yield wrapped(4, 5);
+        expect(result).toMatchObject([9, -1]);
+        return null;
+    }));
+    it("throw error on callback-error", () => __awaiter(this, void 0, void 0, function* () {
+        const fn = (cb) => cb("error");
+        const wrapped = index_1.X.wrapNodeback(fn);
+        try {
+            const result = yield wrapped();
+            expect(result).toBeUndefined();
+        }
+        catch (error) {
+            expect(error).toBe("error");
+        }
+        return null;
+    }));
+});
+describe("wrapCommand", () => {
+    it("works", () => __awaiter(this, void 0, void 0, function* () {
+        const wrapped = index_1.X.wrapCommand(lib_1.commandRootSquare);
+        const result = yield wrapped(4);
+        expect(result).toBe(2);
+        return null;
+    }));
+    it("works on non-json-parsable return", () => __awaiter(this, void 0, void 0, function* () {
+        const wrapped = index_1.X.wrapCommand("echo");
+        const result = yield wrapped("Hello world");
+        expect(result).toBe("Hello world");
+        return null;
+    }));
+    it("works on single-word command", () => __awaiter(this, void 0, void 0, function* () {
+        const wrapped = index_1.X.wrapCommand("echo");
+        const result = yield wrapped("Hello world");
+        expect(result).toBe("Hello world");
+        return null;
+    }));
+    it("works on command with templated-parameter", () => __awaiter(this, void 0, void 0, function* () {
+        const wrapped = index_1.X.wrapCommand("echo ${2} ${1}");
+        const result = yield wrapped("world", "Hello");
+        expect(result).toBe("Hello world");
+        return null;
+    }));
+    it("throw error on command-error", () => __awaiter(this, void 0, void 0, function* () {
+        const wrapped = index_1.X.wrapCommand("mantan not found");
+        try {
+            const result = yield wrapped();
+            expect(result).toBeUndefined();
+        }
+        catch (error) {
+            expect(error).toBeDefined();
+        }
+        return null;
+    }));
+});
+describe("imperative style", () => {
+    it("works", () => __awaiter(this, void 0, void 0, function* () {
         // composition
         const asyncRootSquare = index_1.X.wrapCommand(lib_1.commandRootSquare);
         const asyncMultiply = index_1.X.wrapNodeback(lib_1.nodebackMultiply);
@@ -24,7 +114,9 @@ describe("Case", () => {
         expect(result).toBe(8);
         return null;
     }));
-    it("Declarative Style", () => __awaiter(this, void 0, void 0, function* () {
+});
+describe("declarative style", () => {
+    it("works", () => __awaiter(this, void 0, void 0, function* () {
         const main = index_1.X.declarative({
             // vals can contains any values/JavaScript object
             vals: Object.assign({ asyncMinus: lib_1.asyncMinus, commandRootSquare: lib_1.commandRootSquare, nodebackMultiply: lib_1.nodebackMultiply, syncAdd: lib_1.syncAdd }, index_1.X),
@@ -66,5 +158,69 @@ describe("Case", () => {
         expect(result).toBe(8);
         return null;
     }));
+    it("works with non-string parameter", () => {
+        const main = index_1.X.declarative({
+            vals: Object.assign({}, index_1.X),
+            comp: {
+                addFour: {
+                    vals: [4],
+                    pipe: "add",
+                },
+            },
+            main: "addFour",
+        });
+        const result = main(3);
+        expect(result).toBe(7);
+    });
+    it("works with non-template string parameter", () => {
+        const main = index_1.X.declarative({
+            vals: Object.assign({}, index_1.X),
+            comp: {
+                sayHello: {
+                    vals: ["Hello "],
+                    pipe: "concat",
+                },
+            },
+            main: "sayHello",
+        });
+        const result = main("world");
+        expect(result).toBe("Hello world");
+    });
+    it("throw error if component is not exists ", () => {
+        try {
+            const main = index_1.X.declarative({
+                vals: Object.assign({}, index_1.X),
+                comp: {
+                    average: {
+                        vals: ["<rataRata>"],
+                        pipe: "pipe",
+                    },
+                },
+                main: "average",
+            });
+            expect(main).toBeUndefined();
+        }
+        catch (error) {
+            expect(error.message).toBe("<rataRata> is not found");
+        }
+    });
+    it("throw error if main is not exists", () => {
+        try {
+            const main = index_1.X.declarative({
+                vals: Object.assign({}, index_1.X),
+                comp: {
+                    nor: {
+                        vals: ["<or>", "<not>"],
+                        pipe: "pipe",
+                    },
+                },
+                main: "oraono",
+            });
+            expect(main).toBeUndefined();
+        }
+        catch (error) {
+            expect(error.message).toBe("oraono is not defined");
+        }
+    });
 });
 //# sourceMappingURL=index.test.js.map

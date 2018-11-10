@@ -20,32 +20,35 @@ export const X = Object.assign({}, R, {
     wrapSync,
 });
 
+/**
+ * @param declarativeConfig IDeclarativeConfig
+ */
 function declarative(declarativeConfig: IDeclarativeConfig): AnyFunction {
     const { comp, main } = declarativeConfig;
-    const defaultAction = "<identity>";
     const dictionary = { ...declarativeConfig.vals };
     const compKeys = Object.keys(comp);
     // parse all `<key>`, create function, and register it to dictionary
-    for (const key in comp) {
-        if (!(key in comp)) { continue; }
+    for (const key of compKeys) {
         const { pipe, vals } = comp[key];
-        const parsedVals = getParsedCompVals(vals, dictionary);
+        const parsedVals = _getParsedCompVals(vals, dictionary);
         const factory = dictionary[pipe];
         const fn = factory(...parsedVals);
         dictionary[key] = fn;
     }
-    return (...args: any[]) => {
-        if (main in dictionary) {
-            const mainFunction = dictionary[main];
-            return mainFunction(...args);
-        }
-        throw(new Error(`${main} is not defined`));
-    };
+    if (main in dictionary) {
+        const mainFunction = dictionary[main];
+        return mainFunction;
+    }
+    throw(new Error(`${main} is not defined`));
 }
 
-function getParsedCompVals(vals: any, dictionary: {[key: string]: any}) {
+/**
+ * @param vals any
+ * @param dictionary object
+ */
+function _getParsedCompVals(vals: any, dictionary: {[key: string]: any}) {
     if (Array.isArray(vals)) {
-        const newVals = vals.map((element) => getParsedCompVals(element, dictionary));
+        const newVals = vals.map((element) => _getParsedCompVals(element, dictionary));
         return newVals;
     }
     if (typeof vals === "string") {
@@ -63,45 +66,52 @@ function getParsedCompVals(vals: any, dictionary: {[key: string]: any}) {
     return vals;
 }
 
+/**
+ * @param fn AnyFunction
+ */
 function spreadInput<TArg, TResult>(fn: (arr: TArg[]) => TResult): (...args: TArg[]) => TResult {
-    function func(...args: TArg[]): TResult {
+    function spreaded(...args: TArg[]): TResult {
         return fn(args);
     }
-    return func;
+    return spreaded;
 }
 
+/**
+ * @param fn AnyFunction
+ */
 function foldInput<TArg, TResult>(fn: (...args: TArg[]) => TResult): (arr: TArg[]) => TResult {
-    function func(arr: any[]): any {
+    function folded(arr: any[]): any {
         return fn(...arr);
     }
-    return func;
+    return folded;
 }
 
+/**
+ * @param fnList AnyAsynchronousFunction
+ */
 function parallel(...fnList: AnyAsyncFunction[]): AnyAsyncFunction {
-    function func(...args: any[]): Promise<any> {
+    function parallelPipe(...args: any[]): Promise<any> {
         const promises: Array<Promise<any>> = fnList.map((fn) => fn(...args));
         return Promise.all(promises);
     }
-    return func;
+    return parallelPipe;
 }
 
+/**
+ * @param fn AnyFunction
+ */
 function wrapSync<TArg, TResult>(fn: (...args: TArg[]) => TResult): (...args: TArg[]) => Promise<TResult> {
-    async function func(...args: TArg[]): Promise<TResult> {
+    async function wrappedSync(...args: TArg[]): Promise<TResult> {
         return Promise.resolve(fn(...args));
     }
-    return func;
+    return wrappedSync;
 }
 
-function wrapCommand(stringCommand: string): AnyAsyncFunction {
-    function func(...args: any[]): Promise<any> {
-        const composedStringCommand = getEchoPipedStringCommand(stringCommand, args);
-        return runStringCommand(composedStringCommand);
-    }
-    return func;
-}
-
+/**
+ * @param fn AnyFunction
+ */
 function wrapNodeback(fn: AnyFunction): AnyAsyncFunction {
-    function func(...args: any[]): Promise<any> {
+    function wrappedNodeback(...args: any[]): Promise<any> {
         return new Promise((resolve, reject) => {
             function callback(error, ...result) {
                 if (error) {
@@ -117,11 +127,41 @@ function wrapNodeback(fn: AnyFunction): AnyAsyncFunction {
             fn(...newArgs);
         });
     }
-    return func;
+    return wrappedNodeback;
 }
 
-function runStringCommand(stringCommand: string, options?: { [key: string]: any }): Promise<any> {
+/**
+ * @param stringCommand string
+ */
+function wrapCommand(stringCommand: string): AnyAsyncFunction {
+    function wrappedCommand(...args: any[]): Promise<any> {
+        const composedStringCommand = _getEchoPipedStringCommand(stringCommand, args);
+        return _runStringCommand(composedStringCommand);
+    }
+    return wrappedCommand;
+}
+
+/**
+ * @param strCmd string
+ * @param ins any[]
+ */
+function _getEchoPipedStringCommand(strCmd: string, ins: any[]): string {
+    if (ins.length === 0) {
+        return strCmd;
+    }
+    const echoes = ins.map((element) => "echo " + _getDoubleQuotedString(String(element))).join(" && ");
+    const commandWithParams = _getStringCommandWithParams(strCmd, ins);
+    const composedCommand = `(${echoes}) | ${commandWithParams}`;
+    return composedCommand;
+}
+
+/**
+ * @param stringCommand string
+ * @param options object
+ */
+function _runStringCommand(stringCommand: string, options?: { [key: string]: any }): Promise<any> {
     return new Promise((resolve, reject) => {
+        // define subProcess
         const subProcess = exec(stringCommand, options, (error, stdout, stderr) => {
             if (error) {
                 return reject(error);
@@ -132,62 +172,55 @@ function runStringCommand(stringCommand: string, options?: { [key: string]: any 
                 return resolve(stdout.trim());
             }
         });
-
+        // subProcess.stdout data listener
         subProcess.stdout.on("data", (chunk) => {
             process.stderr.write(BRIGHT + FG_YELLOW);
             process.stderr.write(String(chunk));
             process.stderr.write(RESET_COLOR);
         });
-
+        // subProcess.stderr data listener
         subProcess.stderr.on("data", (chunk) => {
             process.stderr.write(BRIGHT + FG_RED);
             process.stderr.write(String(chunk));
             process.stderr.write(RESET_COLOR);
         });
-
-        const stdinListener = getNewStdinListener(subProcess);
-
-        process.stdin.on("data", stdinListener);
+        // subProcess.stdin data listener
+        const stdinListener = (chunk) => subProcess.stdin.write(chunk);
+        subProcess.stdin.on("data", stdinListener);
         subProcess.stdin.on("end", () => {
             process.stdin.removeListener("data", stdinListener);
             process.stdin.end();
         });
-        subProcess.stdin.on("error", (error) => console.error(error));
-        process.stdin.on("error", (error) => console.error(error));
-
+        // subProcess.stdin error listener
+        const errorListener = (error) => console.error(error);
+        subProcess.stdin.on("error", errorListener);
+        process.stdin.on("error", errorListener);
     });
 }
 
-function getEchoPipedStringCommand(strCmd: string, ins: any[]): string {
-    if (ins.length === 0) {
-        return strCmd;
-    }
-    const echoes = ins.map((element) => "echo " + getDoubleQuotedString(String(element))).join(" && ");
-    const commandWithParams = getStringCommandWithParams(strCmd, ins);
-    const composedCommand = `(${echoes}) | ${commandWithParams}`;
-    return composedCommand;
-}
-
-function getStringCommandWithParams(strCmd: string, ins: any[]): string {
+/**
+ * @param strCmd string
+ * @param ins any[]
+ */
+function _getStringCommandWithParams(strCmd: string, ins: any[]): string {
     // command has no templated parameters
     if (strCmd.match(/.*\$\{[0-9]+\}.*/g)) {
         // command has templated parameters (i.e: ${1}, ${2}, etc)
         let commandWithParams = strCmd;
         for (let i = 0; i < ins.length; i++) {
             const paramIndex = i + 1;
-            commandWithParams = commandWithParams.replace(`$\{${paramIndex}}`, getDoubleQuotedString(String(ins[i])));
+            commandWithParams = commandWithParams.replace(`$\{${paramIndex}}`, _getDoubleQuotedString(String(ins[i])));
         }
         return commandWithParams;
     }
-    const inputs = ins.map((element) => getDoubleQuotedString(String(element))).join(" ");
+    const inputs = ins.map((element) => _getDoubleQuotedString(String(element))).join(" ");
     return `${strCmd} ${inputs}`;
 }
 
-function getNewStdinListener(subProcess: ChildProcess): (chunk: any) => void {
-    return (chunk) => subProcess.stdin.write(chunk);
-}
-
-function getDoubleQuotedString(str: string): string {
+/**
+ * @param str string
+ */
+function _getDoubleQuotedString(str: string): string {
     const newStr = str.replace(/"/g, "\\\"");
     return `"${newStr}"`;
 }
