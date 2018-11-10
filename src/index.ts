@@ -1,6 +1,6 @@
 import { ChildProcess, exec } from "child_process";
 import * as R from "ramda";
-import { AnyAsyncFunction, AnyFunction, IDeclarativeConfig } from "./interfaces/descriptor";
+import { AnyAsyncFunction, AnyFunction, IComponent, IDeclarativeConfig } from "./interfaces/descriptor";
 
 const BRIGHT = "\x1b[1m";
 // const FG_BLUE = "\x1b[34m";
@@ -21,10 +21,46 @@ export const X = Object.assign({}, R, {
 });
 
 function declarative(declarativeConfig: IDeclarativeConfig): AnyFunction {
-    const { vals, comp, main } = declarativeConfig;
+    const { comp, main } = declarativeConfig;
     const defaultAction = "<identity>";
-    const dictionary = { ...vals };
-    return (...args: any[]) => console.dir(args);
+    const dictionary = { ...declarativeConfig.vals };
+    const compKeys = Object.keys(comp);
+    // parse all `<key>`, create function, and register it to dictionary
+    for (const key in comp) {
+        if (!(key in comp)) { continue; }
+        const { pipe, vals } = comp[key];
+        const parsedVals = getParsedCompVals(vals, dictionary);
+        const factory = dictionary[pipe];
+        const fn = factory(...parsedVals);
+        dictionary[key] = fn;
+    }
+    return (...args: any[]) => {
+        if (main in dictionary) {
+            const mainFunction = dictionary[main];
+            return mainFunction(...args);
+        }
+        throw(new Error(`${main} is not defined`));
+    };
+}
+
+function getParsedCompVals(vals: any, dictionary: {[key: string]: any}) {
+    if (Array.isArray(vals)) {
+        const newVals = vals.map((element) => getParsedCompVals(element, dictionary));
+        return newVals;
+    }
+    if (typeof vals === "string") {
+        const tagPattern = /<(.+)>/gi;
+        const match = tagPattern.exec(vals);
+        if (match) {
+            const key = match[1];
+            if (key in dictionary) {
+                return dictionary[key];
+            }
+            throw(new Error(`<${key}> is not found`));
+        }
+        return vals;
+    }
+    return vals;
 }
 
 function spreadInput<TArg, TResult>(fn: (arr: TArg[]) => TResult): (...args: TArg[]) => TResult {

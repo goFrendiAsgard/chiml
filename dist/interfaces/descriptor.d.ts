@@ -1,12 +1,17 @@
+export declare type AnyFunction = (...args: any[]) => any;
+export declare type AnyAsyncFunction = (...args: any[]) => Promise<any>;
 export interface IDeclarativeConfig {
-    definition: {
+    vals: {
         [key: string]: any;
     };
-    declaration: {
-        [key: string]: IDeclaration;
+    comp: {
+        [key: string]: IComponent;
     };
-    action: string;
+    main: string;
 }
-export interface IDeclaration {
-    [key: string]: any[];
+export interface IComponent {
+    vals: any[];
+    pipe: string;
+    parsedVals?: any[];
+    fn?: AnyFunction;
 }

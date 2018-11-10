@@ -10,4 +10,6 @@ export interface IDeclarativeConfig {
 export interface IComponent {
     vals: any[];
     pipe: string;
+    parsedVals?: any[];
+    fn?: AnyFunction;
 }

@@ -17,64 +17,93 @@ const FG_RED = "\x1b[31m";
 // const FG_WHITE = "\x1b[37m";
 const FG_YELLOW = "\x1b[33m";
 const RESET_COLOR = "\x1b[0m";
-const parallelN = R.curry(internalParallel);
-const wrapCommandN = R.curry(internalWrapCommand);
-const wrapNodebackN = R.curry(internalWrapNodeback);
-const wrapSyncN = R.curry(internalWrapSync);
-const parallel = parallelN(0);
-const wrapCommand = wrapCommandN(0);
-const wrapNodeback = wrapNodebackN(0);
-const wrapSync = wrapSyncN(0);
 exports.X = Object.assign({}, R, {
-    convergeInput,
     declarative,
+    foldInput,
+    spreadInput,
     parallel,
-    parallelN,
     wrapCommand,
-    wrapCommandN,
     wrapNodeback,
-    wrapNodebackN,
     wrapSync,
-    wrapSyncN,
 });
 function declarative(declarativeConfig) {
-    const { definition, declaration, action } = declarativeConfig;
+    const { comp, main } = declarativeConfig;
     const defaultAction = "<identity>";
-    const realDefinition = Object.assign({}, exports.X, definition);
-    const realDeclaration = Object.assign({ defaultAction }, declaration);
-    const realAction = action || "defaultAction";
-    const dictionary = Object.assign({}, definition);
-    return (...args) => console.dir(args);
+    const dictionary = Object.assign({}, declarativeConfig.vals);
+    const compKeys = Object.keys(comp);
+    // parse all `<key>`, create function, and register it to dictionary
+    for (const key in comp) {
+        if (!(key in comp)) {
+            continue;
+        }
+        const { pipe, vals } = comp[key];
+        const parsedVals = getParsedCompVals(vals, dictionary);
+        const factory = dictionary[pipe];
+        const fn = factory(...parsedVals);
+        dictionary[key] = fn;
+    }
+    return (...args) => {
+        if (main in dictionary) {
+            const mainFunction = dictionary[main];
+            return mainFunction(...args);
+        }
+        throw (new Error(`${main} is not defined`));
+    };
 }
-function convergeInput(fn) {
+function getParsedCompVals(vals, dictionary) {
+    if (Array.isArray(vals)) {
+        const newVals = vals.map((element) => getParsedCompVals(element, dictionary));
+        return newVals;
+    }
+    if (typeof vals === "string") {
+        const tagPattern = /<(.+)>/gi;
+        const match = tagPattern.exec(vals);
+        if (match) {
+            const key = match[1];
+            if (key in dictionary) {
+                return dictionary[key];
+            }
+            throw (new Error(`<${key}> is not found`));
+        }
+        return vals;
+    }
+    return vals;
+}
+function spreadInput(fn) {
+    function func(...args) {
+        return fn(args);
+    }
+    return func;
+}
+function foldInput(fn) {
     function func(arr) {
         return fn(...arr);
     }
     return func;
 }
-function internalParallel(arity, fnList) {
+function parallel(...fnList) {
     function func(...args) {
         const promises = fnList.map((fn) => fn(...args));
         return Promise.all(promises);
     }
-    return R.curryN(arity, func);
+    return func;
 }
-function internalWrapSync(arity, fn) {
+function wrapSync(fn) {
     function func(...args) {
         return __awaiter(this, void 0, void 0, function* () {
             return Promise.resolve(fn(...args));
         });
     }
-    return R.curryN(arity, func);
+    return func;
 }
-function internalWrapCommand(arity, stringCommand) {
+function wrapCommand(stringCommand) {
     function func(...args) {
         const composedStringCommand = getEchoPipedStringCommand(stringCommand, args);
         return runStringCommand(composedStringCommand);
     }
-    return R.curryN(arity, func);
+    return func;
 }
-function internalWrapNodeback(arity, fn) {
+function wrapNodeback(fn) {
     function func(...args) {
         return new Promise((resolve, reject) => {
             function callback(error, ...result) {
@@ -87,14 +116,11 @@ function internalWrapNodeback(arity, fn) {
                 return resolve(result);
             }
             const newArgs = Array.from(args);
-            if (newArgs.length < arity) {
-                newArgs.push(undefined);
-            }
             newArgs.push(callback);
             fn(...newArgs);
         });
     }
-    return R.curryN(arity, func);
+    return func;
 }
 function runStringCommand(stringCommand, options) {
     return new Promise((resolve, reject) => {

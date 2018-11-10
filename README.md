@@ -40,7 +40,7 @@ export default function main(a: number, b: number): Promise<void> {
     const asyncMultiply = X.wrapNodeback(nodebackMultiply);
     const asyncAdd = X.wrapSync(syncAdd);
     const asyncAddAndMinus = X.parallel(asyncAdd, asyncMinus);
-    const convergedAsyncMultiply = X.convergeInput(asyncMultiply);
+    const convergedAsyncMultiply = X.foldInput(asyncMultiply);
     const main: (a: number, b: number) => Promise<number> = X.pipeP(
         asyncAddAndMinus,
         convergedAsyncMultiply,
@@ -69,19 +69,19 @@ export default const main = X.declarative({
         },
         asyncMultiply: {
             vals: ["<nodebackMultiply>"],
-            pipe: "wrapCommand",
+            pipe: "wrapNodeback",
         },
         asyncAdd: {
             vals: ["<syncAdd>"],
-            pipe: "wrapCommand",
+            pipe: "wrapSync",
         },
         asyncAddAndMinus: {
             vals: ["<asyncAdd>", "<asyncMinus>"],
-            pipe: "wrapCommand",
+            pipe: "parallel",
         },
         convergedAsyncMultiply: {
             vals: ["<asyncMultiply>"],
-            pipe: "wrapCommand",
+            pipe: "foldInput",
         },
         main: {
             vals: [
@@ -92,7 +92,7 @@ export default const main = X.declarative({
             pipe: "pipeP",
         },
     },
-    main: "<main>",
+    main: "main",
 });
 ```
 

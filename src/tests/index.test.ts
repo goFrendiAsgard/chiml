@@ -33,19 +33,19 @@ describe("Case", () => {
                 },
                 asyncMultiply: {
                     vals: ["<nodebackMultiply>"],
-                    pipe: "wrapCommand",
+                    pipe: "wrapNodeback",
                 },
                 asyncAdd: {
                     vals: ["<syncAdd>"],
-                    pipe: "wrapCommand",
+                    pipe: "wrapSync",
                 },
                 asyncAddAndMinus: {
                     vals: ["<asyncAdd>", "<asyncMinus>"],
-                    pipe: "wrapCommand",
+                    pipe: "parallel",
                 },
                 convergedAsyncMultiply: {
                     vals: ["<asyncMultiply>"],
-                    pipe: "wrapCommand",
+                    pipe: "foldInput",
                 },
                 main: {
                     vals: [
@@ -56,7 +56,7 @@ describe("Case", () => {
                     pipe: "pipeP",
                 },
             },
-            main: "<main>",
+            main: "main",
         });
         // action
         const result = await main(10, 6);

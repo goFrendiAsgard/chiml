@@ -16,8 +16,8 @@ describe("Case", () => {
         const asyncRootSquare = index_1.X.wrapCommand(lib_1.commandRootSquare);
         const asyncMultiply = index_1.X.wrapNodeback(lib_1.nodebackMultiply);
         const asyncAdd = index_1.X.wrapSync(lib_1.syncAdd);
-        const asyncAddAndMinus = index_1.X.parallel([asyncAdd, lib_1.asyncMinus]);
-        const convergedAsyncMultiply = index_1.X.convergeInput(asyncMultiply);
+        const asyncAddAndMinus = index_1.X.parallel(asyncAdd, lib_1.asyncMinus);
+        const convergedAsyncMultiply = index_1.X.foldInput(asyncMultiply);
         const main = index_1.X.pipeP(asyncAddAndMinus, convergedAsyncMultiply, asyncRootSquare);
         // action
         const result = yield main(10, 6);
@@ -26,34 +26,40 @@ describe("Case", () => {
     }));
     it("Declarative Style", () => __awaiter(this, void 0, void 0, function* () {
         const main = index_1.X.declarative({
-            // define can contains any valid javascript object
-            definition: { asyncMinus: lib_1.asyncMinus, commandRootSquare: lib_1.commandRootSquare, nodebackMultiply: lib_1.nodebackMultiply, syncAdd: lib_1.syncAdd },
-            // declare and main should only contains valid JSON object
-            declaration: {
-                asyncAdd: {
-                    wrapSync: [2, "<syncAdd>"],
-                },
-                asyncAddAndMinus: {
-                    parallel: [2, ["<asyncAdd>", "<asyncMinus>"]],
+            // vals can contains any values/JavaScript object
+            vals: Object.assign({ asyncMinus: lib_1.asyncMinus, commandRootSquare: lib_1.commandRootSquare, nodebackMultiply: lib_1.nodebackMultiply, syncAdd: lib_1.syncAdd }, index_1.X),
+            // comp should only contains valid JSON object
+            comp: {
+                asyncRootSquare: {
+                    vals: ["<commandRootSquare>"],
+                    pipe: "wrapCommand",
                 },
                 asyncMultiply: {
-                    wrapNodeback: [2, "<nodebackMultiply>"],
+                    vals: ["<nodebackMultiply>"],
+                    pipe: "wrapNodeback",
                 },
-                asyncRootSquare: {
-                    wrapCommand: [1, "<commandRootSquare>"],
+                asyncAdd: {
+                    vals: ["<syncAdd>"],
+                    pipe: "wrapSync",
+                },
+                asyncAddAndMinus: {
+                    vals: ["<asyncAdd>", "<asyncMinus>"],
+                    pipe: "parallel",
                 },
                 convergedAsyncMultiply: {
-                    convergeInput: ["<asyncMultiply>"],
+                    vals: ["<asyncMultiply>"],
+                    pipe: "foldInput",
                 },
-                mainAction: {
-                    pipeP: [
+                main: {
+                    vals: [
                         "<asyncAddAndMinus>",
                         "<convergedAsyncMultiply>",
                         "<asyncRootSquare>",
                     ],
+                    pipe: "pipeP",
                 },
             },
-            action: "mainAction",
+            main: "main",
         });
         // action
         const result = yield main(10, 6);
