@@ -2,14 +2,12 @@ export type AnyFunction = (...args: any[]) => any;
 export type AnyAsyncFunction = (...args: any[]) => Promise<any>;
 
 export interface IDeclarativeConfig {
-    vals: {[key: string]: any};
-    comp: {[key: string]: IComponent};
-    main: string;
+    injection: {[key: string]: any};
+    component: {[key: string]: IComponent};
+    bootstrap: string;
 }
 
 export interface IComponent {
     vals: any[];
     pipe: string;
-    parsedVals?: any[];
-    fn?: AnyFunction;
 }

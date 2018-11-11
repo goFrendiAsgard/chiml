@@ -40,8 +40,8 @@
   "homepage": "https://github.com/goFrendiAsgard/chimera-framework#readme",
   "dependencies": {
     "@types/ramda": "^0.26.0",
-    "ramda": "^0.25.0",
-    "typescript": "^3.1.1"
+    "js-yaml": "^3.12.0",
+    "ramda": "^0.25.0"
   },
   "devDependencies": {
     "@types/jest": "^23.3.2",

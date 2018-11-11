@@ -1,0 +1,45 @@
+component:
+
+    # function () => Promise<jsonString>
+    apiFetcher:
+        pipe: wrapCommand
+        vals: [<fetcherCommand>]
+
+    # function (apiResult: {<imageKey>: string}) => string
+    extractImage:
+        pipe: prop
+        vals: [<imageKey>]
+
+    # function () => Promise<string>
+    imageFetcher:
+        pipe: pipeP
+        vals:
+            - <apiFetcher>
+            - <extractImage>
+
+    # function (year: string) => string
+    calendarFetcher:
+        pipe: wrapCommand
+        vals: [<calCommand>]
+
+    # function (year: string) => [imageUrl, calendar]
+    fetchImageAndCalendar:
+        pipe: parallel
+        vals: 
+            - <imageFetcher>
+            - <calendarFetcher>
+
+    # function ([url, calendar]) => html: string
+    composeCalendar:
+        pipe: foldInput
+        vals: [<composeHtml>]
+
+    # function (year: string) => html: string
+    main:
+        pipe: pipeP        
+        vals:
+            - <fetchImageAndCalendar>
+            - <composeCalendar>
+
+
+bootstrap: main

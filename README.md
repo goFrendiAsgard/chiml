@@ -1,13 +1,17 @@
 # CHIML
 
-CHIML is stands for Chimera-Lib. It is a collection of useful libraries that keep you sane while doing some typescript.
+CHIML is stands for Chimera-Language. It is a `YAML` configuration as well as `JavaScript` library allowing you to build solution by reusing and composing any pre-existing components. CHIML providing some wrappers like `wrapCommand`, and `wrapNodeback`. Those wrappers let you turn any `console-based-application` and `nodeback-functions` into `Javascript-async-function`.
+
+CHIML is based on `Ramda.js`. You can use any functions exposed by CHIML independently or combine it with other frameworks.
 
 # Goals
 
 * Creating a declarative composition tool to let developers build software based on pre-existing components (either written in Javascript or any other language).
 * Promoting strong composition structure.
-* Minimizing runtime-error by checking everything at first.
-* Eliminating the use of vm module.
+* Promoting `DRY` principle.
+* Promoting `inversion-of-control` principle.
+* Minimizing future `runtime-error` by checking everything at first.
+* Eliminating the use of `vm` module.
 * Eliminating magics while reducing verbosity.
 
 # Example
@@ -60,9 +64,9 @@ import { asyncMinus, commandRootSquare, nodebackMultiply, syncAdd } from "./lib"
 
 export const main = X.declarative({
     // vals can contains any values/JavaScript object
-    vals: { asyncMinus, commandRootSquare, nodebackMultiply, syncAdd, ...X },
+    injection: { asyncMinus, commandRootSquare, nodebackMultiply, syncAdd, ...X },
     // comp should only contains valid JSON object
-    comp: {
+    component: {
         asyncRootSquare: {
             vals: ["<commandRootSquare>"],
             pipe: "wrapCommand",
@@ -92,7 +96,7 @@ export const main = X.declarative({
             pipe: "pipeP",
         },
     },
-    main: "main",
+    bootstrap: "main",
 });
 ```
 

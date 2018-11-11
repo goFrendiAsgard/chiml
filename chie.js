@@ -1,30 +1,20 @@
 #! /usr/bin/env node
-const { readFile } = require("fs");
-const { ModuleKind, ScriptTarget, transpileModule } = require("typescript");
-const { runInThisContext } = require("vm");
-const { X } = require("./dist/index.js");
 
-async function _main(fileName, parameters) {
-    const compilerOptions = {
-        module: ModuleKind.CommonJS,
-        target: ScriptTarget.ES5,
-    };
-    try {
-        const tsCodeBuffer = await X.wrapNodeback(readFile)(fileName);
-        const tsCode = tsCodeBuffer.toString();
-        const jsCode = await transpileModule(tsCode, compilerOptions);
-        const vmResult = runInThisContext(jsCode);
-        return main(args);
-    } catch (error) {
-        return console.error(error);
-    }
-}
+const { X } = require("./dist/index.js");
+const jsYaml = require("js-yaml");
+const fs = require("fs");
 
 if (require.main === module) {
-    const args = process.argv.slice(2);
-    if (args.length < 1) {
-        return console.error("Parameter expected");
+    const rawArgs = process.argv.slice(2);
+    const [injectionFile, yamlFile, ...args] = rawArgs;
+    const yamlScript = fs.readFileSync(yamlFile).toString();
+    const config = jsYaml.safeLoad(yamlScript);
+    config.injection = require(injectionFile);
+    const bootstrap = X.declarative(config);
+    const result = bootstrap(...args);
+    if ('then' in result) {
+        result.then((realResult) => console.log(realResult));
+    } else {
+        console.log(result);
     }
-    const [ fileName, ...parameters ] = args;
-    _main(fileName, parameters);
 }

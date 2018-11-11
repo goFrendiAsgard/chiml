@@ -137,39 +137,39 @@ describe("declarative style", () => {
     it ("works", async () => {
         const main = X.declarative({
             // vals can contains any values/JavaScript object
-            vals: { asyncMinus, commandRootSquare, nodebackMultiply, syncAdd, ...X },
+            injection: { asyncMinus, commandRootSquare, nodebackMultiply, syncAdd, ...X },
             // comp should only contains valid JSON object
-            comp: {
+            component: {
                 asyncRootSquare: {
-                    vals: ["<commandRootSquare>"],
                     pipe: "wrapCommand",
+                    vals: ["<commandRootSquare>"],
                 },
                 asyncMultiply: {
-                    vals: ["<nodebackMultiply>"],
                     pipe: "wrapNodeback",
+                    vals: ["<nodebackMultiply>"],
                 },
                 asyncAdd: {
-                    vals: ["<syncAdd>"],
                     pipe: "wrapSync",
+                    vals: ["<syncAdd>"],
                 },
                 asyncAddAndMinus: {
-                    vals: ["<asyncAdd>", "<asyncMinus>"],
                     pipe: "parallel",
+                    vals: ["<asyncAdd>", "<asyncMinus>"],
                 },
                 convergedAsyncMultiply: {
-                    vals: ["<asyncMultiply>"],
                     pipe: "foldInput",
+                    vals: ["<asyncMultiply>"],
                 },
                 main: {
+                    pipe: "pipeP",
                     vals: [
                         "<asyncAddAndMinus>",
                         "<convergedAsyncMultiply>",
                         "<asyncRootSquare>",
                     ],
-                    pipe: "pipeP",
                 },
             },
-            main: "main",
+            bootstrap: "main",
         });
         // action
         const result = await main(10, 6);
@@ -179,14 +179,14 @@ describe("declarative style", () => {
 
     it("works with non-string parameter", () => {
         const main = X.declarative({
-            vals: {...X},
-            comp: {
+            injection: {...X},
+            component: {
                 addFour: {
-                    vals: [4],
                     pipe: "add",
+                    vals: [4],
                 },
             },
-            main: "addFour",
+            bootstrap: "addFour",
         });
         const result = main(3);
         expect(result).toBe(7);
@@ -194,14 +194,14 @@ describe("declarative style", () => {
 
     it("works with non-template string parameter", () => {
         const main = X.declarative({
-            vals: {...X},
-            comp: {
+            injection: {...X},
+            component: {
                 sayHello: {
-                    vals: ["Hello "],
                     pipe: "concat",
+                    vals: ["Hello "],
                 },
             },
-            main: "sayHello",
+            bootstrap: "sayHello",
         });
         const result = main("world");
         expect(result).toBe("Hello world");
@@ -210,14 +210,14 @@ describe("declarative style", () => {
     it("throw error if component is not exists ", () => {
         try {
             const main = X.declarative({
-                vals: {...X},
-                comp: {
+                injection: {...X},
+                component: {
                     average: {
-                        vals: ["<rataRata>"],
                         pipe: "pipe",
+                        vals: ["<rataRata>"],
                     },
                 },
-                main: "average",
+                bootstrap: "average",
             });
             expect(main).toBeUndefined();
         } catch (error) {
@@ -228,14 +228,14 @@ describe("declarative style", () => {
     it("throw error if main is not exists", () => {
         try {
             const main = X.declarative({
-                vals: {...X},
-                comp: {
+                injection: {...X},
+                component: {
                     nor: {
-                        vals: ["<or>", "<not>"],
                         pipe: "pipe",
+                        vals: ["<or>", "<not>"],
                     },
                 },
-                main: "oraono",
+                bootstrap: "oraono",
             });
             expect(main).toBeUndefined();
         } catch (error) {

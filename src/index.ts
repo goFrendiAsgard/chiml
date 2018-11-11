@@ -2,11 +2,9 @@ import { ChildProcess, exec } from "child_process";
 import * as R from "ramda";
 import { AnyAsyncFunction, AnyFunction, IComponent, IDeclarativeConfig } from "./interfaces/descriptor";
 
-const BRIGHT = "\x1b[1m";
-// const FG_BLUE = "\x1b[34m";
-// const FG_CYAN = "\x1b[36m";
+// const BRIGHT = "\x1b[1m";
+const FG_CYAN = "\x1b[36m";
 const FG_RED = "\x1b[31m";
-// const FG_WHITE = "\x1b[37m";
 const FG_YELLOW = "\x1b[33m";
 const RESET_COLOR = "\x1b[0m";
 
@@ -24,31 +22,37 @@ export const X = Object.assign({}, R, {
  * @param declarativeConfig IDeclarativeConfig
  */
 function declarative(declarativeConfig: IDeclarativeConfig): AnyFunction {
-    const { comp, main } = declarativeConfig;
-    const dictionary = { ...declarativeConfig.vals };
-    const compKeys = Object.keys(comp);
+    const { component, bootstrap } = declarativeConfig;
+    const dictionary = { ...declarativeConfig.injection };
+    const compKeys = Object.keys(component);
     // parse all `<key>`, create function, and register it to dictionary
     for (const key of compKeys) {
-        const { pipe, vals } = comp[key];
-        const parsedVals = _getParsedCompVals(vals, dictionary);
-        const factory = dictionary[pipe];
-        const fn = factory(...parsedVals);
-        dictionary[key] = fn;
+        const { pipe, vals } = component[key];
+        const parsedVals = _getParsecComponentVals(vals, dictionary);
+        try {
+            const factory = dictionary[pipe];
+            const fn = factory(...parsedVals);
+            dictionary[key] = fn;
+        } catch (error) {
+            const parsedValString = JSON.stringify(parsedVals);
+            error.message = `Error run ${pipe} ${parsedValString}: ${error.message}`;
+            throw(error);
+        }
     }
-    if (main in dictionary) {
-        const mainFunction = dictionary[main];
+    if (bootstrap in dictionary) {
+        const mainFunction = dictionary[bootstrap];
         return mainFunction;
     }
-    throw(new Error(`${main} is not defined`));
+    throw(new Error(`${bootstrap} is not defined`));
 }
 
 /**
  * @param vals any
  * @param dictionary object
  */
-function _getParsedCompVals(vals: any, dictionary: {[key: string]: any}) {
+function _getParsecComponentVals(vals: any, dictionary: {[key: string]: any}) {
     if (Array.isArray(vals)) {
-        const newVals = vals.map((element) => _getParsedCompVals(element, dictionary));
+        const newVals = vals.map((element) => _getParsecComponentVals(element, dictionary));
         return newVals;
     }
     if (typeof vals === "string") {
@@ -174,13 +178,13 @@ function _runStringCommand(stringCommand: string, options?: { [key: string]: any
         });
         // subProcess.stdout data listener
         subProcess.stdout.on("data", (chunk) => {
-            process.stderr.write(BRIGHT + FG_YELLOW);
+            process.stderr.write(FG_CYAN);
             process.stderr.write(String(chunk));
             process.stderr.write(RESET_COLOR);
         });
         // subProcess.stderr data listener
         subProcess.stderr.on("data", (chunk) => {
-            process.stderr.write(BRIGHT + FG_RED);
+            process.stderr.write(FG_YELLOW);
             process.stderr.write(String(chunk));
             process.stderr.write(RESET_COLOR);
         });
@@ -192,7 +196,11 @@ function _runStringCommand(stringCommand: string, options?: { [key: string]: any
             process.stdin.end();
         });
         // subProcess.stdin error listener
-        const errorListener = (error) => console.error(error);
+        const errorListener = (error) => {
+            process.stderr.write(FG_RED);
+            console.error(error);
+            process.stderr.write(RESET_COLOR);
+        };
         subProcess.stdin.on("error", errorListener);
         process.stdin.on("error", errorListener);
     });
