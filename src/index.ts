@@ -28,11 +28,11 @@ function declarative(declarativeConfig: IDeclarativeConfig): AnyFunction {
     // parse all `<key>`, create function, and register it to dictionary
     for (const key of compKeys) {
         const completeComponent = _getCompleteComponent(component[key]);
+        component[key] = completeComponent;
         const { pipe, parts } = completeComponent;
         const parsedParts = _getParsedComponentParts(parts, dictionary);
         try {
-            const factory = dictionary[pipe];
-            const fn = _isEmptyArray(parsedParts) ? factory : factory(...parsedParts);
+            const fn = _getComponentFunction(completeComponent, dictionary);
             dictionary[key] = fn;
         } catch (error) {
             const parsedPartsString = JSON.stringify(parsedParts);
@@ -41,10 +41,29 @@ function declarative(declarativeConfig: IDeclarativeConfig): AnyFunction {
         }
     }
     if (bootstrap in dictionary) {
-        const mainFunction = dictionary[bootstrap];
-        return mainFunction;
+        return _getWrappedBootstrapFunction(
+            component[bootstrap] as IComponent,
+            dictionary[bootstrap],
+        );
     }
     throw(new Error(`${bootstrap} is not defined`));
+}
+
+function _getWrappedBootstrapFunction(bootstrapComponent: IComponent, bootstrapFunction: AnyFunction): AnyFunction {
+    function wrappedFunction(...args) {
+        const { ins } = bootstrapComponent;
+        if (!_isEmptyArray(ins)) {
+            const state = {};
+            for (let i = 0; i < args.length; i++) {
+                const val = args[i];
+                const key = ins[i];
+                state[key] = val;
+            }
+            return bootstrapFunction(state);
+        }
+        return bootstrapFunction(...args);
+    }
+    return wrappedFunction;
 }
 
 function _getComponentFunction(component: IComponent, dictionary: {[key: string]: any}): AnyFunction {
@@ -66,13 +85,24 @@ function _getComponentFunction(component: IComponent, dictionary: {[key: string]
         if (!_isEmptyArray(outs)) {
             output = result;
         } else {
-            // TODO: if result contains promise, the output should be a promise,
-            // not a dictionary containing many promises
-            output = Object.assign({}, state, outs.map((key) => result[key]));
+            output = _getOutput(state, outs, result);
         }
+        console.error("TEST", {pipe, args, inputs, output});
         return output;
     }
     return wrappedFunction;
+}
+
+function _getOutput(state: {[key: string]: any}, outs: string[], result: any[]) {
+    if (_isArrayContainPromise(result)) {
+        return Promise.all(result).then((vals) => _getPrimitiveOutput(state, outs, result));
+    }
+    return _getPrimitiveOutput(state, outs, result);
+}
+
+function _getPrimitiveOutput(state: {[key: string]: any}, outs: string[], result: any[]) {
+    const output = Object.assign({}, state, outs.map((key) => result[key]));
+    return output;
 }
 
 function _getCompleteComponent(partialComponent: Partial<IComponent>): IComponent {
@@ -277,6 +307,30 @@ function _getDoubleQuotedString(str: string): string {
  */
 function _isEmptyArray(arr: any[]): boolean {
     if (Array.isArray(arr) && arr.length === 0) {
+        return true;
+    }
+    return false;
+}
+
+/**
+ * @param arr any[]
+ */
+function _isArrayContainPromise(arr: any[]): boolean {
+    if (Array.isArray(arr)) {
+        for (const val of arr) {
+            if (_isPromise(val)) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+/**
+ * @param obj any
+ */
+function _isPromise(obj: any): boolean {
+    if (typeof obj === "object" && obj.then) {
         return true;
     }
     return false;

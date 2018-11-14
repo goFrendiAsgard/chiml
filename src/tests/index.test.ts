@@ -140,32 +140,41 @@ describe("declarative style", () => {
             injection: { asyncMinus, commandRootSquare, nodebackMultiply, syncAdd, ...X },
             // comp should only contains valid JSON object
             component: {
-                asyncRootSquare: {
+                rootSquareE: {
+                    ins: ["e"],
+                    outs: ["f"],
                     pipe: "wrapCommand",
                     parts: ["<commandRootSquare>"],
                 },
-                asyncMultiply: {
+                cByD: {
+                    ins: ["c", "d"],
+                    outs: ["e"],
                     pipe: "wrapNodeback",
                     parts: ["<nodebackMultiply>"],
                 },
-                asyncAdd: {
+                aPlusB: {
+                    ins: ["a", "b"],
                     pipe: "wrapSync",
                     parts: ["<syncAdd>"],
                 },
-                asyncAddAndMinus: {
-                    pipe: "parallel",
-                    parts: ["<asyncAdd>", "<asyncMinus>"],
+                aMinB: {
+                    ins: ["a", "b"],
+                    pipe: "asyncMinus",
+                    parts: [],
                 },
-                convergedAsyncMultiply: {
-                    pipe: "foldInput",
-                    parts: ["<asyncMultiply>"],
+                aPlusBAndAMinB: {
+                    outs: ["c", "d"],
+                    pipe: "parallel",
+                    parts: ["<aPlusB>", "<aMinB>"],
                 },
                 main: {
+                    ins: ["a", "b"],
+                    outs: ["f"],
                     pipe: "pipeP",
                     parts: [
-                        "<asyncAddAndMinus>",
-                        "<convergedAsyncMultiply>",
-                        "<asyncRootSquare>",
+                        "<aPlusBAndAMinB>",
+                        "<cByD>",
+                        "<rootSquareE>",
                     ],
                 },
             },

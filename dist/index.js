@@ -34,11 +34,11 @@ function declarative(declarativeConfig) {
     // parse all `<key>`, create function, and register it to dictionary
     for (const key of compKeys) {
         const completeComponent = _getCompleteComponent(component[key]);
+        component[key] = completeComponent;
         const { pipe, parts } = completeComponent;
         const parsedParts = _getParsedComponentParts(parts, dictionary);
         try {
-            const factory = dictionary[pipe];
-            const fn = _isEmptyArray(parsedParts) ? factory : factory(...parsedParts);
+            const fn = _getComponentFunction(completeComponent, dictionary);
             dictionary[key] = fn;
         }
         catch (error) {
@@ -48,10 +48,25 @@ function declarative(declarativeConfig) {
         }
     }
     if (bootstrap in dictionary) {
-        const mainFunction = dictionary[bootstrap];
-        return mainFunction;
+        return _getWrappedBootstrapFunction(component[bootstrap], dictionary[bootstrap]);
     }
     throw (new Error(`${bootstrap} is not defined`));
+}
+function _getWrappedBootstrapFunction(bootstrapComponent, bootstrapFunction) {
+    function wrappedFunction(...args) {
+        const { ins } = bootstrapComponent;
+        if (!_isEmptyArray(ins)) {
+            const state = {};
+            for (let i = 0; i < args.length; i++) {
+                const val = args[i];
+                const key = ins[i];
+                state[key] = val;
+            }
+            return bootstrapFunction(state);
+        }
+        return bootstrapFunction(...args);
+    }
+    return wrappedFunction;
 }
 function _getComponentFunction(component, dictionary) {
     const { ins, outs, pipe, parts } = component;
@@ -74,11 +89,22 @@ function _getComponentFunction(component, dictionary) {
             output = result;
         }
         else {
-            output = Object.assign({}, state, outs.map((key) => result[key]));
+            output = _getOutput(state, outs, result);
         }
+        console.error("TEST", { pipe, args, inputs, output });
         return output;
     }
     return wrappedFunction;
+}
+function _getOutput(state, outs, result) {
+    if (_isArrayContainPromise(result)) {
+        return Promise.all(result).then((vals) => _getPrimitiveOutput(state, outs, result));
+    }
+    return _getPrimitiveOutput(state, outs, result);
+}
+function _getPrimitiveOutput(state, outs, result) {
+    const output = Object.assign({}, state, outs.map((key) => result[key]));
+    return output;
 }
 function _getCompleteComponent(partialComponent) {
     const defaultComponent = {
@@ -273,6 +299,28 @@ function _getDoubleQuotedString(str) {
  */
 function _isEmptyArray(arr) {
     if (Array.isArray(arr) && arr.length === 0) {
+        return true;
+    }
+    return false;
+}
+/**
+ * @param arr any[]
+ */
+function _isArrayContainPromise(arr) {
+    if (Array.isArray(arr)) {
+        for (const val of arr) {
+            if (_isPromise(val)) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+/**
+ * @param obj any
+ */
+function _isPromise(obj) {
+    if (typeof obj === "object" && obj.then) {
         return true;
     }
     return false;

@@ -25,7 +25,7 @@
       "tsx",
       "js"
     ],
-    "verbose": true,
+    "verbose": false,
     "collectCoverage": true
   },
   "keywords": [

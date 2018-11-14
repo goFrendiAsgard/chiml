@@ -29,12 +29,10 @@ component:
 
     # function (year: string) => [imageUrl, calendar]
     fetchImageAndCalendar:
-        ins: []
-        outs: [imageUrl, calendar]
         pipe: parallel
         parts: 
-            - <imageFetcher>
-            - <calendarFetcher>
+            - <fetchImageUrl>
+            - <fetchCalendar>
 
     # function ([url, calendar]) => html: string
     composeCalendar:

@@ -92,11 +92,11 @@ export const main = X.declarative({
         aPlusBAndAMinB: {
             outs: ["c", "d"],
             pipe: "parallel",
-            parts: ["<asyncAdd>", "<asyncMinus>"],
+            parts: ["<aPlusB>", "<aMinB>"],
         },
         main: {
             ins: ["a", "b"],
-            out: ["f"],
+            outs: ["f"],
             pipe: "pipeP",
             parts: [
                 "<aPlusBAndAMinB>",
