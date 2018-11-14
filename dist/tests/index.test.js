@@ -118,33 +118,33 @@ describe("imperative style", () => {
 describe("declarative style", () => {
     it("works", () => __awaiter(this, void 0, void 0, function* () {
         const main = index_1.X.declarative({
-            // vals can contains any values/JavaScript object
+            // parts can contains any values/JavaScript object
             injection: Object.assign({ asyncMinus: lib_1.asyncMinus, commandRootSquare: lib_1.commandRootSquare, nodebackMultiply: lib_1.nodebackMultiply, syncAdd: lib_1.syncAdd }, index_1.X),
             // comp should only contains valid JSON object
             component: {
                 asyncRootSquare: {
                     pipe: "wrapCommand",
-                    vals: ["<commandRootSquare>"],
+                    parts: ["<commandRootSquare>"],
                 },
                 asyncMultiply: {
                     pipe: "wrapNodeback",
-                    vals: ["<nodebackMultiply>"],
+                    parts: ["<nodebackMultiply>"],
                 },
                 asyncAdd: {
                     pipe: "wrapSync",
-                    vals: ["<syncAdd>"],
+                    parts: ["<syncAdd>"],
                 },
                 asyncAddAndMinus: {
                     pipe: "parallel",
-                    vals: ["<asyncAdd>", "<asyncMinus>"],
+                    parts: ["<asyncAdd>", "<asyncMinus>"],
                 },
                 convergedAsyncMultiply: {
                     pipe: "foldInput",
-                    vals: ["<asyncMultiply>"],
+                    parts: ["<asyncMultiply>"],
                 },
                 main: {
                     pipe: "pipeP",
-                    vals: [
+                    parts: [
                         "<asyncAddAndMinus>",
                         "<convergedAsyncMultiply>",
                         "<asyncRootSquare>",
@@ -164,7 +164,7 @@ describe("declarative style", () => {
             component: {
                 addFour: {
                     pipe: "add",
-                    vals: [4],
+                    parts: [4],
                 },
             },
             bootstrap: "addFour",
@@ -178,7 +178,7 @@ describe("declarative style", () => {
             component: {
                 sayHello: {
                     pipe: "concat",
-                    vals: ["Hello "],
+                    parts: ["Hello "],
                 },
             },
             bootstrap: "sayHello",
@@ -193,7 +193,7 @@ describe("declarative style", () => {
                 component: {
                     average: {
                         pipe: "pipe",
-                        vals: ["<rataRata>"],
+                        parts: ["<rataRata>"],
                     },
                 },
                 bootstrap: "average",
@@ -211,7 +211,7 @@ describe("declarative style", () => {
                 component: {
                     nor: {
                         pipe: "pipe",
-                        vals: ["<or>", "<not>"],
+                        parts: ["<or>", "<not>"],
                     },
                 },
                 bootstrap: "oraono",

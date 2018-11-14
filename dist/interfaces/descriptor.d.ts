@@ -5,11 +5,13 @@ export interface IDeclarativeConfig {
         [key: string]: any;
     };
     component: {
-        [key: string]: IComponent;
+        [key: string]: Partial<IComponent>;
     };
     bootstrap: string;
 }
 export interface IComponent {
-    vals: any[];
+    ins: string[];
+    outs: string[];
     pipe: string;
+    parts: any[];
 }

@@ -33,16 +33,17 @@ function declarative(declarativeConfig) {
     const compKeys = Object.keys(component);
     // parse all `<key>`, create function, and register it to dictionary
     for (const key of compKeys) {
-        const { pipe, vals } = component[key];
-        const parsedVals = _getParsecComponentVals(vals, dictionary);
+        const completeComponent = _getCompleteComponent(component[key]);
+        const { pipe, parts } = completeComponent;
+        const parsedParts = _getParsedComponentParts(parts, dictionary);
         try {
             const factory = dictionary[pipe];
-            const fn = factory(...parsedVals);
+            const fn = _isEmptyArray(parsedParts) ? factory : factory(...parsedParts);
             dictionary[key] = fn;
         }
         catch (error) {
-            const parsedValString = JSON.stringify(parsedVals);
-            error.message = `Error run ${pipe} ${parsedValString}: ${error.message}`;
+            const parsedPartsString = JSON.stringify(parsedParts);
+            error.message = `Error run ${pipe} ${parsedPartsString}: ${error.message}`;
             throw (error);
         }
     }
@@ -52,18 +53,54 @@ function declarative(declarativeConfig) {
     }
     throw (new Error(`${bootstrap} is not defined`));
 }
+function _getComponentFunction(component, dictionary) {
+    const { ins, outs, pipe, parts } = component;
+    const parsedParts = _getParsedComponentParts(parts, dictionary);
+    const factory = dictionary[pipe];
+    const fn = _isEmptyArray(parsedParts) ? factory : factory(...parsedParts);
+    function wrappedFunction(...args) {
+        let state = {};
+        let inputs = [];
+        if (!_isEmptyArray(ins)) {
+            inputs = args;
+        }
+        else {
+            state = args[0];
+            inputs = ins.map((key) => state[key]);
+        }
+        const result = fn(...inputs);
+        let output;
+        if (!_isEmptyArray(outs)) {
+            output = result;
+        }
+        else {
+            output = Object.assign({}, state, outs.map((key) => result[key]));
+        }
+        return output;
+    }
+    return wrappedFunction;
+}
+function _getCompleteComponent(partialComponent) {
+    const defaultComponent = {
+        ins: [],
+        outs: [],
+        pipe: "Identity",
+        parts: [],
+    };
+    return Object.assign({}, defaultComponent, partialComponent);
+}
 /**
- * @param vals any
+ * @param parts any
  * @param dictionary object
  */
-function _getParsecComponentVals(vals, dictionary) {
-    if (Array.isArray(vals)) {
-        const newVals = vals.map((element) => _getParsecComponentVals(element, dictionary));
+function _getParsedComponentParts(parts, dictionary) {
+    if (Array.isArray(parts)) {
+        const newVals = parts.map((element) => _getParsedComponentParts(element, dictionary));
         return newVals;
     }
-    if (typeof vals === "string") {
+    if (typeof parts === "string") {
         const tagPattern = /<(.+)>/gi;
-        const match = tagPattern.exec(vals);
+        const match = tagPattern.exec(parts);
         if (match) {
             const key = match[1];
             if (key in dictionary) {
@@ -71,9 +108,9 @@ function _getParsecComponentVals(vals, dictionary) {
             }
             throw (new Error(`<${key}> is not found`));
         }
-        return vals;
+        return parts;
     }
-    return vals;
+    return parts;
 }
 /**
  * @param fn AnyFunction
@@ -168,7 +205,6 @@ function _runStringCommand(stringCommand, options) {
         // define subProcess
         const subProcess = child_process_1.exec(stringCommand, options, (error, stdout, stderr) => {
             if (error) {
-                error.message = `${FG_RED}${error.message}${RESET_COLOR}`;
                 return reject(error);
             }
             try {
@@ -231,5 +267,14 @@ function _getStringCommandWithParams(strCmd, ins) {
 function _getDoubleQuotedString(str) {
     const newStr = str.replace(/"/g, "\\\"");
     return `"${newStr}"`;
+}
+/**
+ * @param arr any[]
+ */
+function _isEmptyArray(arr) {
+    if (Array.isArray(arr) && arr.length === 0) {
+        return true;
+    }
+    return false;
 }
 //# sourceMappingURL=index.js.map

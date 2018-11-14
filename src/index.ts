@@ -27,11 +27,12 @@ function declarative(declarativeConfig: IDeclarativeConfig): AnyFunction {
     const compKeys = Object.keys(component);
     // parse all `<key>`, create function, and register it to dictionary
     for (const key of compKeys) {
-        const { pipe, parts } = component[key];
+        const completeComponent = _getCompleteComponent(component[key]);
+        const { pipe, parts } = completeComponent;
         const parsedParts = _getParsedComponentParts(parts, dictionary);
         try {
             const factory = dictionary[pipe];
-            const fn = factory(...parsedParts);
+            const fn = _isEmptyArray(parsedParts) ? factory : factory(...parsedParts);
             dictionary[key] = fn;
         } catch (error) {
             const parsedPartsString = JSON.stringify(parsedParts);
@@ -44,6 +45,44 @@ function declarative(declarativeConfig: IDeclarativeConfig): AnyFunction {
         return mainFunction;
     }
     throw(new Error(`${bootstrap} is not defined`));
+}
+
+function _getComponentFunction(component: IComponent, dictionary: {[key: string]: any}): AnyFunction {
+    const { ins, outs, pipe, parts } = component;
+    const parsedParts = _getParsedComponentParts(parts, dictionary);
+    const factory = dictionary[pipe];
+    const fn = _isEmptyArray(parsedParts) ? factory : factory(...parsedParts);
+    function wrappedFunction(...args) {
+        let state = {};
+        let inputs = [];
+        if (!_isEmptyArray(ins)) {
+            inputs = args;
+        } else {
+            state = args[0];
+            inputs = ins.map((key) => state[key]);
+        }
+        const result = fn(...inputs);
+        let output;
+        if (!_isEmptyArray(outs)) {
+            output = result;
+        } else {
+            // TODO: if result contains promise, the output should be a promise,
+            // not a dictionary containing many promises
+            output = Object.assign({}, state, outs.map((key) => result[key]));
+        }
+        return output;
+    }
+    return wrappedFunction;
+}
+
+function _getCompleteComponent(partialComponent: Partial<IComponent>): IComponent {
+    const defaultComponent = {
+        ins: [],
+        outs: [],
+        pipe: "Identity",
+        parts: [],
+    };
+    return Object.assign({}, defaultComponent, partialComponent) as IComponent;
 }
 
 /**
@@ -231,4 +270,14 @@ function _getStringCommandWithParams(strCmd: string, ins: any[]): string {
 function _getDoubleQuotedString(str: string): string {
     const newStr = str.replace(/"/g, "\\\"");
     return `"${newStr}"`;
+}
+
+/**
+ * @param arr any[]
+ */
+function _isEmptyArray(arr: any[]): boolean {
+    if (Array.isArray(arr) && arr.length === 0) {
+        return true;
+    }
+    return false;
 }

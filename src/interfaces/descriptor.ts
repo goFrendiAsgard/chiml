@@ -3,7 +3,7 @@ export type AnyAsyncFunction = (...args: any[]) => Promise<any>;
 
 export interface IDeclarativeConfig {
     injection: {[key: string]: any};
-    component: {[key: string]: IComponent};
+    component: {[key: string]: Partial<IComponent>};
     bootstrap: string;
 }
 
