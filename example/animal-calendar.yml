@@ -1,43 +1,54 @@
 component:
 
-    # function () => Promise<jsonString>
-    apiFetcher:
+    fetchImageObj:
+        ins: []
+        outs: []
         pipe: wrapCommand
-        vals: [<fetcherCommand>]
+        parts: [<imageFetcherCommand>]
 
-    # function (apiResult: {<imageKey>: string}) => string
-    extractImage:
+    getImageUrl:
+        ins: []
+        outs: []
         pipe: prop
-        vals: [<imageKey>]
+        parts: [<imageKey>]
 
-    # function () => Promise<string>
-    imageFetcher:
+    fetchImageUrl:
+        ins: []
+        outs: [imageUrl]
         pipe: pipeP
-        vals:
-            - <apiFetcher>
-            - <extractImage>
+        parts:
+            - <fetchImageObj>
+            - <getImageUrl>
 
     # function (year: string) => string
-    calendarFetcher:
+    fetchCalendar:
+        ins: [year]
+        outs: [calendar]
         pipe: wrapCommand
-        vals: [<calCommand>]
+        parts: [<calCommand>]
 
     # function (year: string) => [imageUrl, calendar]
     fetchImageAndCalendar:
+        ins: []
+        outs: [imageUrl, calendar]
         pipe: parallel
-        vals: 
+        parts: 
             - <imageFetcher>
             - <calendarFetcher>
 
     # function ([url, calendar]) => html: string
     composeCalendar:
-        pipe: foldInput
-        vals: [<composeHtml>]
+        ins: [imageUrl, calendar]
+        outs: [results]
+        pipe: composeHtml
+        parts: []
 
     # function (year: string) => html: string
     main:
+        ins: [year]
+        outs: [result]
         pipe: pipeP        
-        vals:
+        parts:
             - <fetchImageAndCalendar>
             - <composeCalendar>
 

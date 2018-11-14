@@ -1,6 +1,6 @@
 # CHIML
 
-CHIML is stands for Chimera-Language. It is a `YAML` configuration as well as `JavaScript` library allowing you to build solution by reusing and composing any pre-existing components. CHIML providing some wrappers like `wrapCommand`, and `wrapNodeback`. Those wrappers let you turn any `console-based-application` and `nodeback-functions` into `Javascript-async-function`.
+CHIML is stands for Chimera-Language. It is a `YAML` configuration for `Flow Based Programming` as well as `JavaScript` library allowing you to build solution by reusing and composing any pre-existing components. CHIML providing some wrappers like `wrapCommand`, and `wrapNodeback`. Those wrappers let you turn any `console-based-application` and `nodeback-functions` into `Javascript-async-function`.
 
 CHIML is based on `Ramda.js`. You can use any functions exposed by CHIML independently or combine it with other frameworks.
 
@@ -67,33 +67,45 @@ export const main = X.declarative({
     injection: { asyncMinus, commandRootSquare, nodebackMultiply, syncAdd, ...X },
     // comp should only contains valid JSON object
     component: {
-        asyncRootSquare: {
-            vals: ["<commandRootSquare>"],
+        rootSquareE: {
+            ins: ["e"],
+            outs: ["f"],
             pipe: "wrapCommand",
+            parts: ["<commandRootSquare>"],
         },
-        asyncMultiply: {
-            vals: ["<nodebackMultiply>"],
+        cByD: {
+            ins: ["c", "d"],
+            outs: ["e"],
             pipe: "wrapNodeback",
+            parts: ["<nodebackMultiply>"],
         },
-        asyncAdd: {
-            vals: ["<syncAdd>"],
+        aPlusB: {
+            ins: ["a", "b"],
+            outs: ["c"],
             pipe: "wrapSync",
+            parts: ["<syncAdd>"],
         },
-        asyncAddAndMinus: {
-            vals: ["<asyncAdd>", "<asyncMinus>"],
+        aMinB: {
+            ins: ["a", "b"],
+            outs: ["d"],
+            pipe: "asyncMinus",
+            parts: [],
+        },
+        aPlusBAndAMinB: {
+            ins: [],
+            outs: ["c", "d"],
             pipe: "parallel",
-        },
-        convergedAsyncMultiply: {
-            vals: ["<asyncMultiply>"],
-            pipe: "foldInput",
+            parts: ["<asyncAdd>", "<asyncMinus>"],
         },
         main: {
-            vals: [
-                "<asyncAddAndMinus>",
-                "<convergedAsyncMultiply>",
-                "<asyncRootSquare>",
-            ],
+            ins: ["a", "b"],
+            out: ["f"],
             pipe: "pipeP",
+            parts: [
+                "<aPlusBAndAMinB>",
+                "<cByD>",
+                "<rootSquareE>",
+            ],
         },
     },
     bootstrap: "main",
@@ -104,7 +116,8 @@ export const main = X.declarative({
 ## Execution
 
 ```
-> chie main.ts 10 8
+> tsc main.ts
+> node main.js 10 8
 6
 ```
 

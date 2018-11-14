@@ -8,6 +8,8 @@ export interface IDeclarativeConfig {
 }
 
 export interface IComponent {
-    vals: any[];
+    ins: string[];
+    outs: string[];
     pipe: string;
+    parts: any[];
 }

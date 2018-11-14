@@ -27,15 +27,15 @@ function declarative(declarativeConfig: IDeclarativeConfig): AnyFunction {
     const compKeys = Object.keys(component);
     // parse all `<key>`, create function, and register it to dictionary
     for (const key of compKeys) {
-        const { pipe, vals } = component[key];
-        const parsedVals = _getParsecComponentVals(vals, dictionary);
+        const { pipe, parts } = component[key];
+        const parsedParts = _getParsedComponentParts(parts, dictionary);
         try {
             const factory = dictionary[pipe];
-            const fn = factory(...parsedVals);
+            const fn = factory(...parsedParts);
             dictionary[key] = fn;
         } catch (error) {
-            const parsedValString = JSON.stringify(parsedVals);
-            error.message = `Error run ${pipe} ${parsedValString}: ${error.message}`;
+            const parsedPartsString = JSON.stringify(parsedParts);
+            error.message = `Error run ${pipe} ${parsedPartsString}: ${error.message}`;
             throw(error);
         }
     }
@@ -47,17 +47,17 @@ function declarative(declarativeConfig: IDeclarativeConfig): AnyFunction {
 }
 
 /**
- * @param vals any
+ * @param parts any
  * @param dictionary object
  */
-function _getParsecComponentVals(vals: any, dictionary: {[key: string]: any}) {
-    if (Array.isArray(vals)) {
-        const newVals = vals.map((element) => _getParsecComponentVals(element, dictionary));
+function _getParsedComponentParts(parts: any, dictionary: {[key: string]: any}) {
+    if (Array.isArray(parts)) {
+        const newVals = parts.map((element) => _getParsedComponentParts(element, dictionary));
         return newVals;
     }
-    if (typeof vals === "string") {
+    if (typeof parts === "string") {
         const tagPattern = /<(.+)>/gi;
-        const match = tagPattern.exec(vals);
+        const match = tagPattern.exec(parts);
         if (match) {
             const key = match[1];
             if (key in dictionary) {
@@ -65,9 +65,9 @@ function _getParsecComponentVals(vals: any, dictionary: {[key: string]: any}) {
             }
             throw(new Error(`<${key}> is not found`));
         }
-        return vals;
+        return parts;
     }
-    return vals;
+    return parts;
 }
 
 /**

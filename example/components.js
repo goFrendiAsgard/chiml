@@ -1,7 +1,7 @@
 const { X } = require("../dist/index.js");
 module.exports = {
     calCommand: "cal",
-    fetcherCommand: "curl https://aws.random.cat/meow",
+    imageFetcherCommand: "curl https://aws.random.cat/meow",
     imageKey: "file",
     composeHtml: (imageUrl, calendar) => `<img src="${imageUrl}" /><pre>${calendar}</pre>`,
     ...X,
@@ -11,7 +11,7 @@ module.exports = {
 // You can try this also
 module.exports = {
     calCommand: "cal",
-    fetcherCommand: "curl https://random.dog/woof.json",
+    imageFetcherCommand: "curl https://random.dog/woof.json",
     imageKey: "url",
     composeHtml: (imageUrl, calendar) => `<img src="${imageUrl}" /><pre>${calendar}</pre>`,
     ...X,
