@@ -25,6 +25,7 @@ function declarative(partialDeclarativeConfig: Partial<IDeclarativeConfig>): Any
 
     const declarativeConfig = _getCompleteDeclarativeConfig(partialDeclarativeConfig);
     const componentDict = declarativeConfig.component;
+    const globalIns = declarativeConfig.ins;
     const globalOut = declarativeConfig.out;
     const { bootstrap } = declarativeConfig;
     const parsedDict = { ...declarativeConfig.injection };
@@ -41,16 +42,14 @@ function declarative(partialDeclarativeConfig: Partial<IDeclarativeConfig>): Any
 
     function getWrappedFunction(func: AnyFunction, ins: string[], out: string): AnyFunction {
         function wrappedFunction(...args) {
-            const realArgs = _isEmptyArray(ins) ? args : getArrayFromState(ins);
+            const realArgs = getArrayFromState(ins);
             const funcOut = func(...realArgs);
-            if (out !== null) {
-                if (_isPromise(funcOut)) {
-                    return funcOut.then((val) => {
-                        globalState[out] = val;
-                    });
-                }
-                globalState[out] = funcOut;
+            if (_isPromise(funcOut)) {
+                return funcOut.then((val) => {
+                    globalState[out] = val;
+                });
             }
+            globalState[out] = funcOut;
             return funcOut;
         }
         return wrappedFunction;
@@ -75,21 +74,15 @@ function declarative(partialDeclarativeConfig: Partial<IDeclarativeConfig>): Any
     // return bootstrap function
     if (bootstrap in parsedDict) {
         function wrappedBootstrapFunction(...args) {
-            const bootstrapComponent = componentDict[bootstrap];
-            if (!_isEmptyArray(bootstrapComponent.ins)) {
-                for (let i = 0; i < bootstrapComponent.ins.length; i++) {
-                    const key = bootstrapComponent.ins[i];
-                    globalState[key] = args[i];
-                }
+            for (let i = 0; i < globalIns.length; i++) {
+                const key = globalIns[i];
+                globalState[key] = args[i];
             }
             const bootstrapOutput = parsedDict[bootstrap](...args);
-            if (globalOut !== null) {
-                if (_isPromise(bootstrapOutput)) {
-                    return bootstrapOutput.then((val) => globalState[globalOut]);
-                }
-                return globalState[globalOut];
+            if (_isPromise(bootstrapOutput)) {
+                return bootstrapOutput.then((val) => globalState[globalOut]);
             }
-            return bootstrapOutput;
+            return globalState[globalOut];
         }
         return wrappedBootstrapFunction;
     }
@@ -98,7 +91,8 @@ function declarative(partialDeclarativeConfig: Partial<IDeclarativeConfig>): Any
 
 function _getCompleteDeclarativeConfig(partialDeclarativeConfig: Partial<IDeclarativeConfig>): IDeclarativeConfig {
     const defaultDeclarativeConfig = {
-        out: null,
+        ins: [],
+        out: "_",
         injection: {},
         component: {},
         bootstrap: "main",
@@ -108,8 +102,8 @@ function _getCompleteDeclarativeConfig(partialDeclarativeConfig: Partial<IDeclar
 
 function _getCompleteComponent(partialComponent: Partial<IComponent>): IComponent {
     const defaultComponent = {
-        ins: [],
-        out: null,
+        ins: ["_"],
+        out: "_",
         pipe: "Identity",
         parts: [],
     };
@@ -243,7 +237,7 @@ function _runStringCommand(stringCommand: string, options?: { [key: string]: any
             try {
                 return resolve(JSON.parse(stdout));
             } catch (error) {
-                return resolve(stdout.trim());
+                return resolve(stdout.replace(/\s+$/, ""));
             }
         });
         // subProcess.stdout data listener

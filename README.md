@@ -95,7 +95,6 @@ export const main = X.declarative({
             parts: ["<aPlusB>", "<aMinB>"],
         },
         main: {
-            ins: ["a", "b"],
             pipe: "pipeP",
             parts: [
                 "<aPlusBAndAMinB>",
@@ -104,6 +103,7 @@ export const main = X.declarative({
             ],
         },
     },
+    ins: ["a", "b"],
     out: "f",
     bootstrap: "main",
 });

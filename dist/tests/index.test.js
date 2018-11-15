@@ -150,7 +150,6 @@ describe("declarative style", () => {
                     parts: ["<aPlusB>", "<aMinB>"],
                 },
                 main: {
-                    ins: ["a", "b"],
                     pipe: "pipeP",
                     parts: [
                         "<aPlusBAndAMinB>",
@@ -159,6 +158,7 @@ describe("declarative style", () => {
                     ],
                 },
             },
+            ins: ["a", "b"],
             out: "f",
             bootstrap: "main",
         });
@@ -172,10 +172,12 @@ describe("declarative style", () => {
             injection: Object.assign({}, index_1.X),
             component: {
                 addFour: {
+                    ins: ["num"],
                     pipe: "add",
                     parts: [4],
                 },
             },
+            ins: ["num"],
             bootstrap: "addFour",
         });
         const result = main(3);
@@ -186,10 +188,12 @@ describe("declarative style", () => {
             injection: Object.assign({}, index_1.X),
             component: {
                 sayHello: {
+                    ins: ["name"],
                     pipe: "concat",
                     parts: ["Hello "],
                 },
             },
+            ins: ["name"],
             bootstrap: "sayHello",
         });
         const result = main("world");

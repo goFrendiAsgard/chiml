@@ -1,6 +1,7 @@
 component:
 
     fetchImageObj:
+        ins: []
         pipe: wrapCommand
         parts: [<imageFetcherCommand>]
 
@@ -33,11 +34,11 @@ component:
         pipe: composeHtml
 
     main:
-        ins: [year]
         pipe: pipeP
         parts:
             - <fetchImageAndCalendar>
             - <composeCalendar>
 
+ins: [year]
 out: result
 bootstrap: main

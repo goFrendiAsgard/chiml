@@ -8,6 +8,7 @@ export interface IDeclarativeConfig {
         [key: string]: Partial<IComponent>;
     };
     bootstrap: string;
+    ins: string[];
     out: string;
 }
 export interface IComponent {
