@@ -122,36 +122,35 @@ describe("declarative style", () => {
             injection: Object.assign({ asyncMinus: lib_1.asyncMinus, commandRootSquare: lib_1.commandRootSquare, nodebackMultiply: lib_1.nodebackMultiply, syncAdd: lib_1.syncAdd }, index_1.X),
             // comp should only contains valid JSON object
             component: {
-                rootSquareE: {
-                    ins: ["e"],
-                    outs: ["f"],
-                    pipe: "wrapCommand",
-                    parts: ["<commandRootSquare>"],
-                },
-                cByD: {
-                    ins: ["c", "d"],
-                    outs: ["e"],
-                    pipe: "wrapNodeback",
-                    parts: ["<nodebackMultiply>"],
-                },
                 aPlusB: {
                     ins: ["a", "b"],
+                    out: "c",
                     pipe: "wrapSync",
                     parts: ["<syncAdd>"],
                 },
                 aMinB: {
                     ins: ["a", "b"],
+                    out: "d",
                     pipe: "asyncMinus",
-                    parts: [],
+                },
+                cByD: {
+                    ins: ["c", "d"],
+                    out: "e",
+                    pipe: "wrapNodeback",
+                    parts: ["<nodebackMultiply>"],
+                },
+                rootSquareE: {
+                    ins: ["e"],
+                    out: "f",
+                    pipe: "wrapCommand",
+                    parts: ["<commandRootSquare>"],
                 },
                 aPlusBAndAMinB: {
-                    outs: ["c", "d"],
                     pipe: "parallel",
                     parts: ["<aPlusB>", "<aMinB>"],
                 },
                 main: {
                     ins: ["a", "b"],
-                    outs: ["f"],
                     pipe: "pipeP",
                     parts: [
                         "<aPlusBAndAMinB>",
@@ -160,6 +159,7 @@ describe("declarative style", () => {
                     ],
                 },
             },
+            out: "f",
             bootstrap: "main",
         });
         // action

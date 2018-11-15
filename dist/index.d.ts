@@ -12,7 +12,7 @@ export declare const X: R.Static & {
 /**
  * @param declarativeConfig IDeclarativeConfig
  */
-declare function declarative(declarativeConfig: IDeclarativeConfig): AnyFunction;
+declare function declarative(partialDeclarativeConfig: Partial<IDeclarativeConfig>): AnyFunction;
 /**
  * @param fn AnyFunction
  */

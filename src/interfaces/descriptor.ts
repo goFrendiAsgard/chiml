@@ -5,11 +5,12 @@ export interface IDeclarativeConfig {
     injection: {[key: string]: any};
     component: {[key: string]: Partial<IComponent>};
     bootstrap: string;
+    out: string;
 }
 
 export interface IComponent {
     ins: string[];
-    outs: string[];
+    out: string;
     pipe: string;
     parts: any[];
 }

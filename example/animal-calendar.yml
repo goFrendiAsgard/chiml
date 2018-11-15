@@ -1,54 +1,43 @@
 component:
 
     fetchImageObj:
-        ins: []
-        outs: []
         pipe: wrapCommand
         parts: [<imageFetcherCommand>]
 
     getImageUrl:
-        ins: []
-        outs: []
         pipe: prop
         parts: [<imageKey>]
 
     fetchImageUrl:
-        ins: []
-        outs: [imageUrl]
+        out: imageUrl
         pipe: pipeP
         parts:
             - <fetchImageObj>
             - <getImageUrl>
 
-    # function (year: string) => string
     fetchCalendar:
         ins: [year]
-        outs: [calendar]
+        out: calendar
         pipe: wrapCommand
         parts: [<calCommand>]
 
-    # function (year: string) => [imageUrl, calendar]
     fetchImageAndCalendar:
         pipe: parallel
-        parts: 
+        parts:
             - <fetchImageUrl>
             - <fetchCalendar>
 
-    # function ([url, calendar]) => html: string
     composeCalendar:
         ins: [imageUrl, calendar]
-        outs: [results]
+        out: result
         pipe: composeHtml
-        parts: []
 
-    # function (year: string) => html: string
     main:
         ins: [year]
-        outs: [result]
-        pipe: pipeP        
+        pipe: pipeP
         parts:
             - <fetchImageAndCalendar>
             - <composeCalendar>
 
-
+out: result
 bootstrap: main

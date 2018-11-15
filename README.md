@@ -63,40 +63,39 @@ import { X } from "chiml";
 import { asyncMinus, commandRootSquare, nodebackMultiply, syncAdd } from "./lib";
 
 export const main = X.declarative({
-    // vals can contains any values/JavaScript object
+    // injection can contains any values/JavaScript object
     injection: { asyncMinus, commandRootSquare, nodebackMultiply, syncAdd, ...X },
-    // comp should only contains valid JSON object
+    // component should only contains valid JSON object
     component: {
-        rootSquareE: {
-            ins: ["e"],
-            outs: ["f"],
-            pipe: "wrapCommand",
-            parts: ["<commandRootSquare>"],
-        },
-        cByD: {
-            ins: ["c", "d"],
-            outs: ["e"],
-            pipe: "wrapNodeback",
-            parts: ["<nodebackMultiply>"],
-        },
         aPlusB: {
             ins: ["a", "b"],
+            out: "c",
             pipe: "wrapSync",
             parts: ["<syncAdd>"],
         },
         aMinB: {
             ins: ["a", "b"],
+            out: "d",
             pipe: "asyncMinus",
-            parts: [],
+        },
+        cByD: {
+            ins: ["c", "d"],
+            out: "e",
+            pipe: "wrapNodeback",
+            parts: ["<nodebackMultiply>"],
+        },
+        rootSquareE: {
+            ins: ["e"],
+            out: "f",
+            pipe: "wrapCommand",
+            parts: ["<commandRootSquare>"],
         },
         aPlusBAndAMinB: {
-            outs: ["c", "d"],
             pipe: "parallel",
             parts: ["<aPlusB>", "<aMinB>"],
         },
         main: {
             ins: ["a", "b"],
-            outs: ["f"],
             pipe: "pipeP",
             parts: [
                 "<aPlusBAndAMinB>",
@@ -105,6 +104,7 @@ export const main = X.declarative({
             ],
         },
     },
+    out: "f",
     bootstrap: "main",
 });
 ```
