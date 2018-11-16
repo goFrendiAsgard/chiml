@@ -1,8 +1,14 @@
 # CHIML
 
-CHIML is stands for Chimera-Language. It is a `YAML` configuration for `Flow Based Programming` as well as `JavaScript` library allowing you to build solution by reusing and composing any pre-existing components. CHIML providing some wrappers like `wrapCommand`, and `wrapNodeback`. Those wrappers let you turn any `console-based-application` and `nodeback-functions` into `Javascript-async-function`.
+CHIML (Chimera Markup Language) is a component-oriented orchestration language based on YAML. CHIML allows you to build software by composing your pre-existing components (API, command-line utility, or JavasScript functions). 
 
-CHIML is based on `Ramda.js`. You can use any functions exposed by CHIML independently or combine it with other frameworks.
+CHIML also provide several components based on `Ramda.js`.
+
+# Philosophy
+
+* Naming is important. It should be clear and easy to understand.
+* Everything is components. Small components are better than monolith functions
+* Dependency injection should be easy
 
 # Goals
 
@@ -61,17 +67,30 @@ export function main(a: number, b: number): Promise<void> {
 // main.ts
 import { X } from "chiml";
 import { asyncMinus, commandRootSquare, nodebackMultiply, syncAdd } from "./lib";
-
 export const main = X.declarative({
-    // injection can contains any values/JavaScript object
+    ins: ["a", "b"],
+    out: "f",
+    bootstrap: "main",
+    // parts can contains any values/JavaScript object
     injection: { asyncMinus, commandRootSquare, nodebackMultiply, syncAdd, ...X },
-    // component should only contains valid JSON object
+    // comp should only contains valid JSON object
     component: {
+        main: {
+            pipe: "pipeP",
+            parts: [
+                "<aPlusBAndAMinB>",
+                "<cByD>",
+                "<rootSquareE>",
+            ],
+        },
+        aPlusBAndAMinB: {
+            pipe: "parallel",
+            parts: ["<aPlusB>", "<aMinB>"],
+        },
         aPlusB: {
             ins: ["a", "b"],
             out: "c",
-            pipe: "wrapSync",
-            parts: ["<syncAdd>"],
+            pipe: "syncAdd",
         },
         aMinB: {
             ins: ["a", "b"],
@@ -82,30 +101,15 @@ export const main = X.declarative({
             ins: ["c", "d"],
             out: "e",
             pipe: "wrapNodeback",
-            parts: ["<nodebackMultiply>"],
+            parts: "<nodebackMultiply>",
         },
         rootSquareE: {
-            ins: ["e"],
+            ins: "e",
             out: "f",
             pipe: "wrapCommand",
             parts: ["<commandRootSquare>"],
         },
-        aPlusBAndAMinB: {
-            pipe: "parallel",
-            parts: ["<aPlusB>", "<aMinB>"],
-        },
-        main: {
-            pipe: "pipeP",
-            parts: [
-                "<aPlusBAndAMinB>",
-                "<cByD>",
-                "<rootSquareE>",
-            ],
-        },
     },
-    ins: ["a", "b"],
-    out: "f",
-    bootstrap: "main",
 });
 ```
 

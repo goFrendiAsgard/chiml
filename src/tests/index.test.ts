@@ -136,15 +136,29 @@ describe("declarative style", () => {
 
     it ("works", async () => {
         const main = X.declarative({
+            ins: ["a", "b"],
+            out: "f",
+            bootstrap: "main",
             // parts can contains any values/JavaScript object
             injection: { asyncMinus, commandRootSquare, nodebackMultiply, syncAdd, ...X },
             // comp should only contains valid JSON object
             component: {
+                main: {
+                    pipe: "pipeP",
+                    parts: [
+                        "<aPlusBAndAMinB>",
+                        "<cByD>",
+                        "<rootSquareE>",
+                    ],
+                },
+                aPlusBAndAMinB: {
+                    pipe: "parallel",
+                    parts: ["<aPlusB>", "<aMinB>"],
+                },
                 aPlusB: {
                     ins: ["a", "b"],
                     out: "c",
-                    pipe: "wrapSync",
-                    parts: "<syncAdd>",
+                    pipe: "syncAdd",
                 },
                 aMinB: {
                     ins: ["a", "b"],
@@ -163,22 +177,7 @@ describe("declarative style", () => {
                     pipe: "wrapCommand",
                     parts: ["<commandRootSquare>"],
                 },
-                aPlusBAndAMinB: {
-                    pipe: "parallel",
-                    parts: ["<aPlusB>", "<aMinB>"],
-                },
-                main: {
-                    pipe: "pipeP",
-                    parts: [
-                        "<aPlusBAndAMinB>",
-                        "<cByD>",
-                        "<rootSquareE>",
-                    ],
-                },
             },
-            ins: ["a", "b"],
-            out: "f",
-            bootstrap: "main",
         });
         // action
         const result = await main(10, 6);

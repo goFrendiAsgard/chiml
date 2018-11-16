@@ -118,15 +118,25 @@ describe("imperative style", () => {
 describe("declarative style", () => {
     it("works", () => __awaiter(this, void 0, void 0, function* () {
         const main = index_1.X.declarative({
+            ins: ["a", "b"],
+            out: "f",
+            bootstrap: "main",
             // parts can contains any values/JavaScript object
             injection: Object.assign({ asyncMinus: lib_1.asyncMinus, commandRootSquare: lib_1.commandRootSquare, nodebackMultiply: lib_1.nodebackMultiply, syncAdd: lib_1.syncAdd }, index_1.X),
             // comp should only contains valid JSON object
             component: {
+                main: {
+                    pipe: "pipeP",
+                    parts: [
+                        "<aPlusBAndAMinB>",
+                        "<cByD>",
+                        "<rootSquareE>",
+                    ],
+                },
                 aPlusB: {
                     ins: ["a", "b"],
                     out: "c",
-                    pipe: "wrapSync",
-                    parts: "<syncAdd>",
+                    pipe: "syncAdd",
                 },
                 aMinB: {
                     ins: ["a", "b"],
@@ -149,18 +159,7 @@ describe("declarative style", () => {
                     pipe: "parallel",
                     parts: ["<aPlusB>", "<aMinB>"],
                 },
-                main: {
-                    pipe: "pipeP",
-                    parts: [
-                        "<aPlusBAndAMinB>",
-                        "<cByD>",
-                        "<rootSquareE>",
-                    ],
-                },
             },
-            ins: ["a", "b"],
-            out: "f",
-            bootstrap: "main",
         });
         // action
         const result = yield main(10, 6);

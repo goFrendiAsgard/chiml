@@ -32,7 +32,11 @@ if (require.main === module) {
             const dirname = path.dirname(yamlFile);
             injectionFile = path.join(dirname, config.injection);
         }
-        config.injection = require(injectionFile);
+        if (injectionFile) {
+            config.injection = require(injectionFile);
+        } else {
+            config.injection = {};
+        }
         // get bootstrap and run it
         const bootstrap = X.declarative(config);
         const result = bootstrap(...args);

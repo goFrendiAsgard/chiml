@@ -27,7 +27,7 @@ exports.X = Object.assign({}, R, {
  * @param declarativeConfig IDeclarativeConfig
  */
 function declarative(partialDeclarativeConfig) {
-    const declarativeConfig = _getCompleteDeclarativeConfig(partialDeclarativeConfig);
+    const declarativeConfig = getCompleteDeclarativeConfig(partialDeclarativeConfig);
     const componentDict = declarativeConfig.component;
     const globalIns = declarativeConfig.ins;
     const globalOut = declarativeConfig.out;
@@ -35,6 +35,60 @@ function declarative(partialDeclarativeConfig) {
     const parsedDict = Object.assign({}, declarativeConfig.injection);
     const componentNameList = Object.keys(componentDict);
     const globalState = {};
+    // parse all `<key>`, create function, and register it to dictionary
+    for (const componentName of componentNameList) {
+        addToParsedDict(componentName);
+    }
+    // return bootstrap function
+    if (bootstrap in parsedDict) {
+        function wrappedBootstrapFunction(...args) {
+            for (let i = 0; i < globalIns.length; i++) {
+                const key = globalIns[i];
+                globalState[key] = args[i];
+            }
+            const bootstrapOutput = parsedDict[bootstrap](...args);
+            if (_isPromise(bootstrapOutput)) {
+                return bootstrapOutput.then((val) => globalState[globalOut]);
+            }
+            return globalState[globalOut];
+        }
+        return wrappedBootstrapFunction;
+    }
+    throw (new Error(`${bootstrap} is not defined`));
+    function getCompleteDeclarativeConfig(partialConfig) {
+        const defaultDeclarativeConfig = {
+            ins: [],
+            out: "_",
+            injection: {},
+            component: {},
+            bootstrap: "main",
+        };
+        const completeConfig = Object.assign({}, defaultDeclarativeConfig, partialConfig);
+        if (!Array.isArray(completeConfig.ins)) {
+            completeConfig.ins = [completeConfig.ins];
+        }
+        for (const componentName of Object.keys(completeConfig)) {
+            const completeComponent = getCompleteComponent(completeConfig.component[componentName]);
+            completeConfig.component[componentName] = completeComponent;
+        }
+        return completeConfig;
+    }
+    function getCompleteComponent(partialComponent) {
+        const defaultComponent = {
+            ins: ["_"],
+            out: "_",
+            pipe: "Identity",
+            parts: [],
+        };
+        const component = Object.assign({}, defaultComponent, partialComponent);
+        if (!Array.isArray(component.ins)) {
+            component.ins = [component.ins];
+        }
+        if (!Array.isArray(component.parts)) {
+            component.parts = [component.parts];
+        }
+        return component;
+    }
     function getArrayFromState(keys) {
         const arr = [];
         for (const key of keys) {
@@ -56,11 +110,10 @@ function declarative(partialDeclarativeConfig) {
         }
         return wrappedFunction;
     }
-    // parse all `<key>`, create function, and register it to dictionary
-    for (const componentName of componentNameList) {
-        componentDict[componentName] = _getCompleteComponent(componentDict[componentName]);
+    function addToParsedDict(componentName) {
+        componentDict[componentName] = getCompleteComponent(componentDict[componentName]);
         const { ins, out, pipe, parts } = componentDict[componentName];
-        const parsedParts = _getParsedComponentParts(parts, parsedDict);
+        const parsedParts = getParsedComponents(parts);
         try {
             const factory = parsedDict[pipe];
             const func = _isEmptyArray(parsedParts) ? factory : factory(...parsedParts);
@@ -72,75 +125,28 @@ function declarative(partialDeclarativeConfig) {
             throw (error);
         }
     }
-    // return bootstrap function
-    if (bootstrap in parsedDict) {
-        function wrappedBootstrapFunction(...args) {
-            for (let i = 0; i < globalIns.length; i++) {
-                const key = globalIns[i];
-                globalState[key] = args[i];
-            }
-            const bootstrapOutput = parsedDict[bootstrap](...args);
-            if (_isPromise(bootstrapOutput)) {
-                return bootstrapOutput.then((val) => globalState[globalOut]);
-            }
-            return globalState[globalOut];
+    function getParsedComponents(parts) {
+        if (Array.isArray(parts)) {
+            const newVals = parts.map((element) => getParsedComponents(element));
+            return newVals;
         }
-        return wrappedBootstrapFunction;
-    }
-    throw (new Error(`${bootstrap} is not defined`));
-}
-function _getCompleteDeclarativeConfig(partialDeclarativeConfig) {
-    const defaultDeclarativeConfig = {
-        ins: [],
-        out: "_",
-        injection: {},
-        component: {},
-        bootstrap: "main",
-    };
-    const declarativeConfig = Object.assign({}, defaultDeclarativeConfig, partialDeclarativeConfig);
-    if (!Array.isArray(declarativeConfig.ins)) {
-        declarativeConfig.ins = [declarativeConfig.ins];
-    }
-    return declarativeConfig;
-}
-function _getCompleteComponent(partialComponent) {
-    const defaultComponent = {
-        ins: ["_"],
-        out: "_",
-        pipe: "Identity",
-        parts: [],
-    };
-    const component = Object.assign({}, defaultComponent, partialComponent);
-    if (!Array.isArray(component.ins)) {
-        component.ins = [component.ins];
-    }
-    if (!Array.isArray(component.parts)) {
-        component.parts = [component.parts];
-    }
-    return component;
-}
-/**
- * @param parts any
- * @param dictionary object
- */
-function _getParsedComponentParts(parts, dictionary) {
-    if (Array.isArray(parts)) {
-        const newVals = parts.map((element) => _getParsedComponentParts(element, dictionary));
-        return newVals;
-    }
-    if (typeof parts === "string") {
-        const tagPattern = /<(.+)>/gi;
-        const match = tagPattern.exec(parts);
-        if (match) {
-            const key = match[1];
-            if (key in dictionary) {
-                return dictionary[key];
+        if (typeof parts === "string") {
+            const tagPattern = /<(.+)>/gi;
+            const match = tagPattern.exec(parts);
+            if (match) {
+                const key = match[1];
+                if (!(key in parsedDict) && (key in componentDict)) {
+                    addToParsedDict(key);
+                }
+                if (key in parsedDict) {
+                    return parsedDict[key];
+                }
+                throw (new Error(`<${key}> is not found`));
             }
-            throw (new Error(`<${key}> is not found`));
+            return parts;
         }
         return parts;
     }
-    return parts;
 }
 /**
  * @param fn AnyFunction
