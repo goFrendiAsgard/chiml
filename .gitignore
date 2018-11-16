@@ -1,14 +1,8 @@
 package-lock.json
-.cache-require-paths.json
 .cache
 .vscode
 node_modules
 /lab
 /coverage
-/testcase/compile/test.js
-/testcase/*/node_modules
-/testcase/compile/parent.js
-/testcase/compile/child.js
-/sample/*/node_modules
-/sample/*/*.js
-*.class
+/example/dog.html
+/example/cat.html

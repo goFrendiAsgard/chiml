@@ -144,7 +144,7 @@ describe("declarative style", () => {
                     ins: ["a", "b"],
                     out: "c",
                     pipe: "wrapSync",
-                    parts: ["<syncAdd>"],
+                    parts: "<syncAdd>",
                 },
                 aMinB: {
                     ins: ["a", "b"],
@@ -155,10 +155,10 @@ describe("declarative style", () => {
                     ins: ["c", "d"],
                     out: "e",
                     pipe: "wrapNodeback",
-                    parts: ["<nodebackMultiply>"],
+                    parts: "<nodebackMultiply>",
                 },
                 rootSquareE: {
-                    ins: ["e"],
+                    ins: "e",
                     out: "f",
                     pipe: "wrapCommand",
                     parts: ["<commandRootSquare>"],
@@ -191,12 +191,12 @@ describe("declarative style", () => {
             injection: {...X},
             component: {
                 addFour: {
-                    ins: ["num"],
+                    ins: "num",
                     pipe: "add",
-                    parts: [4],
+                    parts: 4,
                 },
             },
-            ins: ["num"],
+            ins: "num",
             bootstrap: "addFour",
         });
         const result = main(3);
@@ -208,12 +208,12 @@ describe("declarative style", () => {
             injection: {...X},
             component: {
                 sayHello: {
-                    ins: ["name"],
+                    ins: "name",
                     pipe: "concat",
-                    parts: ["Hello "],
+                    parts: "Hello ",
                 },
             },
-            ins: ["name"],
+            ins: "name",
             bootstrap: "sayHello",
         });
         const result = main("world");
@@ -227,7 +227,7 @@ describe("declarative style", () => {
                 component: {
                     average: {
                         pipe: "pipe",
-                        parts: ["<rataRata>"],
+                        parts: "<rataRata>",
                     },
                 },
                 bootstrap: "average",

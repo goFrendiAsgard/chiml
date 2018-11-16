@@ -1,8 +1,9 @@
 import { ChildProcess, exec } from "child_process";
 import * as R from "ramda";
-import { AnyAsyncFunction, AnyFunction, IComponent, IDeclarativeConfig } from "./interfaces/descriptor";
+import {
+    AnyAsyncFunction, AnyFunction, IComponent, IDeclarativeConfig, IUserComponent, IUserDeclarativeConfig,
+} from "./interfaces/descriptor";
 
-// const BRIGHT = "\x1b[1m";
 const FG_CYAN = "\x1b[36m";
 const FG_RED = "\x1b[31m";
 const FG_YELLOW = "\x1b[33m";
@@ -21,7 +22,7 @@ export const X = Object.assign({}, R, {
 /**
  * @param declarativeConfig IDeclarativeConfig
  */
-function declarative(partialDeclarativeConfig: Partial<IDeclarativeConfig>): AnyFunction {
+function declarative(partialDeclarativeConfig: Partial<IUserDeclarativeConfig>): AnyFunction {
 
     const declarativeConfig = _getCompleteDeclarativeConfig(partialDeclarativeConfig);
     const componentDict = declarativeConfig.component;
@@ -89,7 +90,7 @@ function declarative(partialDeclarativeConfig: Partial<IDeclarativeConfig>): Any
     throw(new Error(`${bootstrap} is not defined`));
 }
 
-function _getCompleteDeclarativeConfig(partialDeclarativeConfig: Partial<IDeclarativeConfig>): IDeclarativeConfig {
+function _getCompleteDeclarativeConfig(partialDeclarativeConfig: Partial<IUserDeclarativeConfig>): IDeclarativeConfig {
     const defaultDeclarativeConfig = {
         ins: [],
         out: "_",
@@ -97,17 +98,29 @@ function _getCompleteDeclarativeConfig(partialDeclarativeConfig: Partial<IDeclar
         component: {},
         bootstrap: "main",
     };
-    return Object.assign({}, defaultDeclarativeConfig, partialDeclarativeConfig) as IDeclarativeConfig;
+    const declarativeConfig =
+        Object.assign({}, defaultDeclarativeConfig, partialDeclarativeConfig) as IDeclarativeConfig;
+    if (!Array.isArray(declarativeConfig.ins)) {
+        declarativeConfig.ins = [declarativeConfig.ins];
+    }
+    return declarativeConfig;
 }
 
-function _getCompleteComponent(partialComponent: Partial<IComponent>): IComponent {
+function _getCompleteComponent(partialComponent: Partial<IUserComponent>): IComponent {
     const defaultComponent = {
         ins: ["_"],
         out: "_",
         pipe: "Identity",
         parts: [],
     };
-    return Object.assign({}, defaultComponent, partialComponent) as IComponent;
+    const component = Object.assign({}, defaultComponent, partialComponent) as IComponent;
+    if (!Array.isArray(component.ins)) {
+        component.ins = [component.ins];
+    }
+    if (!Array.isArray(component.parts)) {
+        component.parts = [component.parts];
+    }
+    return component;
 }
 
 /**

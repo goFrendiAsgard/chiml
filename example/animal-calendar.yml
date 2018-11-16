@@ -1,13 +1,19 @@
+ins:
+    - year
+    - fileName
+out: result
+bootstrap: main
+injection: catInjection.js
 component:
 
     fetchImageObj:
         ins: []
         pipe: wrapCommand
-        parts: [<imageFetcherCommand>]
+        parts: <imageFetcherCommand>
 
     getImageUrl:
         pipe: prop
-        parts: [<imageKey>]
+        parts: <imageKey>
 
     fetchImageUrl:
         out: imageUrl
@@ -17,10 +23,10 @@ component:
             - <getImageUrl>
 
     fetchCalendar:
-        ins: [year]
+        ins: year
         out: calendar
         pipe: wrapCommand
-        parts: [<calCommand>]
+        parts: <calCommand>
 
     fetchImageAndCalendar:
         pipe: parallel
@@ -29,16 +35,26 @@ component:
             - <fetchCalendar>
 
     composeCalendar:
-        ins: [imageUrl, calendar]
+        ins:
+            - imageUrl
+            - calendar
         out: result
         pipe: composeHtml
+
+    writeCalendar:
+        ins: result
+        pipe: wrapCommand
+        parts: <writeHtmlCommand>
+
+    showCalendar:
+        ins: []
+        pipe: wrapCommand
+        parts: <showCalendarCommand>
 
     main:
         pipe: pipeP
         parts:
             - <fetchImageAndCalendar>
             - <composeCalendar>
-
-ins: [year]
-out: result
-bootstrap: main
+            - <writeCalendar>
+            - <showCalendar>

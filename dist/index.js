@@ -10,7 +10,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const child_process_1 = require("child_process");
 const R = require("ramda");
-// const BRIGHT = "\x1b[1m";
 const FG_CYAN = "\x1b[36m";
 const FG_RED = "\x1b[31m";
 const FG_YELLOW = "\x1b[33m";
@@ -98,7 +97,11 @@ function _getCompleteDeclarativeConfig(partialDeclarativeConfig) {
         component: {},
         bootstrap: "main",
     };
-    return Object.assign({}, defaultDeclarativeConfig, partialDeclarativeConfig);
+    const declarativeConfig = Object.assign({}, defaultDeclarativeConfig, partialDeclarativeConfig);
+    if (!Array.isArray(declarativeConfig.ins)) {
+        declarativeConfig.ins = [declarativeConfig.ins];
+    }
+    return declarativeConfig;
 }
 function _getCompleteComponent(partialComponent) {
     const defaultComponent = {
@@ -107,7 +110,14 @@ function _getCompleteComponent(partialComponent) {
         pipe: "Identity",
         parts: [],
     };
-    return Object.assign({}, defaultComponent, partialComponent);
+    const component = Object.assign({}, defaultComponent, partialComponent);
+    if (!Array.isArray(component.ins)) {
+        component.ins = [component.ins];
+    }
+    if (!Array.isArray(component.parts)) {
+        component.parts = [component.parts];
+    }
+    return component;
 }
 /**
  * @param parts any

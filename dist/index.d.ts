@@ -1,5 +1,5 @@
 import * as R from "ramda";
-import { AnyAsyncFunction, AnyFunction, IDeclarativeConfig } from "./interfaces/descriptor";
+import { AnyAsyncFunction, AnyFunction, IUserDeclarativeConfig } from "./interfaces/descriptor";
 export declare const X: R.Static & {
     declarative: typeof declarative;
     foldInput: typeof foldInput;
@@ -12,7 +12,7 @@ export declare const X: R.Static & {
 /**
  * @param declarativeConfig IDeclarativeConfig
  */
-declare function declarative(partialDeclarativeConfig: Partial<IDeclarativeConfig>): AnyFunction;
+declare function declarative(partialDeclarativeConfig: Partial<IUserDeclarativeConfig>): AnyFunction;
 /**
  * @param fn AnyFunction
  */
