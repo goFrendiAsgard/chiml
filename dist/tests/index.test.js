@@ -133,6 +133,10 @@ describe("declarative style", () => {
                         "<rootSquareE>",
                     ],
                 },
+                aPlusBAndAMinB: {
+                    pipe: "parallel",
+                    parts: ["<aPlusB>", "<aMinB>"],
+                },
                 aPlusB: {
                     ins: ["a", "b"],
                     out: "c",
@@ -154,10 +158,6 @@ describe("declarative style", () => {
                     out: "f",
                     pipe: "wrapCommand",
                     parts: ["<commandRootSquare>"],
-                },
-                aPlusBAndAMinB: {
-                    pipe: "parallel",
-                    parts: ["<aPlusB>", "<aMinB>"],
                 },
             },
         });
@@ -232,6 +232,24 @@ describe("declarative style", () => {
         }
         catch (error) {
             expect(error.message).toBe("oraono is not defined");
+        }
+    });
+    it("throw error if pipe yield error", () => {
+        try {
+            const main = index_1.X.declarative({
+                injection: Object.assign({ errorPipe: () => { throw (new Error("invalid pipe")); } }, index_1.X),
+                component: {
+                    errorTest: {
+                        pipe: "errorPipe",
+                        parts: ["<or>"],
+                    },
+                },
+                bootstrap: "errorTest",
+            });
+            expect(main).toBeUndefined();
+        }
+        catch (error) {
+            expect(error.message).toBe("Error parse errorTest: invalid pipe");
         }
     });
 });

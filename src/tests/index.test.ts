@@ -255,4 +255,25 @@ describe("declarative style", () => {
         }
     });
 
+    it("throw error if pipe yield error", () => {
+        try {
+            const main = X.declarative({
+                injection: {
+                    errorPipe: () => { throw(new Error("invalid pipe")); },
+                    ...X,
+                },
+                component: {
+                    errorTest: {
+                        pipe: "errorPipe",
+                        parts: ["<or>"],
+                    },
+                },
+                bootstrap: "errorTest",
+            });
+            expect(main).toBeUndefined();
+        } catch (error) {
+            expect(error.message).toBe("Error parse errorTest: invalid pipe");
+        }
+    });
+
 });

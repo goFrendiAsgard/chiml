@@ -120,8 +120,7 @@ function declarative(partialDeclarativeConfig) {
             parsedDict[componentName] = getWrappedFunction(func, ins, out);
         }
         catch (error) {
-            const parsedPartsString = JSON.stringify(parsedParts);
-            error.message = `Error run ${pipe} ${parsedPartsString}: ${error.message}`;
+            error.message = `Error parse ${componentName}: ${error.message}`;
             throw (error);
         }
     }
@@ -262,6 +261,7 @@ function _runStringCommand(stringCommand, options) {
             process.stderr.write(String(chunk));
             process.stderr.write(RESET_COLOR);
         });
+        /*
         // subProcess.stdin data listener
         const stdinListener = (chunk) => subProcess.stdin.write(chunk);
         subProcess.stdin.on("data", stdinListener);
@@ -277,6 +277,7 @@ function _runStringCommand(stringCommand, options) {
         };
         subProcess.stdin.on("error", errorListener);
         process.stdin.on("error", errorListener);
+        */
     });
 }
 /**

@@ -122,8 +122,7 @@ function declarative(partialDeclarativeConfig: Partial<IUserDeclarativeConfig>):
             const func = _isEmptyArray(parsedParts) ? factory : factory(...parsedParts);
             parsedDict[componentName] = getWrappedFunction(func, ins, out);
         } catch (error) {
-            const parsedPartsString = JSON.stringify(parsedParts);
-            error.message = `Error run ${pipe} ${parsedPartsString}: ${error.message}`;
+            error.message = `Error parse ${componentName}: ${error.message}`;
             throw(error);
         }
     }
@@ -270,6 +269,7 @@ function _runStringCommand(stringCommand: string, options?: { [key: string]: any
             process.stderr.write(String(chunk));
             process.stderr.write(RESET_COLOR);
         });
+        /*
         // subProcess.stdin data listener
         const stdinListener = (chunk) => subProcess.stdin.write(chunk);
         subProcess.stdin.on("data", stdinListener);
@@ -285,6 +285,7 @@ function _runStringCommand(stringCommand: string, options?: { [key: string]: any
         };
         subProcess.stdin.on("error", errorListener);
         process.stdin.on("error", errorListener);
+        */
     });
 }
 
