@@ -261,23 +261,6 @@ function _runStringCommand(stringCommand, options) {
             process.stderr.write(String(chunk));
             process.stderr.write(RESET_COLOR);
         });
-        /*
-        // subProcess.stdin data listener
-        const stdinListener = (chunk) => subProcess.stdin.write(chunk);
-        subProcess.stdin.on("data", stdinListener);
-        subProcess.stdin.on("end", () => {
-            process.stdin.removeListener("data", stdinListener);
-            process.stdin.end();
-        });
-        // subProcess.stdin error listener
-        const errorListener = (error) => {
-            process.stderr.write(FG_RED);
-            console.error(error);
-            process.stderr.write(RESET_COLOR);
-        };
-        subProcess.stdin.on("error", errorListener);
-        process.stdin.on("error", errorListener);
-        */
     });
 }
 /**

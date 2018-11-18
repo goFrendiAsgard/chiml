@@ -1,9 +1,9 @@
 #! /usr/bin/env node
 
-const { X } = require("./dist/index.js");
-const fs = require("fs");
-const jsYaml = require("js-yaml");
-const path = require("path");
+import { readFileSync as fsReadFileSync } from "fs";
+import { safeLoad as yamlSafeLoad } from "js-yaml";
+import { dirname as pathDirname, join as pathJoin, resolve as pathResolve } from "path";
+import { X } from "./index";
 
 if (require.main === module) {
     const rawArgs = process.argv.slice(2);
@@ -25,12 +25,12 @@ if (require.main === module) {
                 [yamlFile, ...args] = rawArgs;
             }
         }
-        const yamlScript = fs.readFileSync(yamlFile).toString();
-        const config = jsYaml.safeLoad(yamlScript);
+        const yamlScript = fsReadFileSync(yamlFile).toString();
+        const config = yamlSafeLoad(yamlScript);
         // define config.injection
-        if (injectionFile === null && config.injection) {
-            const dirname = path.dirname(yamlFile);
-            injectionFile = path.join(dirname, config.injection);
+        if (injectionFile === null && config.injection && config.injection[0] === ".") {
+            const dirname = pathResolve(pathDirname(yamlFile));
+            injectionFile = pathJoin(dirname, config.injection);
         }
         if (injectionFile) {
             config.injection = require(injectionFile);
@@ -40,7 +40,7 @@ if (require.main === module) {
         // get bootstrap and run it
         const bootstrap = X.declarative(config);
         const result = bootstrap(...args);
-        if ('then' in result) {
+        if ("then" in result) {
             result
                 .then((realResult) => console.log(realResult))
                 .catch((error) => console.error(error));

@@ -1,3 +1,4 @@
+import { Static } from "ramda";
 export type AnyFunction = (...args: any[]) => any;
 export type AnyAsyncFunction = (...args: any[]) => Promise<any>;
 
@@ -30,3 +31,15 @@ export interface IUserComponent {
     pipe: string;
     parts: any[] | any;
 }
+
+interface IBaseChimera {
+    declarative: (partialDeclarativeConfig: Partial<IUserDeclarativeConfig>) => AnyFunction;
+    foldInput: (fn: AnyFunction) => ((arr: any[]) => any);
+    spreadInput: (fn: (arr: any[]) => any) => AnyFunction;
+    parallel: (...fnList: AnyAsyncFunction[]) => AnyAsyncFunction;
+    wrapCommand: (stringCommand: string) => AnyAsyncFunction;
+    wrapNodeback: (fn: AnyFunction) => AnyAsyncFunction;
+    wrapSync: (fn: AnyFunction) => AnyAsyncFunction;
+}
+
+export type TChimera = IBaseChimera & Static;

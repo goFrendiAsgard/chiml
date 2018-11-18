@@ -3,7 +3,7 @@ ins:
     - fileName
 out: result
 bootstrap: main
-injection: catInjection.js
+injection: ./dist/catInjection.js
 component:
 
     fetchImageObj:

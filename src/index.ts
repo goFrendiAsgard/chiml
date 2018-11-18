@@ -1,7 +1,7 @@
 import { ChildProcess, exec } from "child_process";
 import * as R from "ramda";
 import {
-    AnyAsyncFunction, AnyFunction, IComponent, IDeclarativeConfig, IUserComponent, IUserDeclarativeConfig,
+    AnyAsyncFunction, AnyFunction, IComponent, IDeclarativeConfig, IUserComponent, IUserDeclarativeConfig, TChimera,
 } from "./interfaces/descriptor";
 
 const FG_CYAN = "\x1b[36m";
@@ -9,7 +9,7 @@ const FG_RED = "\x1b[31m";
 const FG_YELLOW = "\x1b[33m";
 const RESET_COLOR = "\x1b[0m";
 
-export const X = Object.assign({}, R, {
+export const X: TChimera = Object.assign({}, R, {
     declarative,
     foldInput,
     spreadInput,
@@ -269,23 +269,6 @@ function _runStringCommand(stringCommand: string, options?: { [key: string]: any
             process.stderr.write(String(chunk));
             process.stderr.write(RESET_COLOR);
         });
-        /*
-        // subProcess.stdin data listener
-        const stdinListener = (chunk) => subProcess.stdin.write(chunk);
-        subProcess.stdin.on("data", stdinListener);
-        subProcess.stdin.on("end", () => {
-            process.stdin.removeListener("data", stdinListener);
-            process.stdin.end();
-        });
-        // subProcess.stdin error listener
-        const errorListener = (error) => {
-            process.stderr.write(FG_RED);
-            console.error(error);
-            process.stderr.write(RESET_COLOR);
-        };
-        subProcess.stdin.on("error", errorListener);
-        process.stdin.on("error", errorListener);
-        */
     });
 }
 
