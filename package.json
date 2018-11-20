@@ -1,6 +1,6 @@
 {
   "name": "chiml",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Flow-based-programming inspired dependency injection",
   "main": "dist/index.js",
   "bin": {

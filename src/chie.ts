@@ -9,7 +9,7 @@ if (require.main === module) {
     const args = processedArgs.arguments;
     const { options } = processedArgs;
     const injectionFile = options.i || options.injection || null;
-    const containerFile = options.c || options.container || null;
+    const containerFile = options.c || options.container || args.shift() || null;
     if (containerFile === null) {
         console.error("Container expected");
     } else {
