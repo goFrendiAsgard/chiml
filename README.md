@@ -22,6 +22,8 @@ npm install -g chiml
 
 We want to show calendar on the browser. We also want to show a cute animal image next to the calendar.
 
+[!dog calendar](./example/static/calendar.png)
+
 ## Input
 
 * `year`: any valid number
