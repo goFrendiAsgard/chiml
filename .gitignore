@@ -7,3 +7,5 @@ node_modules
 /coverage
 /example/dog.html
 /example/cat.html
+/example/calendar.html
+/calendar.html

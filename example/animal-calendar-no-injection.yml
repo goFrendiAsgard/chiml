@@ -1,7 +1,6 @@
 ins: year
 out: result
 bootstrap: main
-injection: ./dist/catInjection.js
 component:
 
     main:
@@ -23,23 +22,24 @@ component:
             - imageUrl
             - calendar
         out: result
-        pipe: composeHtml
+        pipe: wrapCommand
+        parts: echo '<img src="' && echo ${1} && echo '"/>' && echo "<pre>" && echo ${2} && echo "</pre>"
 
     writeCalendar:
         ins: result
         pipe: wrapCommand
-        parts: <writeHtmlCommand>
+        parts: echo ${1} > ${PWD}/calendar.html
 
     showCalendar:
         ins: []
         pipe: wrapCommand
-        parts: <showCalendarCommand>
+        parts: google-chrome file://${PWD}/calendar.html
 
     fetchCalendar:
         ins: year
         out: calendar
         pipe: wrapCommand
-        parts: <calCommand>
+        parts: ncal ${1} -h
 
     fetchImageUrl:
         out: imageUrl
@@ -51,8 +51,8 @@ component:
     fetchImageObj:
         ins: []
         pipe: wrapCommand
-        parts: <imageFetcherCommand>
+        parts: curl https://aws.random.cat/meow
 
     getImageUrl:
         pipe: prop
-        parts: <imageKey>
+        parts: file

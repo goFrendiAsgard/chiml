@@ -89,7 +89,7 @@ function _getParsedParts(
         return newVals;
     }
     if (typeof parts === "string") {
-        const tagPattern = /<(.+)>/gi;
+        const tagPattern = /^\s*<(.+)>\s*$/gi;
         const match = tagPattern.exec(parts);
         if (match) {
             const key = match[1];
