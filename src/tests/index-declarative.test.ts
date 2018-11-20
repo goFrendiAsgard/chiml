@@ -54,7 +54,19 @@ describe("declarative style", () => {
         return null;
     });
 
-    it("works with non-string parameter", () => {
+    it("works when returning promise", async () => {
+        const main = X.declarative({
+            bootstrap: "hello",
+            injection: {
+                hello: (name) => Promise.resolve(`Hello ${name}`),
+            },
+        });
+        const result = await main("mantan");
+        expect(result).toBe("Hello mantan");
+        return null;
+    });
+
+    it("works with non-string parts", () => {
         const main = X.declarative({
             ins: "num",
             bootstrap: "addFour",
@@ -71,7 +83,7 @@ describe("declarative style", () => {
         expect(result).toBe(7);
     });
 
-    it("works with non-template string parameter", () => {
+    it("works with non-template string parts", () => {
         const main = X.declarative({
             ins: "name",
             bootstrap: "sayHello",
@@ -242,8 +254,6 @@ describe("declarative style", () => {
 
     it("throw error if component yield rejected Promise, and only defined in injection", () => {
         const main = X.declarative({
-            ins: "_",
-            out: "_",
             bootstrap: "main",
             injection: {
                 main: (val) => {

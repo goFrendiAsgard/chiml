@@ -58,20 +58,23 @@ function declarative(partialDeclarativeConfig: Partial<IUserDeclarativeConfig>):
     // return bootstrap function
     if (bootstrap in parsedDict) {
         function wrappedBootstrapFunction(...args) {
-            args.forEach((value, index) => {
-                const key = globalIns[index];
-                globalState[key] = value;
-            });
+            if (globalIns !== null) {
+                args.forEach((value, index) => {
+                    const key = globalIns[index];
+                    globalState[key] = value;
+                });
+            }
             const func = parsedDict[bootstrap];
             const wrappedFunction = bootstrap in componentDict ?
                 func : _getWrappedFunction(bootstrap, func, globalIns, globalOut, globalState);
             const bootstrapOutput = wrappedFunction(...args);
             if (_isPromise(bootstrapOutput)) {
-                // we don't care about the value resolved by bootstrapOutput,
-                // the return value should be globalState[globalOut]
+                if (globalOut === null) {
+                    return bootstrapOutput;
+                }
                 return bootstrapOutput.then((val) => globalState[globalOut]);
             }
-            return globalState[globalOut];
+            return globalOut === null ? bootstrapOutput : globalState[globalOut];
         }
         return wrappedBootstrapFunction;
     }
@@ -129,23 +132,28 @@ function _addToParsedDict(
 }
 
 function _getWrappedFunction(
-    componentName: string, func: AnyFunction, ins: string[], out: string, state: {[key: string]: any},
+    componentName: string, func: AnyFunction, ins: string[] | null, out: string | null, state: {[key: string]: any},
 ): AnyFunction {
     function wrappedFunction(...args) {
-        const realArgs = _getArrayFromObject(ins, state);
+        const realArgs = ins === null ? args : _getArrayFromObject(ins, state);
         try {
             const funcOut = func(...realArgs);
             if (_isPromise(funcOut)) {
-                return funcOut
-                    .then((val) => {
-                        state[out] = val;
-                    })
-                    .catch((error) => {
-                        const errorMessage = `Error executing \`${componentName}\` component:`;
-                        return Promise.reject(_getEmbededError(error, errorMessage));
-                    });
+                const funcOutWithErrorHandler = funcOut.catch((error) => {
+                    const errorMessage = `Error executing \`${componentName}\` component:`;
+                    return Promise.reject(_getEmbededError(error, errorMessage));
+                });
+                if (out === null) {
+                    return funcOutWithErrorHandler;
+                }
+                return funcOutWithErrorHandler.then((val) => {
+                    state[out] = val;
+                    return val;
+                });
             }
-            state[out] = funcOut;
+            if (out != null) {
+                state[out] = funcOut;
+            }
             return funcOut;
         } catch (error) {
             const errorMessage = `Error executing \`${componentName}\` component:`;
@@ -171,15 +179,15 @@ function _getEmbededError(error: any, message: string): any {
 
 function _getCompleteDeclarativeConfig(partialConfig: Partial<IUserDeclarativeConfig>): IDeclarativeConfig {
     const defaultDeclarativeConfig = {
-        ins: [],
-        out: "_",
+        ins: null,
+        out: null,
         injection: {},
         component: {},
         bootstrap: "main",
     };
     const completeConfig = Object.assign({}, defaultDeclarativeConfig, partialConfig) as IDeclarativeConfig;
-    // make sure `completeConfig.ins` is an array. If it is not, turn it into array
-    if (!Array.isArray(completeConfig.ins)) {
+    // make sure `completeConfig.ins` is either null or an array. Otherwise, turn it into an array
+    if (completeConfig.ins !== null && !Array.isArray(completeConfig.ins)) {
         completeConfig.ins = [completeConfig.ins];
     }
     // complete all component in `completeConfig.component`
@@ -192,17 +200,17 @@ function _getCompleteDeclarativeConfig(partialConfig: Partial<IUserDeclarativeCo
 
 function _getCompleteComponent(partialComponent: Partial<IUserComponent>): IComponent {
     const defaultComponent = {
-        ins: ["_"],
-        out: "_",
+        ins: null,
+        out: null,
         pipe: null,
         parts: [],
     };
     const component = Object.assign({}, defaultComponent, partialComponent) as IComponent;
-    // make sure `component.ins` is an array. If it is not, turn it into array
-    if (!Array.isArray(component.ins)) {
+    // make sure `component.ins` is either null or an array. Otherwise, turn it into an array
+    if (component.ins !== null && !Array.isArray(component.ins)) {
         component.ins = [component.ins];
     }
-    // make sure `component.parts` is an array. If it is not, turn it into array
+    // make sure `component.parts` is an array. Otherwise, turn it into an array
     if (!Array.isArray(component.parts)) {
         component.parts = [component.parts];
     }

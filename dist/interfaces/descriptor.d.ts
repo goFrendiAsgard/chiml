@@ -9,8 +9,8 @@ export interface IDeclarativeConfig {
         [key: string]: Partial<IComponent>;
     };
     bootstrap: string;
-    ins: string[];
-    out: string;
+    ins: string[] | null;
+    out: string | null;
 }
 export interface IUserDeclarativeConfig {
     injection: {
@@ -20,20 +20,20 @@ export interface IUserDeclarativeConfig {
         [key: string]: Partial<IUserComponent>;
     };
     bootstrap: string;
-    ins: string[] | string;
-    out: string;
+    ins: string[] | string | null;
+    out: string | null;
 }
 export interface IComponent {
-    ins: string[];
-    out: string;
+    ins: string[] | null;
+    out: string | null;
     pipe: string;
     parts: any[];
 }
 export interface IUserComponent {
-    ins: string[] | string;
+    ins: string[] | string | null;
     out: string;
     pipe: string;
-    parts: any[] | any;
+    parts: any[] | any | null;
 }
 export interface IBaseChimera {
     declarative: (partialDeclarativeConfig: Partial<IUserDeclarativeConfig>) => AnyFunction;
