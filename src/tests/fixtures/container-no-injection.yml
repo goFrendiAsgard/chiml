@@ -1,0 +1,8 @@
+ins: [a, b]
+out: c
+bootstrap: operation
+component:
+    operation:
+        ins: [a, b]
+        out: c
+        pipe: add

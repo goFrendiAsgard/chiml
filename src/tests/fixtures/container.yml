@@ -1,0 +1,4 @@
+ins: [a, b]
+out: c
+injection: ./injection-add.js
+bootstrap: operation

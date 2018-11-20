@@ -9,6 +9,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const child_process_1 = require("child_process");
+const fs_1 = require("fs");
+const js_yaml_1 = require("js-yaml");
+const path_1 = require("path");
 const R = require("ramda");
 const FG_CYAN = "\x1b[36m";
 const FG_RED = "\x1b[31m";
@@ -23,6 +26,24 @@ exports.X = Object.assign({}, R, {
     wrapNodeback,
     wrapSync,
 });
+function execute(containerFile, injectionFile = null) {
+    const yamlScript = fs_1.readFileSync(containerFile).toString();
+    const config = js_yaml_1.safeLoad(yamlScript);
+    // define config.injection
+    if (injectionFile === null && config.injection && config.injection[0] === ".") {
+        const dirname = path_1.resolve(path_1.dirname(containerFile));
+        injectionFile = path_1.join(dirname, config.injection);
+    }
+    if (injectionFile) {
+        config.injection = require(injectionFile);
+    }
+    else {
+        config.injection = exports.X;
+    }
+    // get bootstrap and run it
+    return exports.X.declarative(config);
+}
+exports.execute = execute;
 /**
  * @param declarativeConfig IDeclarativeConfig
  */
@@ -36,7 +57,7 @@ function declarative(partialDeclarativeConfig) {
     const componentNameList = Object.keys(componentDict);
     const globalState = {};
     // parse all `<key>`, create function, and register it to parsedDict
-    componentNameList.forEach((componentName) => _addToParsedDict(componentName));
+    componentNameList.forEach((componentName) => _addToParsedDict(parsedDict, globalState, componentDict, componentName));
     // return bootstrap function
     if (bootstrap in parsedDict) {
         function wrappedBootstrapFunction(...args) {
@@ -58,41 +79,41 @@ function declarative(partialDeclarativeConfig) {
         return wrappedBootstrapFunction;
     }
     throw (new Error(`Bootstrap component \`${bootstrap}\` is not defined`));
-    function _addToParsedDict(componentName) {
-        componentDict[componentName] = _getCompleteComponent(componentDict[componentName]);
-        const { ins, out, pipe, parts } = componentDict[componentName];
-        const parsedParts = _getParsedParts(componentName, parts);
-        try {
-            const factory = parsedDict[pipe];
-            const func = _isEmptyArray(parsedParts) ? factory : factory(...parsedParts);
-            parsedDict[componentName] = _getWrappedFunction(componentName, func, ins, out, globalState);
-        }
-        catch (error) {
-            throw (_getEmbededError(error, `Error parsing \`${componentName}\` component. Pipe \`${pipe}\` yield error:`));
-        }
+}
+function _getParsedParts(parsedDict, globalState, componentDict, parentComponentName, parts) {
+    if (Array.isArray(parts)) {
+        const newVals = parts.map((element) => _getParsedParts(parsedDict, globalState, componentDict, parentComponentName, element));
+        return newVals;
     }
-    function _getParsedParts(parentComponentName, parts) {
-        if (Array.isArray(parts)) {
-            const newVals = parts.map((element) => _getParsedParts(parentComponentName, element));
-            return newVals;
-        }
-        if (typeof parts === "string") {
-            const tagPattern = /<(.+)>/gi;
-            const match = tagPattern.exec(parts);
-            if (match) {
-                const key = match[1];
-                if (!(key in parsedDict) && (key in componentDict)) {
-                    _addToParsedDict(key);
-                }
-                if (key in parsedDict) {
-                    return parsedDict[key];
-                }
-                throw (new Error(`Error parsing \`${parentComponentName}\` component: ` +
-                    `Part \`${key}\` is not defined`));
+    if (typeof parts === "string") {
+        const tagPattern = /<(.+)>/gi;
+        const match = tagPattern.exec(parts);
+        if (match) {
+            const key = match[1];
+            if (!(key in parsedDict) && (key in componentDict)) {
+                _addToParsedDict(parsedDict, globalState, componentDict, key);
             }
-            return parts;
+            if (key in parsedDict) {
+                return parsedDict[key];
+            }
+            throw (new Error(`Error parsing \`${parentComponentName}\` component: ` +
+                `Part \`${key}\` is not defined`));
         }
         return parts;
+    }
+    return parts;
+}
+function _addToParsedDict(parsedDict, globalState, componentDict, componentName) {
+    componentDict[componentName] = _getCompleteComponent(componentDict[componentName]);
+    const { ins, out, pipe, parts } = componentDict[componentName];
+    const parsedParts = _getParsedParts(parsedDict, globalState, componentDict, componentName, parts);
+    try {
+        const factory = parsedDict[pipe];
+        const func = _isEmptyArray(parsedParts) ? factory : factory(...parsedParts);
+        parsedDict[componentName] = _getWrappedFunction(componentName, func, ins, out, globalState);
+    }
+    catch (error) {
+        throw (_getEmbededError(error, `Error parsing \`${componentName}\` component. Pipe \`${pipe}\` yield error:`));
     }
 }
 function _getWrappedFunction(componentName, func, ins, out, state) {
@@ -156,7 +177,7 @@ function _getCompleteComponent(partialComponent) {
     const defaultComponent = {
         ins: ["_"],
         out: "_",
-        pipe: "Identity",
+        pipe: null,
         parts: [],
     };
     const component = Object.assign({}, defaultComponent, partialComponent);

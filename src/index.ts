@@ -1,4 +1,7 @@
 import { ChildProcess, exec } from "child_process";
+import { readFileSync as fsReadFileSync } from "fs";
+import { safeLoad as yamlSafeLoad } from "js-yaml";
+import { dirname as pathDirname, join as pathJoin, resolve as pathResolve } from "path";
 import * as R from "ramda";
 import {
     AnyAsyncFunction, AnyFunction, IComponent, IDeclarativeConfig, IUserComponent, IUserDeclarativeConfig, TChimera,
@@ -19,11 +22,27 @@ export const X: TChimera = Object.assign({}, R, {
     wrapSync,
 });
 
+export function execute(containerFile: string, injectionFile: string = null): AnyFunction {
+    const yamlScript = fsReadFileSync(containerFile).toString();
+    const config = yamlSafeLoad(yamlScript);
+    // define config.injection
+    if (injectionFile === null && config.injection && config.injection[0] === ".") {
+        const dirname = pathResolve(pathDirname(containerFile));
+        injectionFile = pathJoin(dirname, config.injection);
+    }
+    if (injectionFile) {
+        config.injection = require(injectionFile);
+    } else {
+        config.injection = X;
+    }
+    // get bootstrap and run it
+    return X.declarative(config);
+}
+
 /**
  * @param declarativeConfig IDeclarativeConfig
  */
 function declarative(partialDeclarativeConfig: Partial<IUserDeclarativeConfig>): AnyFunction {
-
     const declarativeConfig = _getCompleteDeclarativeConfig(partialDeclarativeConfig);
     const componentDict = declarativeConfig.component;
     const globalIns = declarativeConfig.ins;
@@ -33,7 +52,9 @@ function declarative(partialDeclarativeConfig: Partial<IUserDeclarativeConfig>):
     const componentNameList = Object.keys(componentDict);
     const globalState = {};
     // parse all `<key>`, create function, and register it to parsedDict
-    componentNameList.forEach((componentName) => _addToParsedDict(componentName));
+    componentNameList.forEach(
+        (componentName) => _addToParsedDict(parsedDict, globalState, componentDict, componentName),
+    );
     // return bootstrap function
     if (bootstrap in parsedDict) {
         function wrappedBootstrapFunction(...args) {
@@ -55,47 +76,55 @@ function declarative(partialDeclarativeConfig: Partial<IUserDeclarativeConfig>):
         return wrappedBootstrapFunction;
     }
     throw(new Error(`Bootstrap component \`${bootstrap}\` is not defined`));
+}
 
-    function _addToParsedDict(componentName: string): void {
-        componentDict[componentName] = _getCompleteComponent(componentDict[componentName]);
-        const { ins, out, pipe, parts } = componentDict[componentName];
-        const parsedParts = _getParsedParts(componentName, parts);
-        try {
-            const factory = parsedDict[pipe];
-            const func = _isEmptyArray(parsedParts) ? factory : factory(...parsedParts);
-            parsedDict[componentName] = _getWrappedFunction(componentName, func, ins, out, globalState);
-        } catch (error) {
-            throw(_getEmbededError(
-                error,
-                `Error parsing \`${componentName}\` component. Pipe \`${pipe}\` yield error:`,
+function _getParsedParts(
+    parsedDict: {[key: string]: any}, globalState: {[key: string]: any},
+    componentDict: {[key: string]: any}, parentComponentName: string, parts: any,
+): any {
+    if (Array.isArray(parts)) {
+        const newVals = parts.map(
+            (element) => _getParsedParts(parsedDict, globalState, componentDict, parentComponentName, element),
+        );
+        return newVals;
+    }
+    if (typeof parts === "string") {
+        const tagPattern = /<(.+)>/gi;
+        const match = tagPattern.exec(parts);
+        if (match) {
+            const key = match[1];
+            if (!(key in parsedDict) && (key in componentDict)) {
+                _addToParsedDict(parsedDict, globalState, componentDict, key);
+            }
+            if (key in parsedDict) {
+                return parsedDict[key];
+            }
+            throw(new Error(
+                `Error parsing \`${parentComponentName}\` component: ` +
+                    `Part \`${key}\` is not defined`,
             ));
         }
-    }
-
-    function _getParsedParts(parentComponentName: string, parts: any) {
-        if (Array.isArray(parts)) {
-            const newVals = parts.map((element) => _getParsedParts(parentComponentName, element));
-            return newVals;
-        }
-        if (typeof parts === "string") {
-            const tagPattern = /<(.+)>/gi;
-            const match = tagPattern.exec(parts);
-            if (match) {
-                const key = match[1];
-                if (!(key in parsedDict) && (key in componentDict)) {
-                    _addToParsedDict(key);
-                }
-                if (key in parsedDict) {
-                    return parsedDict[key];
-                }
-                throw(new Error(
-                    `Error parsing \`${parentComponentName}\` component: ` +
-                    `Part \`${key}\` is not defined`,
-                ));
-            }
-            return parts;
-        }
         return parts;
+    }
+    return parts;
+}
+
+function _addToParsedDict(
+    parsedDict: {[key: string]: any}, globalState: {[key: string]: any},
+    componentDict: {[key: string]: any}, componentName: string,
+): void {
+    componentDict[componentName] = _getCompleteComponent(componentDict[componentName]);
+    const { ins, out, pipe, parts } = componentDict[componentName];
+    const parsedParts = _getParsedParts(parsedDict, globalState, componentDict, componentName, parts);
+    try {
+        const factory = parsedDict[pipe];
+        const func = _isEmptyArray(parsedParts) ? factory : factory(...parsedParts);
+        parsedDict[componentName] = _getWrappedFunction(componentName, func, ins, out, globalState);
+    } catch (error) {
+        throw(_getEmbededError(
+            error,
+            `Error parsing \`${componentName}\` component. Pipe \`${pipe}\` yield error:`,
+        ));
     }
 }
 
@@ -165,7 +194,7 @@ function _getCompleteComponent(partialComponent: Partial<IUserComponent>): IComp
     const defaultComponent = {
         ins: ["_"],
         out: "_",
-        pipe: "Identity",
+        pipe: null,
         parts: [],
     };
     const component = Object.assign({}, defaultComponent, partialComponent) as IComponent;

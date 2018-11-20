@@ -1,9 +1,6 @@
 #! /usr/bin/env node
 
-import { readFileSync as fsReadFileSync } from "fs";
-import { safeLoad as yamlSafeLoad } from "js-yaml";
-import { dirname as pathDirname, join as pathJoin, resolve as pathResolve } from "path";
-import { X } from "./index";
+import { execute } from "./index";
 
 if (require.main === module) {
     const rawArgs = process.argv.slice(2);
@@ -25,20 +22,8 @@ if (require.main === module) {
                 [yamlFile, ...args] = rawArgs;
             }
         }
-        const yamlScript = fsReadFileSync(yamlFile).toString();
-        const config = yamlSafeLoad(yamlScript);
-        // define config.injection
-        if (injectionFile === null && config.injection && config.injection[0] === ".") {
-            const dirname = pathResolve(pathDirname(yamlFile));
-            injectionFile = pathJoin(dirname, config.injection);
-        }
-        if (injectionFile) {
-            config.injection = require(injectionFile);
-        } else {
-            config.injection = {};
-        }
         // get bootstrap and run it
-        const bootstrap = X.declarative(config);
+        const bootstrap = execute(yamlFile, injectionFile);
         const result = bootstrap(...args);
         if ("then" in result) {
             result
