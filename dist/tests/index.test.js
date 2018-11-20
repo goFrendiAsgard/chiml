@@ -55,7 +55,7 @@ describe("wrapNodeback", () => {
         const wrapped = index_1.X.wrapNodeback(fn);
         try {
             const result = yield wrapped();
-            expect(result).toBeUndefined();
+            expect(true).toBeFalsy();
         }
         catch (error) {
             expect(error).toBe("error");
@@ -92,7 +92,7 @@ describe("wrapCommand", () => {
         const wrapped = index_1.X.wrapCommand("mantan not found");
         try {
             const result = yield wrapped();
-            expect(result).toBeUndefined();
+            expect(true).toBeFalsy();
         }
         catch (error) {
             expect(error).toBeDefined();
@@ -106,7 +106,7 @@ describe("imperative style", () => {
         const asyncRootSquare = index_1.X.wrapCommand(lib_1.commandRootSquare);
         const asyncMultiply = index_1.X.wrapNodeback(lib_1.nodebackMultiply);
         const asyncAdd = index_1.X.wrapSync(lib_1.syncAdd);
-        const asyncAddAndMinus = index_1.X.parallel(asyncAdd, lib_1.asyncMinus);
+        const asyncAddAndMinus = index_1.X.concurrent(asyncAdd, lib_1.asyncMinus);
         const convergedAsyncMultiply = index_1.X.foldInput(asyncMultiply);
         const main = index_1.X.pipeP(asyncAddAndMinus, convergedAsyncMultiply, asyncRootSquare);
         // action
@@ -114,143 +114,5 @@ describe("imperative style", () => {
         expect(result).toBe(8);
         return null;
     }));
-});
-describe("declarative style", () => {
-    it("works", () => __awaiter(this, void 0, void 0, function* () {
-        const main = index_1.X.declarative({
-            ins: ["a", "b"],
-            out: "f",
-            bootstrap: "main",
-            // parts can contains any values/JavaScript object
-            injection: Object.assign({ asyncMinus: lib_1.asyncMinus, commandRootSquare: lib_1.commandRootSquare, nodebackMultiply: lib_1.nodebackMultiply, syncAdd: lib_1.syncAdd }, index_1.X),
-            // comp should only contains valid JSON object
-            component: {
-                main: {
-                    pipe: "pipeP",
-                    parts: [
-                        "<aPlusBAndAMinB>",
-                        "<cByD>",
-                        "<rootSquareE>",
-                    ],
-                },
-                aPlusBAndAMinB: {
-                    pipe: "parallel",
-                    parts: ["<aPlusB>", "<aMinB>"],
-                },
-                aPlusB: {
-                    ins: ["a", "b"],
-                    out: "c",
-                    pipe: "syncAdd",
-                },
-                aMinB: {
-                    ins: ["a", "b"],
-                    out: "d",
-                    pipe: "asyncMinus",
-                },
-                cByD: {
-                    ins: ["c", "d"],
-                    out: "e",
-                    pipe: "wrapNodeback",
-                    parts: "<nodebackMultiply>",
-                },
-                rootSquareE: {
-                    ins: "e",
-                    out: "f",
-                    pipe: "wrapCommand",
-                    parts: ["<commandRootSquare>"],
-                },
-            },
-        });
-        // action
-        const result = yield main(10, 6);
-        expect(result).toBe(8);
-        return null;
-    }));
-    it("works with non-string parameter", () => {
-        const main = index_1.X.declarative({
-            injection: Object.assign({}, index_1.X),
-            component: {
-                addFour: {
-                    ins: "num",
-                    pipe: "add",
-                    parts: 4,
-                },
-            },
-            ins: "num",
-            bootstrap: "addFour",
-        });
-        const result = main(3);
-        expect(result).toBe(7);
-    });
-    it("works with non-template string parameter", () => {
-        const main = index_1.X.declarative({
-            injection: Object.assign({}, index_1.X),
-            component: {
-                sayHello: {
-                    ins: "name",
-                    pipe: "concat",
-                    parts: "Hello ",
-                },
-            },
-            ins: "name",
-            bootstrap: "sayHello",
-        });
-        const result = main("world");
-        expect(result).toBe("Hello world");
-    });
-    it("throw error if component is not exists ", () => {
-        try {
-            const main = index_1.X.declarative({
-                injection: Object.assign({}, index_1.X),
-                component: {
-                    average: {
-                        pipe: "pipe",
-                        parts: "<rataRata>",
-                    },
-                },
-                bootstrap: "average",
-            });
-            expect(main).toBeUndefined();
-        }
-        catch (error) {
-            expect(error.message).toBe("<rataRata> is not found");
-        }
-    });
-    it("throw error if main is not exists", () => {
-        try {
-            const main = index_1.X.declarative({
-                injection: Object.assign({}, index_1.X),
-                component: {
-                    nor: {
-                        pipe: "pipe",
-                        parts: ["<or>", "<not>"],
-                    },
-                },
-                bootstrap: "oraono",
-            });
-            expect(main).toBeUndefined();
-        }
-        catch (error) {
-            expect(error.message).toBe("oraono is not defined");
-        }
-    });
-    it("throw error if pipe yield error", () => {
-        try {
-            const main = index_1.X.declarative({
-                injection: Object.assign({ errorPipe: () => { throw (new Error("invalid pipe")); } }, index_1.X),
-                component: {
-                    errorTest: {
-                        pipe: "errorPipe",
-                        parts: ["<or>"],
-                    },
-                },
-                bootstrap: "errorTest",
-            });
-            expect(main).toBeUndefined();
-        }
-        catch (error) {
-            expect(error.message).toBe("Error parse errorTest: invalid pipe");
-        }
-    });
 });
 //# sourceMappingURL=index.test.js.map

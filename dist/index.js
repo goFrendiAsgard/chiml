@@ -18,7 +18,7 @@ exports.X = Object.assign({}, R, {
     declarative,
     foldInput,
     spreadInput,
-    parallel,
+    concurrent,
     wrapCommand,
     wrapNodeback,
     wrapSync,
@@ -27,7 +27,7 @@ exports.X = Object.assign({}, R, {
  * @param declarativeConfig IDeclarativeConfig
  */
 function declarative(partialDeclarativeConfig) {
-    const declarativeConfig = getCompleteDeclarativeConfig(partialDeclarativeConfig);
+    const declarativeConfig = _getCompleteDeclarativeConfig(partialDeclarativeConfig);
     const componentDict = declarativeConfig.component;
     const globalIns = declarativeConfig.ins;
     const globalOut = declarativeConfig.out;
@@ -35,98 +35,45 @@ function declarative(partialDeclarativeConfig) {
     const parsedDict = Object.assign({}, declarativeConfig.injection);
     const componentNameList = Object.keys(componentDict);
     const globalState = {};
-    // parse all `<key>`, create function, and register it to dictionary
-    for (const componentName of componentNameList) {
-        addToParsedDict(componentName);
-    }
+    // parse all `<key>`, create function, and register it to parsedDict
+    componentNameList.forEach((componentName) => _addToParsedDict(componentName));
     // return bootstrap function
     if (bootstrap in parsedDict) {
         function wrappedBootstrapFunction(...args) {
-            for (let i = 0; i < globalIns.length; i++) {
-                const key = globalIns[i];
-                globalState[key] = args[i];
-            }
-            const bootstrapOutput = parsedDict[bootstrap](...args);
+            args.forEach((value, index) => {
+                const key = globalIns[index];
+                globalState[key] = value;
+            });
+            const func = parsedDict[bootstrap];
+            const wrappedFunction = bootstrap in componentDict ?
+                func : _getWrappedFunction(bootstrap, func, globalIns, globalOut, globalState);
+            const bootstrapOutput = wrappedFunction(...args);
             if (_isPromise(bootstrapOutput)) {
+                // we don't care about the value resolved by bootstrapOutput,
+                // the return value should be globalState[globalOut]
                 return bootstrapOutput.then((val) => globalState[globalOut]);
             }
             return globalState[globalOut];
         }
         return wrappedBootstrapFunction;
     }
-    throw (new Error(`${bootstrap} is not defined`));
-    function getCompleteDeclarativeConfig(partialConfig) {
-        const defaultDeclarativeConfig = {
-            ins: [],
-            out: "_",
-            injection: {},
-            component: {},
-            bootstrap: "main",
-        };
-        const completeConfig = Object.assign({}, defaultDeclarativeConfig, partialConfig);
-        if (!Array.isArray(completeConfig.ins)) {
-            completeConfig.ins = [completeConfig.ins];
-        }
-        for (const componentName of Object.keys(completeConfig)) {
-            const completeComponent = getCompleteComponent(completeConfig.component[componentName]);
-            completeConfig.component[componentName] = completeComponent;
-        }
-        return completeConfig;
-    }
-    function getCompleteComponent(partialComponent) {
-        const defaultComponent = {
-            ins: ["_"],
-            out: "_",
-            pipe: "Identity",
-            parts: [],
-        };
-        const component = Object.assign({}, defaultComponent, partialComponent);
-        if (!Array.isArray(component.ins)) {
-            component.ins = [component.ins];
-        }
-        if (!Array.isArray(component.parts)) {
-            component.parts = [component.parts];
-        }
-        return component;
-    }
-    function getArrayFromState(keys) {
-        const arr = [];
-        for (const key of keys) {
-            arr.push(globalState[key]);
-        }
-        return arr;
-    }
-    function getWrappedFunction(func, ins, out) {
-        function wrappedFunction(...args) {
-            const realArgs = getArrayFromState(ins);
-            const funcOut = func(...realArgs);
-            if (_isPromise(funcOut)) {
-                return funcOut.then((val) => {
-                    globalState[out] = val;
-                });
-            }
-            globalState[out] = funcOut;
-            return funcOut;
-        }
-        return wrappedFunction;
-    }
-    function addToParsedDict(componentName) {
-        componentDict[componentName] = getCompleteComponent(componentDict[componentName]);
+    throw (new Error(`Bootstrap component \`${bootstrap}\` is not defined`));
+    function _addToParsedDict(componentName) {
+        componentDict[componentName] = _getCompleteComponent(componentDict[componentName]);
         const { ins, out, pipe, parts } = componentDict[componentName];
-        const parsedParts = getParsedComponents(parts);
+        const parsedParts = _getParsedParts(componentName, parts);
         try {
             const factory = parsedDict[pipe];
             const func = _isEmptyArray(parsedParts) ? factory : factory(...parsedParts);
-            parsedDict[componentName] = getWrappedFunction(func, ins, out);
+            parsedDict[componentName] = _getWrappedFunction(componentName, func, ins, out, globalState);
         }
         catch (error) {
-            error.message = `Error parse ${componentName}: ${error.message}`;
-            throw (error);
+            throw (_getEmbededError(error, `Error parsing \`${componentName}\` component. Pipe \`${pipe}\` yield error:`));
         }
     }
-    function getParsedComponents(parts) {
+    function _getParsedParts(parentComponentName, parts) {
         if (Array.isArray(parts)) {
-            const newVals = parts.map((element) => getParsedComponents(element));
+            const newVals = parts.map((element) => _getParsedParts(parentComponentName, element));
             return newVals;
         }
         if (typeof parts === "string") {
@@ -135,17 +82,93 @@ function declarative(partialDeclarativeConfig) {
             if (match) {
                 const key = match[1];
                 if (!(key in parsedDict) && (key in componentDict)) {
-                    addToParsedDict(key);
+                    _addToParsedDict(key);
                 }
                 if (key in parsedDict) {
                     return parsedDict[key];
                 }
-                throw (new Error(`<${key}> is not found`));
+                throw (new Error(`Error parsing \`${parentComponentName}\` component: ` +
+                    `Part \`${key}\` is not defined`));
             }
             return parts;
         }
         return parts;
     }
+}
+function _getWrappedFunction(componentName, func, ins, out, state) {
+    function wrappedFunction(...args) {
+        const realArgs = _getArrayFromObject(ins, state);
+        try {
+            const funcOut = func(...realArgs);
+            if (_isPromise(funcOut)) {
+                return funcOut
+                    .then((val) => {
+                    state[out] = val;
+                })
+                    .catch((error) => {
+                    const errorMessage = `Error executing \`${componentName}\` component:`;
+                    return Promise.reject(_getEmbededError(error, errorMessage));
+                });
+            }
+            state[out] = funcOut;
+            return funcOut;
+        }
+        catch (error) {
+            const errorMessage = `Error executing \`${componentName}\` component:`;
+            throw (_getEmbededError(error, errorMessage));
+        }
+    }
+    return wrappedFunction;
+}
+function _getArrayFromObject(keys, obj) {
+    const arr = [];
+    keys.forEach((key) => arr.push(obj[key]));
+    return arr;
+}
+function _getEmbededError(error, message) {
+    if (typeof error !== "object" || !error.message) {
+        error = new Error(error);
+    }
+    error.message = `${message} ${error.message}`;
+    return error;
+}
+function _getCompleteDeclarativeConfig(partialConfig) {
+    const defaultDeclarativeConfig = {
+        ins: [],
+        out: "_",
+        injection: {},
+        component: {},
+        bootstrap: "main",
+    };
+    const completeConfig = Object.assign({}, defaultDeclarativeConfig, partialConfig);
+    // make sure `completeConfig.ins` is an array. If it is not, turn it into array
+    if (!Array.isArray(completeConfig.ins)) {
+        completeConfig.ins = [completeConfig.ins];
+    }
+    // complete all component in `completeConfig.component`
+    Object.keys(completeConfig.component).forEach((componentName) => {
+        const completeComponent = _getCompleteComponent(completeConfig.component[componentName]);
+        completeConfig.component[componentName] = completeComponent;
+    });
+    return completeConfig;
+}
+function _getCompleteComponent(partialComponent) {
+    const defaultComponent = {
+        ins: ["_"],
+        out: "_",
+        pipe: "Identity",
+        parts: [],
+    };
+    const component = Object.assign({}, defaultComponent, partialComponent);
+    // make sure `component.ins` is an array. If it is not, turn it into array
+    if (!Array.isArray(component.ins)) {
+        component.ins = [component.ins];
+    }
+    // make sure `component.parts` is an array. If it is not, turn it into array
+    if (!Array.isArray(component.parts)) {
+        component.parts = [component.parts];
+    }
+    return component;
 }
 /**
  * @param fn AnyFunction
@@ -168,12 +191,12 @@ function foldInput(fn) {
 /**
  * @param fnList AnyAsynchronousFunction
  */
-function parallel(...fnList) {
-    function parallelPipe(...args) {
+function concurrent(...fnList) {
+    function concurrentPipe(...args) {
         const promises = fnList.map((fn) => fn(...args));
         return Promise.all(promises);
     }
-    return parallelPipe;
+    return concurrentPipe;
 }
 /**
  * @param fn AnyFunction
@@ -268,14 +291,15 @@ function _runStringCommand(stringCommand, options) {
  * @param ins any[]
  */
 function _getStringCommandWithParams(strCmd, ins) {
-    // command has no templated parameters
     if (strCmd.match(/.*\$\{[0-9]+\}.*/g)) {
-        // command has templated parameters (i.e: ${1}, ${2}, etc)
+        // command contains `${number}`
         let commandWithParams = strCmd;
-        for (let i = 0; i < ins.length; i++) {
-            const paramIndex = i + 1;
-            commandWithParams = commandWithParams.replace(`$\{${paramIndex}}`, _getDoubleQuotedString(String(ins[i])));
-        }
+        ins.forEach((value, index) => {
+            const paramIndex = index + 1;
+            const pattern = `$\{${paramIndex}}`;
+            const replacement = _getDoubleQuotedString(String(value));
+            commandWithParams = commandWithParams.replace(pattern, replacement);
+        });
         return commandWithParams;
     }
     const inputs = ins.map((element) => _getDoubleQuotedString(String(element))).join(" ");

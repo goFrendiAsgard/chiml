@@ -49,7 +49,7 @@ export function main(a: number, b: number): Promise<void> {
     const asyncRootSquare = X.wrapCommand(commandRootSquare);
     const asyncMultiply = X.wrapNodeback(nodebackMultiply);
     const asyncAdd = X.wrapSync(syncAdd);
-    const asyncAddAndMinus = X.parallel(asyncAdd, asyncMinus);
+    const asyncAddAndMinus = X.concurrent(asyncAdd, asyncMinus);
     const convergedAsyncMultiply = X.foldInput(asyncMultiply);
     const main: (a: number, b: number) => Promise<number> = X.pipeP(
         asyncAddAndMinus,
@@ -84,7 +84,7 @@ export const main = X.declarative({
             ],
         },
         aPlusBAndAMinB: {
-            pipe: "parallel",
+            pipe: "concurrent",
             parts: ["<aPlusB>", "<aMinB>"],
         },
         aPlusB: {

@@ -32,11 +32,11 @@ export interface IUserComponent {
     parts: any[] | any;
 }
 
-interface IBaseChimera {
+export interface IBaseChimera {
     declarative: (partialDeclarativeConfig: Partial<IUserDeclarativeConfig>) => AnyFunction;
     foldInput: (fn: AnyFunction) => ((arr: any[]) => any);
     spreadInput: (fn: (arr: any[]) => any) => AnyFunction;
-    parallel: (...fnList: AnyAsyncFunction[]) => AnyAsyncFunction;
+    concurrent: (...fnList: AnyAsyncFunction[]) => AnyAsyncFunction;
     wrapCommand: (stringCommand: string) => AnyAsyncFunction;
     wrapNodeback: (fn: AnyFunction) => AnyAsyncFunction;
     wrapSync: (fn: AnyFunction) => AnyAsyncFunction;
