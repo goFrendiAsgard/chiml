@@ -1,7 +1,7 @@
 {
   "name": "chiml",
   "version": "0.1.0",
-  "description": "Typescripting",
+  "description": "Flow-based-programming inspired dependency injection",
   "main": "dist/index.js",
   "bin": {
     "chie": "dist/chie.js"
@@ -29,6 +29,8 @@
     "collectCoverage": true
   },
   "keywords": [
+    "dependency-injection",
+    "fbp-inspired",
     "orchestration-language",
     "chimera-framework"
   ],
@@ -39,7 +41,7 @@
   },
   "homepage": "https://github.com/goFrendiAsgard/chimera-framework#readme",
   "dependencies": {
-    "@types/ramda": "^0.26.0",
+    "get-args": "^2.0.0",
     "js-yaml": "^3.12.0",
     "ramda": "^0.25.0"
   },
@@ -47,6 +49,7 @@
     "@types/jest": "^23.3.2",
     "@types/js-yaml": "^3.11.2",
     "@types/node": "^10.11.3",
+    "@types/ramda": "^0.26.0",
     "jest": "^23.6.0",
     "ts-jest": "^23.10.3",
     "tslint": "^5.11.0"
