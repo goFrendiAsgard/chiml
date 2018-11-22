@@ -21,14 +21,14 @@ export interface IUserDeclarativeConfig {
 export interface IComponent {
     ins: string[] | null;
     out: string | null;
-    pipe: string;
+    perform: string;
     parts: any[];
 }
 
 export interface IUserComponent {
     ins: string[] | string | null;
     out: string;
-    pipe: string;
+    perform: string;
     parts: any[] | any | null;
 }
 

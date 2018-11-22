@@ -50,7 +50,7 @@ bootstrap: main
 component:
 
     main:
-        pipe: pipeP
+        perform: pipeP
         parts:
             - <fetchImageAndCalendar>
             - <composeCalendar>
@@ -83,7 +83,7 @@ bootstrap: main
 component:
 
     main:
-        pipe: pipeP
+        perform: pipeP
         parts:
             - <fetchImageAndCalendar>
             - <composeCalendar>
@@ -91,7 +91,7 @@ component:
             - <showCalendar>
 
     fetchImageAndCalendar:
-        pipe: concurrent
+        perform: concurrent
         parts:
             - <fetchImageUrl>
             - <fetchCalendar>
@@ -101,39 +101,39 @@ component:
             - imageUrl
             - calendar
         out: result
-        pipe: wrapCommand
+        perform: wrapCommand
         parts: echo '<img src="' && echo ${1} && echo '"/>' && echo "<pre>" && echo ${2} && echo "</pre>"
 
     writeCalendar:
         ins: result
-        pipe: wrapCommand
+        perform: wrapCommand
         parts: echo ${1} > ${PWD}/calendar.html
 
     showCalendar:
         ins: []
-        pipe: wrapCommand
+        perform: wrapCommand
         parts: google-chrome file://${PWD}/calendar.html
 
     fetchCalendar:
         ins: year
         out: calendar
-        pipe: wrapCommand
+        perform: wrapCommand
         parts: ncal ${1} -h
 
     fetchImageUrl:
         out: imageUrl
-        pipe: pipeP
+        perform: pipeP
         parts:
             - <fetchImageObj>
             - <getImageUrl>
 
     fetchImageObj:
         ins: []
-        pipe: wrapCommand
+        perform: wrapCommand
         parts: curl https://aws.random.cat/meow
 
     getImageUrl:
-        pipe: prop
+        perform: prop
         parts: file
 ```
 
@@ -187,7 +187,7 @@ injection: ./dist/catInjection.js
 component:
 
     main:
-        pipe: pipeP
+        perform: pipeP
         parts:
             - <fetchImageAndCalendar>
             - <composeCalendar>
@@ -195,7 +195,7 @@ component:
             - <showCalendar>
 
     fetchImageAndCalendar:
-        pipe: concurrent
+        perform: concurrent
         parts:
             - <fetchImageUrl>
             - <fetchCalendar>
@@ -205,38 +205,38 @@ component:
             - imageUrl
             - calendar
         out: result
-        pipe: composeHtml
+        perform: composeHtml
 
     writeCalendar:
         ins: result
-        pipe: wrapCommand
+        perform: wrapCommand
         parts: <writeHtmlCommand>
 
     showCalendar:
         ins: []
-        pipe: wrapCommand
+        perform: wrapCommand
         parts: <showCalendarCommand>
 
     fetchCalendar:
         ins: year
         out: calendar
-        pipe: wrapCommand
+        perform: wrapCommand
         parts: <calCommand>
 
     fetchImageUrl:
         out: imageUrl
-        pipe: pipeP
+        perform: pipeP
         parts:
             - <fetchImageObj>
             - <getImageUrl>
 
     fetchImageObj:
         ins: []
-        pipe: wrapCommand
+        perform: wrapCommand
         parts: <imageFetcherCommand>
 
     getImageUrl:
-        pipe: prop
+        perform: prop
         parts: <imageKey>
 ```
 

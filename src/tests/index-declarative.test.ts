@@ -13,7 +13,7 @@ describe("declarative style", () => {
             // comp should only contains valid JSON object
             component: {
                 main: {
-                    pipe: "pipeP",
+                    perform: "pipeP",
                     parts: [
                         "<aPlusBAndAMinB>",
                         "<cByD>",
@@ -21,29 +21,29 @@ describe("declarative style", () => {
                     ],
                 },
                 aPlusBAndAMinB: {
-                    pipe: "concurrent",
+                    perform: "concurrent",
                     parts: ["<aPlusB>", "<aMinB>"],
                 },
                 aPlusB: {
                     ins: ["a", "b"],
                     out: "c",
-                    pipe: "syncAdd",
+                    perform: "syncAdd",
                 },
                 aMinB: {
                     ins: ["a", "b"],
                     out: "d",
-                    pipe: "asyncMinus",
+                    perform: "asyncMinus",
                 },
                 cByD: {
                     ins: ["c", "d"],
                     out: "e",
-                    pipe: "wrapNodeback",
+                    perform: "wrapNodeback",
                     parts: "<nodebackMultiply>",
                 },
                 rootSquareE: {
                     ins: "e",
                     out: "f",
-                    pipe: "wrapCommand",
+                    perform: "wrapCommand",
                     parts: ["<commandRootSquare>"],
                 },
             },
@@ -74,7 +74,7 @@ describe("declarative style", () => {
             component: {
                 addFour: {
                     ins: "num",
-                    pipe: "add",
+                    perform: "add",
                     parts: 4,
                 },
             },
@@ -91,7 +91,7 @@ describe("declarative style", () => {
             component: {
                 sayHello: {
                     ins: "name",
-                    pipe: "concat",
+                    perform: "concat",
                     parts: "Hello ",
                 },
             },
@@ -107,7 +107,7 @@ describe("declarative style", () => {
                 injection: {...X},
                 component: {
                     average: {
-                        pipe: "pipe",
+                        perform: "pipe",
                         parts: "<rataRata>",
                     },
                 },
@@ -125,7 +125,7 @@ describe("declarative style", () => {
                 injection: {...X},
                 component: {
                     nor: {
-                        pipe: "pipe",
+                        perform: "pipe",
                         parts: ["<or>", "<not>"],
                     },
                 },
@@ -140,12 +140,12 @@ describe("declarative style", () => {
         try {
             const main = X.declarative({
                 injection: {
-                    errorPipe: () => { throw(new Error("invalid pipe")); },
-                        ...X,
+                    errorAction: () => { throw(new Error("invalid action")); },
+                    ...X,
                 },
                 component: {
                     errorTest: {
-                        pipe: "errorPipe",
+                        perform: "errorAction",
                         parts: ["<or>"],
                     },
                 },
@@ -154,8 +154,7 @@ describe("declarative style", () => {
             expect(true).toBeFalsy();
         } catch (error) {
             expect(error.message).toBe(
-                "Error parsing `errorTest` component. " +
-                    "Pipe `errorPipe` yield error: invalid pipe",
+                "Error parsing `errorTest` component. `errorAction` yield error: invalid action",
             );
         }
     });
@@ -179,7 +178,7 @@ describe("declarative style", () => {
                     main: {
                         ins: "n",
                         out: "result",
-                        pipe: "errorComponent",
+                        perform: "errorComponent",
                     },
                 },
             });
@@ -187,7 +186,7 @@ describe("declarative style", () => {
             expect(true).toBeFalsy();
         } catch (error) {
             expect(error.message).toBe(
-                "Error executing `main` component: I hate nine",
+                "Error executing `main( 9 )` component: I hate nine",
             );
         }
     });
@@ -212,7 +211,7 @@ describe("declarative style", () => {
                     main: {
                         ins: "n",
                         out: "result",
-                        pipe: "errorComponent",
+                        perform: "errorComponent",
                     },
                 },
             });
@@ -220,7 +219,7 @@ describe("declarative style", () => {
             expect(true).toBeFalsy();
         } catch (error) {
             expect(error.message).toBe(
-                "Error executing `main` component: I hate nine",
+                "Error executing `main( 9 )` component: I hate nine",
             );
         }
     });
@@ -243,13 +242,13 @@ describe("declarative style", () => {
                 main: {
                     ins: "n",
                     out: "result",
-                    pipe: "errorComponent",
+                    perform: "errorComponent",
                 },
             },
         });
         const result = main(9);
         result.then((val) => expect(true).toBeFalsy())
-            .catch((error) => expect(error.message).toBe("Error executing `main` component: I hate nine"));
+            .catch((error) => expect(error.message).toBe("Error executing `main( 9 )` async component: I hate nine"));
     });
 
     it("throw error if component yield rejected Promise, and only defined in injection", () => {
@@ -267,7 +266,56 @@ describe("declarative style", () => {
         });
         const result = main(9);
         result.then((val) => expect(true).toBeFalsy())
-            .catch((error) => expect(error.message).toBe("Error executing `main` component: I hate nine"));
+            .catch((error) => expect(error.message).toBe("Error executing `main( 9 )` async component: I hate nine"));
+    });
+
+    it("throw error if component's perform is not executable", () => {
+        try {
+            const main = X.declarative({
+                bootstrap: "main",
+                injection: {
+                    four: 4,
+                    five: 5,
+                    ...X,
+                },
+                component: {
+                    main: {
+                        perform: "four",
+                    },
+                },
+            });
+            const result = main();
+            expect(true).toBeFalsy();
+        } catch (error) {
+            expect(error.message).toBe(
+                "Error parsing `main` component. `four` yield error: four is not a function",
+            );
+        }
+    });
+
+    it("throw error if component's perform(...parts) is not executable", () => {
+        try {
+            const main = X.declarative({
+                bootstrap: "main",
+                injection: {
+                    four: 4,
+                    five: 5,
+                    ...X,
+                },
+                component: {
+                    main: {
+                        perform: "add",
+                        parts: ["<four>", "<five>"]
+                    },
+                },
+            });
+            const result = main();
+            expect(true).toBeFalsy();
+        } catch (error) {
+            expect(error.message).toBe(
+                "Error parsing `main` component. `add` yield error: add( 4, 5 ) is not a function",
+            );
+        }
     });
 
 });

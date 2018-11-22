@@ -3,6 +3,7 @@ import { readFileSync as fsReadFileSync } from "fs";
 import { safeLoad as yamlSafeLoad } from "js-yaml";
 import { dirname as pathDirname, join as pathJoin, resolve as pathResolve } from "path";
 import * as R from "ramda";
+import { inspect as utilInspect } from "util";
 import {
     AnyAsyncFunction, AnyFunction, IComponent, IDeclarativeConfig, IUserComponent, IUserDeclarativeConfig, TChimera,
 } from "./interfaces/descriptor";
@@ -117,18 +118,29 @@ function _addToParsedDict(
     componentDict: {[key: string]: any}, componentName: string,
 ): void {
     componentDict[componentName] = _getCompleteComponent(componentDict[componentName]);
-    const { ins, out, pipe, parts } = componentDict[componentName];
+    const { ins, out, perform, parts } = componentDict[componentName];
     const parsedParts = _getParsedParts(parsedDict, globalState, componentDict, componentName, parts);
     try {
-        const factory = parsedDict[pipe];
+        const factory = parsedDict[perform];
+        if (typeof factory !== "function") {
+            throw new Error(`${perform} is not a function`);
+        }
         const func = _isEmptyArray(parsedParts) ? factory : factory(...parsedParts);
+        if (typeof func !== "function") {
+            const partsAsString = _getArgsStringRepresentation(parsedParts);
+            throw new Error(`${perform}${partsAsString} is not a function`);
+        }
         parsedDict[componentName] = _getWrappedFunction(componentName, func, ins, out, globalState);
     } catch (error) {
         throw(_getEmbededError(
             error,
-            `Error parsing \`${componentName}\` component. Pipe \`${pipe}\` yield error:`,
+            `Error parsing \`${componentName}\` component. \`${perform}\` yield error:`,
         ));
     }
+}
+
+function _getArgsStringRepresentation(args: any[]) {
+    return utilInspect(args).replace(/^\[/g, "(").replace(/\]$/g, ")");
 }
 
 function _getWrappedFunction(
@@ -140,7 +152,8 @@ function _getWrappedFunction(
             const funcOut = func(...realArgs);
             if (_isPromise(funcOut)) {
                 const funcOutWithErrorHandler = funcOut.catch((error) => {
-                    const errorMessage = `Error executing \`${componentName}\` component:`;
+                    const realArgsAsString = _getArgsStringRepresentation(realArgs);
+                    const errorMessage = `Error executing \`${componentName}${realArgsAsString}\` async component:`;
                     return Promise.reject(_getEmbededError(error, errorMessage));
                 });
                 if (out === null) {
@@ -156,7 +169,8 @@ function _getWrappedFunction(
             }
             return funcOut;
         } catch (error) {
-            const errorMessage = `Error executing \`${componentName}\` component:`;
+            const realArgsAsString = _getArgsStringRepresentation(realArgs);
+            const errorMessage = `Error executing \`${componentName}${realArgsAsString}\` component:`;
             throw(_getEmbededError(error, errorMessage));
         }
     }
@@ -202,7 +216,7 @@ function _getCompleteComponent(partialComponent: Partial<IUserComponent>): IComp
     const defaultComponent = {
         ins: null,
         out: null,
-        pipe: null,
+        perform: null,
         parts: [],
     };
     const component = Object.assign({}, defaultComponent, partialComponent) as IComponent;
@@ -241,11 +255,11 @@ function foldInput<TArg, TResult>(fn: (...args: TArg[]) => TResult): (arr: TArg[
  * @param fnList AnyAsynchronousFunction
  */
 function concurrent(...fnList: AnyAsyncFunction[]): AnyAsyncFunction {
-    function concurrentPipe(...args: any[]): Promise<any> {
+    function concurrentAction(...args: any[]): Promise<any> {
         const promises: Array<Promise<any>> = fnList.map((fn) => fn(...args));
         return Promise.all(promises);
     }
-    return concurrentPipe;
+    return concurrentAction;
 }
 
 /**
