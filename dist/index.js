@@ -60,29 +60,35 @@ function declarative(partialDeclarativeConfig) {
     // parse all `<key>`, create function, and register it to parsedDict
     componentNameList.forEach((componentName) => _addToParsedDict(parsedDict, globalState, componentDict, componentName));
     // return bootstrap function
-    if (bootstrap in parsedDict) {
-        function wrappedBootstrapFunction(...args) {
-            if (globalIns !== null) {
-                args.forEach((value, index) => {
-                    const key = globalIns[index];
-                    globalState[key] = value;
-                });
-            }
-            const func = parsedDict[bootstrap];
-            const wrappedFunction = bootstrap in componentDict ?
-                func : _getWrappedFunction(bootstrap, func, globalIns, globalOut, globalState);
-            const bootstrapOutput = wrappedFunction(...args);
-            if (_isPromise(bootstrapOutput)) {
-                if (globalOut === null) {
-                    return bootstrapOutput;
-                }
-                return bootstrapOutput.then((val) => globalState[globalOut]);
-            }
-            return globalOut === null ? bootstrapOutput : globalState[globalOut];
-        }
-        return wrappedBootstrapFunction;
+    if (!(bootstrap in parsedDict)) {
+        throw (new Error(`Bootstrap component \`${bootstrap}\` is not defined`));
     }
-    throw (new Error(`Bootstrap component \`${bootstrap}\` is not defined`));
+    return _getWrappedBootstrapFunction(bootstrap, componentDict, parsedDict, globalIns, globalOut, globalState);
+}
+function _getWrappedBootstrapFunction(bootstrap, componentDict, parsedDict, globalIns, globalOut, globalState) {
+    function wrappedBootstrapFunction(...args) {
+        if (globalIns !== null) {
+            if (args.length < globalIns.length) {
+                throw (new Error(`Program expecting ${globalIns.length} arguments, but ${args.length} given`));
+            }
+            args.forEach((value, index) => {
+                const key = globalIns[index];
+                globalState[key] = value;
+            });
+        }
+        const func = parsedDict[bootstrap];
+        const wrappedFunction = bootstrap in componentDict ?
+            func : _getWrappedFunction(bootstrap, func, globalIns, globalOut, globalState);
+        const bootstrapOutput = wrappedFunction(...args);
+        if (_isPromise(bootstrapOutput)) {
+            if (globalOut === null) {
+                return bootstrapOutput;
+            }
+            return bootstrapOutput.then((val) => globalState[globalOut]);
+        }
+        return globalOut === null ? bootstrapOutput : globalState[globalOut];
+    }
+    return wrappedBootstrapFunction;
 }
 function _getParsedParts(parsedDict, globalState, componentDict, parentComponentName, parts) {
     if (Array.isArray(parts)) {

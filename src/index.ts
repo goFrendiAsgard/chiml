@@ -57,29 +57,45 @@ function declarative(partialDeclarativeConfig: Partial<IUserDeclarativeConfig>):
         (componentName) => _addToParsedDict(parsedDict, globalState, componentDict, componentName),
     );
     // return bootstrap function
-    if (bootstrap in parsedDict) {
-        function wrappedBootstrapFunction(...args) {
-            if (globalIns !== null) {
-                args.forEach((value, index) => {
-                    const key = globalIns[index];
-                    globalState[key] = value;
-                });
-            }
-            const func = parsedDict[bootstrap];
-            const wrappedFunction = bootstrap in componentDict ?
-                func : _getWrappedFunction(bootstrap, func, globalIns, globalOut, globalState);
-            const bootstrapOutput = wrappedFunction(...args);
-            if (_isPromise(bootstrapOutput)) {
-                if (globalOut === null) {
-                    return bootstrapOutput;
-                }
-                return bootstrapOutput.then((val) => globalState[globalOut]);
-            }
-            return globalOut === null ? bootstrapOutput : globalState[globalOut];
-        }
-        return wrappedBootstrapFunction;
+    if (!(bootstrap in parsedDict)) {
+        throw(new Error(`Bootstrap component \`${bootstrap}\` is not defined`));
     }
-    throw(new Error(`Bootstrap component \`${bootstrap}\` is not defined`));
+    return _getWrappedBootstrapFunction(bootstrap, componentDict, parsedDict, globalIns, globalOut, globalState);
+}
+
+function _getWrappedBootstrapFunction(
+    bootstrap: string,
+    componentDict: {[key: string]: Partial<IComponent>},
+    parsedDict: {[key: string]: any},
+    globalIns: string[],
+    globalOut: string,
+    globalState: {[key: string]: any},
+): AnyFunction {
+    function wrappedBootstrapFunction(...args) {
+        if (globalIns !== null) {
+            if (args.length < globalIns.length) {
+                throw(new Error(
+                    `Program expecting ${globalIns.length} arguments, but ${args.length} given`,
+                ));
+            }
+            args.forEach((value, index) => {
+                const key = globalIns[index];
+                globalState[key] = value;
+            });
+        }
+        const func = parsedDict[bootstrap];
+        const wrappedFunction = bootstrap in componentDict ?
+            func : _getWrappedFunction(bootstrap, func, globalIns, globalOut, globalState);
+        const bootstrapOutput = wrappedFunction(...args);
+        if (_isPromise(bootstrapOutput)) {
+            if (globalOut === null) {
+                return bootstrapOutput;
+            }
+            return bootstrapOutput.then((val) => globalState[globalOut]);
+        }
+        return globalOut === null ? bootstrapOutput : globalState[globalOut];
+    }
+    return wrappedBootstrapFunction;
 }
 
 function _getParsedParts(

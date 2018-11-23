@@ -100,6 +100,26 @@ describe("declarative style", () => {
         expect(result).toBe("Hello world");
     });
 
+    it("throw error if bootstrap's given parameter is less than expected", () => {
+        const main = X.declarative({
+            ins: "name",
+            bootstrap: "sayHello",
+            injection: {...X},
+            component: {
+                sayHello: {
+                    perform: "concat",
+                    parts: "Hello ",
+                },
+            },
+        });
+        try {
+            const result = main();
+            expect(true).toBeFalsy();
+        } catch (error) {
+            expect(error.message).toBe("Program expecting 1 arguments, but 0 given");
+        }
+    });
+
     it("throw error if component is not exists ", () => {
         try {
             const main = X.declarative({
