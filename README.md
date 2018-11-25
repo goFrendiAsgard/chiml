@@ -245,7 +245,7 @@ By default, this container will use `./dist/cat.js`. The file is currently inexi
 Interface is like a contract. In this case, we want our interface to provide several functions and values that can be used in the container. Below is the content of `/src/interfaces/descriptors.ts`:
 
 ```typescript
-import { TChimera } from "../../../dist/interfaces/descriptor";
+import { TChimera } from "chiml/dist/interfaces/descriptor";
 export interface IBaseAnimalCalendarInjection {
     calCommand: string;
     composeHtml: (imageUrl: string, calendar: string) => string;
@@ -258,55 +258,61 @@ export interface IBaseAnimalCalendarInjection {
 export type TAnimalCalendarInjection = TChimera & IBaseAnimalCalendarInjection;
 ```
 
-After creating the interface, we can proceed by creating `baseInjection.ts`. Please note that you can also creating a more OOP approach by implementing class instead of declaring object.
+After creating the interface, we can proceed by creating `baseInjection.ts`.
 
 ```typescript
-import { X } from "../../dist/index.js";
-import { TAnimalCalendarInjection } from "./interfaces/descriptor";
+import { X } from "chiml/dist/index.js";
+import { IBaseAnimalCalendarInjection, TAnimalCalendarInjection } from "./interfaces/descriptor";
 
-function composeHtml(imageUrl: string, calendar: string): string {
-    return `<img style="max-width: 50%; float:left;" src="${imageUrl}" />` +
-        `<pre style="float:right">${calendar}</pre>`;
+export class BaseInjection implements IBaseAnimalCalendarInjection {
+
+    public calCommand: string = "ncal ${1} -h";
+    public imageFetcherCommand: string = "curl https://somewhere.com/randomImage.json";
+    public imageKey: string = "image";
+    public writeHtmlCommand: string = `echo \${1} > "${__dirname}/calendar.html"`;
+    public showCalendarCommand: string = `google-chrome file://${__dirname}/calendar.html`;
+
+    public composeHtml(imageUrl: string, calendar: string): string {
+        return `<img style="max-width: 50%; float:left;" src="${imageUrl}" />` +
+            `<pre style="float:right">${calendar}</pre>`;
+    }
+
 }
-
-export const baseInjection: TAnimalCalendarInjection = {
-    calCommand: "ncal ${1} -h",
-    composeHtml,
-    imageFetcherCommand: "curl https://somewhere.com/randomImage.json",
-    imageKey: "image",
-    writeHtmlCommand: `echo \${1} > "${__dirname}/calendar.html"`,
-    showCalendarCommand: `google-chrome file://${__dirname}/calendar.html`,
-    ...X,
-};
 ```
 
 Lastly, let's make `catInjection.ts` and `dogInjection.ts`.
 
 ```typescript
 // file: catInjection.ts
-import { baseInjection } from "./baseInjection";
-import { TAnimalCalendarInjection } from "./interfaces/descriptor";
+import { X } from "../../dist/index.js";
+import { BaseInjection } from "./baseInjection";
+import { IBaseAnimalCalendarInjection, TAnimalCalendarInjection } from "./interfaces/descriptor";
 
-const injection: TAnimalCalendarInjection = Object.assign(baseInjection, {
-    imageFetcherCommand: "curl https://aws.random.cat/meow",
-    imageKey: "file",
-    writeHtmlCommand: `echo \${1} > "${__dirname}/../cat.html"`,
-    showCalendarCommand: `google-chrome file://${__dirname}/../cat.html`,
-});
+class CatInjection extends BaseInjection implements IBaseAnimalCalendarInjection {
+    public imageFetcherCommand: string = "curl https://aws.random.cat/meow";
+    public imageKey: string = "file";
+    public writeHtmlCommand: string = `echo \${1} > "${__dirname}/../cat.html"`;
+    public showCalendarCommand: string = `google-chrome file://${__dirname}/../cat.html`;
+}
+
+const injection: TAnimalCalendarInjection = Object.assign(new CatInjection(), X);
 module.exports = injection;
 ```
 
 ```typescript
 // file: dogInjection.ts
-import { baseInjection } from "./baseInjection";
-import { TAnimalCalendarInjection } from "./interfaces/descriptor";
+import { X } from "../../dist/index.js";
+import { BaseInjection } from "./baseInjection";
+import { IBaseAnimalCalendarInjection, TAnimalCalendarInjection } from "./interfaces/descriptor";
 
-const injection: TAnimalCalendarInjection = Object.assign(baseInjection, {
-    imageFetcherCommand: "curl https://random.dog/woof.json",
-    imageKey: "url",
-    writeHtmlCommand: `echo \${1} > "${__dirname}/../dog.html"`,
-    showCalendarCommand: `google-chrome file://${__dirname}/../dog.html`,
-});
+class DogInjection extends BaseInjection implements IBaseAnimalCalendarInjection {
+    public imageFetcherCommand: string = "curl https://random.dog/woof.json";
+    public imageKey: string = "url";
+    public writeHtmlCommand: string = `echo \${1} > "${__dirname}/../dog.html"`;
+    public showCalendarCommand: string = `google-chrome file://${__dirname}/../dog.html`;
+}
+
+const injection: TAnimalCalendarInjection = Object.assign(new DogInjection(), X);
 module.exports = injection;
 ```
 
@@ -314,7 +320,8 @@ Now we can show both, cat and dog calendar, using the following commands:
 
 ```
 tsc --build ./tsconfig.json
-node ./dist/chie.js -c ./dist/animal-calendar.yml 2018
+node ./dist/chie.js ./dist/animal-calendar.yml 2018
+node ./dist/chie.js ./dist/animal-calendar.yml 2018
 node ./dist/chie.js --injection ./dist/dogInjection.js --container ./animal-calendar.yml 2019
 node ./dist/chie.js -i ./dist/dogInjection.js -c ./animal-calendar.yml 2019
 ```

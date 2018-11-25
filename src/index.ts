@@ -50,7 +50,7 @@ function declarative(partialDeclarativeConfig: Partial<IUserDeclarativeConfig>):
     const globalIns = declarativeConfig.ins;
     const globalOut = declarativeConfig.out;
     const { bootstrap } = declarativeConfig;
-    const parsedDict = { ...declarativeConfig.injection };
+    const parsedDict = declarativeConfig.injection;
     const componentNameList = Object.keys(componentDict);
     const globalState = {};
     // parse all `<key>`, create function, and register it to parsedDict

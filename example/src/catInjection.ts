@@ -1,10 +1,13 @@
-import { baseInjection } from "./baseInjection";
-import { TAnimalCalendarInjection } from "./interfaces/descriptor";
+import { X } from "../../dist/index.js";
+import { BaseInjection } from "./baseInjection";
+import { IBaseAnimalCalendarInjection, TAnimalCalendarInjection } from "./interfaces/descriptor";
 
-const injection: TAnimalCalendarInjection = Object.assign(baseInjection, {
-    imageFetcherCommand: "curl https://aws.random.cat/meow",
-    imageKey: "file",
-    writeHtmlCommand: `echo \${1} > "${__dirname}/../cat.html"`,
-    showCalendarCommand: `google-chrome file://${__dirname}/../cat.html`,
-});
+class CatInjection extends BaseInjection implements IBaseAnimalCalendarInjection {
+    public imageFetcherCommand: string = "curl https://aws.random.cat/meow";
+    public imageKey: string = "file";
+    public writeHtmlCommand: string = `echo \${1} > "${__dirname}/../cat.html"`;
+    public showCalendarCommand: string = `google-chrome file://${__dirname}/../cat.html`;
+}
+
+const injection: TAnimalCalendarInjection = Object.assign(new CatInjection(), X);
 module.exports = injection;
