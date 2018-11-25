@@ -116,7 +116,7 @@ describe("declarative style", () => {
             const result = main();
             expect(true).toBeFalsy();
         } catch (error) {
-            expect(error.message).toBe("Program expecting 1 arguments, but 0 given");
+            expect(error.message).toContain("Program expecting 1 arguments, but 0 given");
         }
     });
 
@@ -134,7 +134,7 @@ describe("declarative style", () => {
             });
             expect(true).toBeFalsy();
         } catch (error) {
-            expect(error.message).toBe("Error parsing `average` component: Part `rataRata` is not defined");
+            expect(error.message).toContain("Error parsing `average` component: Part `rataRata` is not defined");
         }
     });
 
@@ -152,7 +152,7 @@ describe("declarative style", () => {
             });
             expect(true).toBeFalsy();
         } catch (error) {
-            expect(error.message).toBe("Bootstrap component `oraono` is not defined");
+            expect(error.message).toContain("Bootstrap component `oraono` is not defined");
         }
     });
 
@@ -173,7 +173,7 @@ describe("declarative style", () => {
             });
             expect(true).toBeFalsy();
         } catch (error) {
-            expect(error.message).toBe(
+            expect(error.message).toContain(
                 "Error parsing `errorTest` component. `errorAction` yield error: invalid action",
             );
         }
@@ -205,7 +205,7 @@ describe("declarative style", () => {
             const result = main(9);
             expect(true).toBeFalsy();
         } catch (error) {
-            expect(error.message).toBe(
+            expect(error.message).toContain(
                 "Error executing `main( 9 )` component: I hate nine",
             );
         }
@@ -238,7 +238,7 @@ describe("declarative style", () => {
             const result = main(9);
             expect(true).toBeFalsy();
         } catch (error) {
-            expect(error.message).toBe(
+            expect(error.message).toContain(
                 "Error executing `main( 9 )` component: I hate nine",
             );
         }
@@ -268,7 +268,7 @@ describe("declarative style", () => {
         });
         const result = main(9);
         result.then((val) => expect(true).toBeFalsy())
-            .catch((error) => expect(error.message).toBe("Error executing `main( 9 )` async component: I hate nine"));
+            .catch((error) => expect(error.message).toContain("Error executing `main( 9 )` async component: I hate nine"));
     });
 
     it("throw error if component yield rejected Promise, and only defined in injection", () => {
@@ -286,7 +286,7 @@ describe("declarative style", () => {
         });
         const result = main(9);
         result.then((val) => expect(true).toBeFalsy())
-            .catch((error) => expect(error.message).toBe("Error executing `main( 9 )` async component: I hate nine"));
+            .catch((error) => expect(error.message).toContain("Error executing `main( 9 )` async component: I hate nine"));
     });
 
     it("throw error if component's perform is not executable", () => {
@@ -307,7 +307,7 @@ describe("declarative style", () => {
             const result = main();
             expect(true).toBeFalsy();
         } catch (error) {
-            expect(error.message).toBe(
+            expect(error.message).toContain(
                 "Error parsing `main` component. `four` yield error: four is not a function",
             );
         }
@@ -332,7 +332,7 @@ describe("declarative style", () => {
             const result = main();
             expect(true).toBeFalsy();
         } catch (error) {
-            expect(error.message).toBe(
+            expect(error.message).toContain(
                 "Error parsing `main` component. `add` yield error: add( 4, 5 ) is not a function",
             );
         }

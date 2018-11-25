@@ -8,6 +8,7 @@ import {
     AnyAsyncFunction, AnyFunction, IComponent, IDeclarativeConfig, IUserComponent, IUserDeclarativeConfig, TChimera,
 } from "./interfaces/descriptor";
 
+const FG_BRIGHT = "\x1b[1m";
 const FG_CYAN = "\x1b[36m";
 const FG_RED = "\x1b[31m";
 const FG_YELLOW = "\x1b[33m";
@@ -74,9 +75,15 @@ function _getWrappedBootstrapFunction(
     function wrappedBootstrapFunction(...args) {
         if (globalIns !== null) {
             if (args.length < globalIns.length) {
-                throw(new Error(
+                const error = new Error(
                     `Program expecting ${globalIns.length} arguments, but ${args.length} given`,
-                ));
+                );
+                const structure = {
+                    ins: globalIns,
+                    out: globalOut,
+                    bootstrap,
+                };
+                throw(_getEmbededError(error, "", globalState, structure));
             }
             args.forEach((value, index) => {
                 const key = globalIns[index];
@@ -85,7 +92,7 @@ function _getWrappedBootstrapFunction(
         }
         const func = parsedDict[bootstrap];
         const wrappedFunction = bootstrap in componentDict ?
-            func : _getWrappedFunction(bootstrap, func, globalIns, globalOut, globalState);
+            func : _getWrappedFunction(bootstrap, componentDict, func, globalIns, globalOut, globalState);
         const bootstrapOutput = wrappedFunction(...args);
         if (_isPromise(bootstrapOutput)) {
             if (globalOut === null) {
@@ -130,8 +137,10 @@ function _getParsedParts(
 }
 
 function _addToParsedDict(
-    parsedDict: {[key: string]: any}, globalState: {[key: string]: any},
-    componentDict: {[key: string]: any}, componentName: string,
+    parsedDict: {[key: string]: any},
+    globalState: {[key: string]: any},
+    componentDict: {[key: string]: any},
+    componentName: string,
 ): void {
     componentDict[componentName] = _getCompleteComponent(componentDict[componentName]);
     const { ins, out, perform, parts } = componentDict[componentName];
@@ -146,11 +155,15 @@ function _addToParsedDict(
             const partsAsString = _getArgsStringRepresentation(parsedParts);
             throw new Error(`${perform}${partsAsString} is not a function`);
         }
-        parsedDict[componentName] = _getWrappedFunction(componentName, func, ins, out, globalState);
+        parsedDict[componentName] = _getWrappedFunction(componentName, componentDict, func, ins, out, globalState);
     } catch (error) {
+        const structure = { component: {} };
+        structure.component[componentName] = componentDict[componentName];
         throw(_getEmbededError(
             error,
             `Error parsing \`${componentName}\` component. \`${perform}\` yield error:`,
+            globalState,
+            structure,
         ));
     }
 }
@@ -160,7 +173,12 @@ function _getArgsStringRepresentation(args: any[]) {
 }
 
 function _getWrappedFunction(
-    componentName: string, func: AnyFunction, ins: string[] | null, out: string | null, state: {[key: string]: any},
+    componentName: string,
+    componentDict: {[key: string]: Partial<IComponent>},
+    func: AnyFunction,
+    ins: string[] | null,
+    out: string | null,
+    state: {[key: string]: any},
 ): AnyFunction {
     function wrappedFunction(...args) {
         const realArgs = ins === null ? args : _getArrayFromObject(ins, state);
@@ -170,7 +188,9 @@ function _getWrappedFunction(
                 const funcOutWithErrorHandler = funcOut.catch((error) => {
                     const realArgsAsString = _getArgsStringRepresentation(realArgs);
                     const errorMessage = `Error executing \`${componentName}${realArgsAsString}\` async component:`;
-                    return Promise.reject(_getEmbededError(error, errorMessage));
+                    const structure = { component: {} };
+                    structure.component[componentName] = componentDict[componentName];
+                    return Promise.reject(_getEmbededError(error, errorMessage, state, structure));
                 });
                 if (out === null) {
                     return funcOutWithErrorHandler;
@@ -187,7 +207,9 @@ function _getWrappedFunction(
         } catch (error) {
             const realArgsAsString = _getArgsStringRepresentation(realArgs);
             const errorMessage = `Error executing \`${componentName}${realArgsAsString}\` component:`;
-            throw(_getEmbededError(error, errorMessage));
+            const structure = { component: {} };
+            structure.component[componentName] = componentDict[componentName];
+            throw(_getEmbededError(error, errorMessage, state, structure));
         }
     }
     return wrappedFunction;
@@ -199,11 +221,23 @@ function _getArrayFromObject(keys: string[], obj: {[key: string]: any}): any[] {
     return arr;
 }
 
-function _getEmbededError(error: any, message: string): any {
+function _getEmbededError(
+    error: any,
+    message: string,
+    state: {[key: string]: any},
+    structure: {[key: string]: any},
+): any {
     if (typeof error !== "object" || !error.message) {
         error = new Error(error);
     }
-    error.message = `${message} ${error.message}`;
+    const newErrorMessage = message === "" ? error.message : `${message} ${error.message}`;
+    const stateString = JSON.stringify(state, null, 2);
+    const structureString = JSON.stringify(structure, null, 2)
+        .replace(/\n(\s*)}/gi, "\n$1  ...\n$1}");
+    error.message = `\n${FG_BRIGHT}` +
+        `${FG_RED}ERROR: ${newErrorMessage}\n` +
+        `${FG_CYAN}STATE: ${stateString}\n` +
+        `${FG_YELLOW}STRUCTURE: ${structureString}${RESET_COLOR}\n`;
     return error;
 }
 
@@ -374,15 +408,15 @@ function _runStringCommand(stringCommand: string, options?: { [key: string]: any
  */
 function _getStringCommandWithParams(strCmd: string, ins: any[]): string {
     if (strCmd.match(/.*\$\{[0-9]+\}.*/g)) {
-        // command contains `${number}`
-        let commandWithParams = strCmd;
-        ins.forEach((value, index) => {
-            const paramIndex = index + 1;
-            const pattern = `$\{${paramIndex}}`;
-            const replacement = _getDoubleQuotedString(String(value));
-            commandWithParams = commandWithParams.replace(pattern, replacement);
-        });
-        return commandWithParams;
+// command contains `${number}`
+let commandWithParams = strCmd;
+ins.forEach((value, index) => {
+    const paramIndex = index + 1;
+    const pattern = `$\{${paramIndex}}`;
+    const replacement = _getDoubleQuotedString(String(value));
+    commandWithParams = commandWithParams.replace(pattern, replacement);
+});
+return commandWithParams;
     }
     const inputs = ins.map((element) => _getDoubleQuotedString(String(element))).join(" ");
     return `${strCmd} ${inputs}`;

@@ -14,6 +14,7 @@ const js_yaml_1 = require("js-yaml");
 const path_1 = require("path");
 const R = require("ramda");
 const util_1 = require("util");
+const FG_BRIGHT = "\x1b[1m";
 const FG_CYAN = "\x1b[36m";
 const FG_RED = "\x1b[31m";
 const FG_YELLOW = "\x1b[33m";
@@ -69,7 +70,13 @@ function _getWrappedBootstrapFunction(bootstrap, componentDict, parsedDict, glob
     function wrappedBootstrapFunction(...args) {
         if (globalIns !== null) {
             if (args.length < globalIns.length) {
-                throw (new Error(`Program expecting ${globalIns.length} arguments, but ${args.length} given`));
+                const error = new Error(`Program expecting ${globalIns.length} arguments, but ${args.length} given`);
+                const structure = {
+                    ins: globalIns,
+                    out: globalOut,
+                    bootstrap,
+                };
+                throw (_getEmbededError(error, "", globalState, structure));
             }
             args.forEach((value, index) => {
                 const key = globalIns[index];
@@ -78,7 +85,7 @@ function _getWrappedBootstrapFunction(bootstrap, componentDict, parsedDict, glob
         }
         const func = parsedDict[bootstrap];
         const wrappedFunction = bootstrap in componentDict ?
-            func : _getWrappedFunction(bootstrap, func, globalIns, globalOut, globalState);
+            func : _getWrappedFunction(bootstrap, componentDict, func, globalIns, globalOut, globalState);
         const bootstrapOutput = wrappedFunction(...args);
         if (_isPromise(bootstrapOutput)) {
             if (globalOut === null) {
@@ -127,16 +134,18 @@ function _addToParsedDict(parsedDict, globalState, componentDict, componentName)
             const partsAsString = _getArgsStringRepresentation(parsedParts);
             throw new Error(`${perform}${partsAsString} is not a function`);
         }
-        parsedDict[componentName] = _getWrappedFunction(componentName, func, ins, out, globalState);
+        parsedDict[componentName] = _getWrappedFunction(componentName, componentDict, func, ins, out, globalState);
     }
     catch (error) {
-        throw (_getEmbededError(error, `Error parsing \`${componentName}\` component. \`${perform}\` yield error:`));
+        const structure = { component: {} };
+        structure.component[componentName] = componentDict[componentName];
+        throw (_getEmbededError(error, `Error parsing \`${componentName}\` component. \`${perform}\` yield error:`, globalState, structure));
     }
 }
 function _getArgsStringRepresentation(args) {
     return util_1.inspect(args).replace(/^\[/g, "(").replace(/\]$/g, ")");
 }
-function _getWrappedFunction(componentName, func, ins, out, state) {
+function _getWrappedFunction(componentName, componentDict, func, ins, out, state) {
     function wrappedFunction(...args) {
         const realArgs = ins === null ? args : _getArrayFromObject(ins, state);
         try {
@@ -145,7 +154,9 @@ function _getWrappedFunction(componentName, func, ins, out, state) {
                 const funcOutWithErrorHandler = funcOut.catch((error) => {
                     const realArgsAsString = _getArgsStringRepresentation(realArgs);
                     const errorMessage = `Error executing \`${componentName}${realArgsAsString}\` async component:`;
-                    return Promise.reject(_getEmbededError(error, errorMessage));
+                    const structure = { component: {} };
+                    structure.component[componentName] = componentDict[componentName];
+                    return Promise.reject(_getEmbededError(error, errorMessage, state, structure));
                 });
                 if (out === null) {
                     return funcOutWithErrorHandler;
@@ -163,7 +174,9 @@ function _getWrappedFunction(componentName, func, ins, out, state) {
         catch (error) {
             const realArgsAsString = _getArgsStringRepresentation(realArgs);
             const errorMessage = `Error executing \`${componentName}${realArgsAsString}\` component:`;
-            throw (_getEmbededError(error, errorMessage));
+            const structure = { component: {} };
+            structure.component[componentName] = componentDict[componentName];
+            throw (_getEmbededError(error, errorMessage, state, structure));
         }
     }
     return wrappedFunction;
@@ -173,11 +186,18 @@ function _getArrayFromObject(keys, obj) {
     keys.forEach((key) => arr.push(obj[key]));
     return arr;
 }
-function _getEmbededError(error, message) {
+function _getEmbededError(error, message, state, structure) {
     if (typeof error !== "object" || !error.message) {
         error = new Error(error);
     }
-    error.message = `${message} ${error.message}`;
+    const newErrorMessage = message === "" ? error.message : `${message} ${error.message}`;
+    const stateString = JSON.stringify(state, null, 2);
+    const structureString = JSON.stringify(structure, null, 2)
+        .replace(/\n(\s*)}/gi, "\n$1  ...\n$1}");
+    error.message = `\n${FG_BRIGHT}` +
+        `${FG_RED}ERROR: ${newErrorMessage}\n` +
+        `${FG_CYAN}STATE: ${stateString}\n` +
+        `${FG_YELLOW}STRUCTURE: ${structureString}${RESET_COLOR}\n`;
     return error;
 }
 function _getCompleteDeclarativeConfig(partialConfig) {
