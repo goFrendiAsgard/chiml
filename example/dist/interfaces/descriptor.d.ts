@@ -1,4 +1,4 @@
-import { TChimera } from "../../../dist/interfaces/descriptor";
+import { TChimera } from "chiml/src/interfaces/descriptor";
 export interface IBaseAnimalCalendarInjection {
     calCommand: string;
     composeHtml: (imageUrl: string, calendar: string) => string;

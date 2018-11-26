@@ -1,4 +1,4 @@
-import { X } from "../../dist/index.js";
+import { X } from "chiml";
 import { IBaseAnimalCalendarInjection, TAnimalCalendarInjection } from "./interfaces/descriptor";
 
 export class BaseInjection implements IBaseAnimalCalendarInjection {

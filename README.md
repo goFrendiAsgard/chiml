@@ -157,7 +157,9 @@ We have something named `inversion of control` aka `dependency injection`. What 
 └── tsconfig.json
 ```
 
-First of all, I define my `tsconfig.json` as follow:
+First of all, I define my `tsconfig.json` and `package.json` as follow:
+
+__tsconfig.json__
 
 ```json
 {
@@ -177,7 +179,71 @@ First of all, I define my `tsconfig.json` as follow:
 }
 ```
 
+__package.json__
+
+```json
+{
+  "name": "chiml",
+  "version": "0.2.2",
+  "description": "Flow-based-programming inspired dependency injection",
+  "main": "dist/index.js",
+  "bin": {
+    "chie": "dist/chie.js"
+  },
+  "scripts": {
+    "lint": "tslint -c tslint.json 'src/**/*.{ts,tsx}'",
+    "pretest": "npm run lint && tsc --sourcemap && chmod 755 ./dist -R",
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/goFrendiAsgard/chiml.git"
+  },
+  "jest": {
+    "transform": {
+      "\\.(ts|tsx)$": "ts-jest"
+    },
+    "testRegex": "/.*\\.test\\.(ts|tsx)$",
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js"
+    ],
+    "verbose": false,
+    "collectCoverage": true
+  },
+  "keywords": [
+    "dependency-injection",
+    "fbp-inspired",
+    "orchestration-language",
+    "chimera-framework"
+  ],
+  "author": "goFrendi",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/goFrendiAsgard/chiml/issues"
+  },
+  "homepage": "https://github.com/goFrendiAsgard/chiml#readme",
+  "dependencies": {
+    "get-args": "^2.0.0",
+    "js-yaml": "^3.12.0",
+    "ramda": "^0.25.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^23.3.2",
+    "@types/js-yaml": "^3.11.2",
+    "@types/node": "^10.11.3",
+    "@types/ramda": "^0.26.0",
+    "jest": "^23.6.0",
+    "ts-jest": "^23.10.3",
+    "tslint": "^5.11.0"
+  }
+}
+```
+
 Then we define our container, `animal-calendar.yml`:
+
+__animal-calendar.yml__
 
 ```yaml
 ins: year
@@ -244,6 +310,8 @@ By default, this container will use `./dist/cat.js`. The file is currently inexi
 
 Interface is like a contract. In this case, we want our interface to provide several functions and values that can be used in the container. Below is the content of `/src/interfaces/descriptors.ts`:
 
+__descriptor.ts__
+
 ```typescript
 import { TChimera } from "chiml/dist/interfaces/descriptor";
 export interface IBaseAnimalCalendarInjection {
@@ -260,8 +328,10 @@ export type TAnimalCalendarInjection = TChimera & IBaseAnimalCalendarInjection;
 
 After creating the interface, we can proceed by creating `baseInjection.ts`.
 
+__baseInjection.ts__
+
 ```typescript
-import { X } from "chiml/dist/index.js";
+import { X } from "chiml";
 import { IBaseAnimalCalendarInjection, TAnimalCalendarInjection } from "./interfaces/descriptor";
 
 export class BaseInjection implements IBaseAnimalCalendarInjection {
@@ -282,9 +352,10 @@ export class BaseInjection implements IBaseAnimalCalendarInjection {
 
 Lastly, let's make `catInjection.ts` and `dogInjection.ts`.
 
+__catInjection.ts__
+
 ```typescript
-// file: catInjection.ts
-import { X } from "../../dist/index.js";
+import { X } from "chiml";
 import { BaseInjection } from "./baseInjection";
 import { IBaseAnimalCalendarInjection, TAnimalCalendarInjection } from "./interfaces/descriptor";
 
@@ -299,9 +370,10 @@ const injection: TAnimalCalendarInjection = Object.assign(new CatInjection(), X)
 module.exports = injection;
 ```
 
+__dogInjection.ts__
+
 ```typescript
-// file: dogInjection.ts
-import { X } from "../../dist/index.js";
+import { X } from "chiml";
 import { BaseInjection } from "./baseInjection";
 import { IBaseAnimalCalendarInjection, TAnimalCalendarInjection } from "./interfaces/descriptor";
 
@@ -320,9 +392,13 @@ Now we can show both, cat and dog calendar, using the following commands:
 
 ```
 tsc --build ./tsconfig.json
-node ./dist/chie.js ./dist/animal-calendar.yml 2018
-node ./dist/chie.js ./dist/animal-calendar.yml 2018
-node ./dist/chie.js --injection ./dist/dogInjection.js --container ./animal-calendar.yml 2019
-node ./dist/chie.js -i ./dist/dogInjection.js -c ./animal-calendar.yml 2019
+
+chie ./dist/animal-calendar.yml 2018
+# or
+chie ./dist/animal-calendar.yml 2018
+# or
+chie --injection ./dist/dogInjection.js --container ./animal-calendar.yml 2019
+# or
+chie -i ./dist/dogInjection.js -c ./animal-calendar.yml 2019
 ```
 

@@ -1,4 +1,4 @@
-import { X } from "../../dist/index.js";
+import { X } from "chiml";
 import { BaseInjection } from "./baseInjection";
 import { IBaseAnimalCalendarInjection, TAnimalCalendarInjection } from "./interfaces/descriptor";
 

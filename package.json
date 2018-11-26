@@ -37,9 +37,9 @@
   "author": "goFrendi",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/goFrendiAsgard/chimera-framework/issues"
+    "url": "https://github.com/goFrendiAsgard/chiml/issues"
   },
-  "homepage": "https://github.com/goFrendiAsgard/chimera-framework#readme",
+  "homepage": "https://github.com/goFrendiAsgard/chiml#readme",
   "dependencies": {
     "get-args": "^2.0.0",
     "js-yaml": "^3.12.0",
