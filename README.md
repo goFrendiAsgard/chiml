@@ -34,12 +34,10 @@ We want to show calendar on the browser. We also want to show a cute animal imag
 
 ## Bird-view Planning
 
-```
-1. `fetchImageAndCalendar`: fetch imageUrl from the internet and calendar from our local machine
-2. `composeCalendar`: After getting the imageUrl and the calendar, compose them into HTML-script
-3. `writeCalendar`: Save the HTML-script into a HTML-file
-4. `showCalendar`: Open the HTML-file using a browser
-```
+* `fetchImageAndCalendar`: fetch imageUrl from the internet and calendar from our local machine
+* `composeCalendar`: After getting the imageUrl and the calendar, compose them into HTML-script
+* `writeCalendar`: Save the HTML-script into a HTML-file
+* `showCalendar`: Open the HTML-file using a browser
 
 This bird-view planning can be written in YAML as follow:
 
@@ -62,15 +60,14 @@ component:
 
 In order to make the implementation, we need to break-down our plan and make it more detail:
 
-```
-1. `fetchImageAndCalendar`: fetch imageUrl from the internet and calendar from our local machine
-    1.1. `fetchImageUrl`: fetch random animal picture from the internet.
-        1.1.2. `fetchImageObj`: fetch image from the internet. This link: `https://aws.random.cat/meow` gives you a random cat in JSON format. We can fetch the image using CURL.
-        1.1.3. `getImageUrl`: After fetching the image object, we need to get the url. In our case, since the JSON response is similar to `{file: "http://some-place/random-cat.jpg"}`, we have to extract the `file` key.
-    1.2. `fetchCalendar`: simply perform `ncal <year> -h`, and we will get the calendar
-2. `composeCalendar`: After getting the imageUrl and the calendar, compose them into HTML-script. String concatenation should do it. And in UNIX-like system, we have `echo` command. So, we can just use it. No need to code anything.
-3. `writeCalendar`: Save the HTML-script into a HTML-file. Writing to a calendar is as easy as `echo "content" > file.html`
-4. `showCalendar`: Open the HTML-file using a browser. We can open google chrome usiing this command: `google-chrome file://some-folder/some-file.html`
+* `fetchImageAndCalendar`: fetch imageUrl from the internet and calendar from our local machine
+    * `fetchImageUrl`: fetch random animal picture from the internet.
+        * `fetchImageObj`: fetch image from the internet. This link: `https://aws.random.cat/meow` gives you a random cat in JSON format. We can fetch the image using CURL.
+        * `getImageUrl`: After fetching the image object, we need to get the url. In our case, since the JSON response is similar to `{file: "http://some-place/random-cat.jpg"}`, we have to extract the `file` key.
+    * `fetchCalendar`: simply perform `ncal <year> -h`, and we will get the calendar
+* `composeCalendar`: After getting the imageUrl and the calendar, compose them into HTML-script. String concatenation should do it. And in UNIX-like system, we have `echo` command. So, we can just use it. No need to code anything.
+* `writeCalendar`: Save the HTML-script into a HTML-file. Writing to a calendar is as easy as `echo "content" > file.html`
+* `showCalendar`: Open the HTML-file using a browser. We can open google chrome usiing this command: `google-chrome file://some-folder/some-file.html`
 ```
 
 Below is the detail implementation, as well as our executable CHIML program:
