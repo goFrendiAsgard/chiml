@@ -9,11 +9,11 @@ describe("declarative style", () => {
             out: "f",
             bootstrap: "main",
             // parts can contains any values/JavaScript object
-            injection: { asyncMinus, commandRootSquare, nodebackMultiply, syncAdd, ...X },
+            injection: { asyncMinus, commandRootSquare, nodebackMultiply, syncAdd, X },
             // comp should only contains valid JSON object
             component: {
                 main: {
-                    perform: "pipeP",
+                    perform: "X.pipeP",
                     parts: [
                         "<aPlusBAndAMinB>",
                         "<cByD>",
@@ -21,7 +21,7 @@ describe("declarative style", () => {
                     ],
                 },
                 aPlusBAndAMinB: {
-                    perform: "concurrent",
+                    perform: "X.concurrent",
                     parts: ["<aPlusB>", "<aMinB>"],
                 },
                 aPlusB: {
@@ -37,13 +37,13 @@ describe("declarative style", () => {
                 cByD: {
                     ins: ["c", "d"],
                     out: "e",
-                    perform: "wrapNodeback",
+                    perform: "X.wrapNodeback",
                     parts: "<nodebackMultiply>",
                 },
                 rootSquareE: {
                     ins: "e",
                     out: "f",
-                    perform: "wrapCommand",
+                    perform: "X.wrapCommand",
                     parts: ["<commandRootSquare>"],
                 },
             },
@@ -70,11 +70,11 @@ describe("declarative style", () => {
         const main = X.declarative({
             ins: "num",
             bootstrap: "addFour",
-            injection: {...X},
+            injection: {X},
             component: {
                 addFour: {
                     ins: "num",
-                    perform: "add",
+                    perform: "X.add",
                     parts: 4,
                 },
             },
@@ -87,11 +87,11 @@ describe("declarative style", () => {
         const main = X.declarative({
             ins: "name",
             bootstrap: "sayHello",
-            injection: {...X},
+            injection: {X},
             component: {
                 sayHello: {
                     ins: "name",
-                    perform: "concat",
+                    perform: "X.concat",
                     parts: "Hello ",
                 },
             },
@@ -100,14 +100,40 @@ describe("declarative style", () => {
         expect(result).toBe("Hello world");
     });
 
+    it("works with dotted injection as bootstrap", () => {
+        const main = X.declarative({
+            ins: ["num", "power"],
+            bootstrap: "Math.pow",
+            injection: {Math},
+        });
+        const result = main(5, 2);
+        expect(result).toBe(25);
+    });
+
+    it("works with dotted injection as component", () => {
+        const main = X.declarative({
+            ins: ["num", "power"],
+            bootstrap: "powerBy",
+            injection: {Math},
+            component: {
+                powerBy: {
+                    ins: ["num", "power"],
+                    perform: "Math.pow",
+                },
+            },
+        });
+        const result = main(5, 2);
+        expect(result).toBe(25);
+    });
+
     it("throw error if bootstrap's given parameter is less than expected", () => {
         const main = X.declarative({
             ins: "name",
             bootstrap: "sayHello",
-            injection: {...X},
+            injection: {X},
             component: {
                 sayHello: {
-                    perform: "concat",
+                    perform: "X.concat",
                     parts: "Hello ",
                 },
             },
@@ -124,10 +150,10 @@ describe("declarative style", () => {
         try {
             const main = X.declarative({
                 bootstrap: "average",
-                injection: {...X},
+                injection: {X},
                 component: {
                     average: {
-                        perform: "pipe",
+                        perform: "X.pipe",
                         parts: "<rataRata>",
                     },
                 },
@@ -142,11 +168,11 @@ describe("declarative style", () => {
         try {
             const main = X.declarative({
                 bootstrap: "oraono",
-                injection: {...X},
+                injection: {X},
                 component: {
                     nor: {
-                        perform: "pipe",
-                        parts: ["<or>", "<not>"],
+                        perform: "X.pipe",
+                        parts: ["<X.or>", "<X.not>"],
                     },
                 },
             });
@@ -161,12 +187,12 @@ describe("declarative style", () => {
             const main = X.declarative({
                 injection: {
                     errorAction: () => { throw(new Error("invalid action")); },
-                    ...X,
+                    X,
                 },
                 component: {
                     errorTest: {
                         perform: "errorAction",
-                        parts: ["<or>"],
+                        parts: ["<X.or>"],
                     },
                 },
                 bootstrap: "errorTest",
@@ -192,7 +218,7 @@ describe("declarative style", () => {
                         }
                         return val;
                     },
-                    ...X,
+                    X,
                 },
                 component: {
                     main: {
@@ -225,7 +251,7 @@ describe("declarative style", () => {
                         }
                         return val;
                     },
-                    ...X,
+                    X,
                 },
                 component: {
                     main: {
@@ -256,7 +282,7 @@ describe("declarative style", () => {
                     }
                     return Promise.resolve(val);
                 },
-                ...X,
+                X,
             },
             component: {
                 main: {
@@ -281,7 +307,7 @@ describe("declarative style", () => {
                     }
                     return Promise.resolve(val);
                 },
-                ...X,
+                X,
             },
         });
         const result = main(9);
@@ -296,7 +322,7 @@ describe("declarative style", () => {
                 injection: {
                     four: 4,
                     five: 5,
-                    ...X,
+                    X,
                 },
                 component: {
                     main: {
@@ -320,11 +346,11 @@ describe("declarative style", () => {
                 injection: {
                     four: 4,
                     five: 5,
-                    ...X,
+                    X,
                 },
                 component: {
                     main: {
-                        perform: "add",
+                        perform: "X.add",
                         parts: ["<four>", "<five>"]
                     },
                 },
@@ -333,7 +359,7 @@ describe("declarative style", () => {
             expect(true).toBeFalsy();
         } catch (error) {
             expect(error.message).toContain(
-                "Error parsing `main` component. `add` yield error: add( 4, 5 ) is not a function",
+                "Error parsing `main` component. `X.add` yield error: X.add( 4, 5 ) is not a function",
             );
         }
     });

@@ -2,6 +2,11 @@ import { Static } from "ramda";
 export type AnyFunction = (...args: any[]) => any;
 export type AnyAsyncFunction = (...args: any[]) => Promise<any>;
 
+export interface IKeyInParsedDict {
+    found: boolean;
+    value: any;
+}
+
 export interface IDeclarativeConfig {
     injection: {[key: string]: any};
     component: {[key: string]: Partial<IComponent>};

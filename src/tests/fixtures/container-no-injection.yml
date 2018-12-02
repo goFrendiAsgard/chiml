@@ -5,4 +5,4 @@ component:
     operation:
         ins: [a, b]
         out: c
-        perform: add
+        perform: X.add

@@ -40,7 +40,7 @@ function execute(containerFile, injectionFile = null) {
         config.injection = require(injectionFile);
     }
     else {
-        config.injection = exports.X;
+        config.injection = { X: exports.X };
     }
     // get bootstrap and run it
     return exports.X.declarative(config);
@@ -61,7 +61,8 @@ function declarative(partialDeclarativeConfig) {
     // parse all `<key>`, create function, and register it to parsedDict
     componentNameList.forEach((componentName) => _addToParsedDict(parsedDict, globalState, componentDict, componentName));
     // return bootstrap function
-    if (!(bootstrap in parsedDict)) {
+    const parsedDictVal = _getFromParsedDict(parsedDict, bootstrap);
+    if (!parsedDictVal.found) {
         throw (new Error(`Bootstrap component \`${bootstrap}\` is not defined`));
     }
     return _getWrappedBootstrapFunction(bootstrap, componentDict, parsedDict, globalIns, globalOut, globalState);
@@ -83,8 +84,9 @@ function _getWrappedBootstrapFunction(bootstrap, componentDict, parsedDict, glob
                 globalState[key] = value;
             });
         }
-        const func = parsedDict[bootstrap];
-        const wrappedFunction = bootstrap in componentDict ?
+        const parsedDictVal = _getFromParsedDict(parsedDict, bootstrap);
+        const func = parsedDictVal.value;
+        const wrappedFunction = bootstrap in componentDict && parsedDictVal.found ?
             func : _getWrappedFunction(bootstrap, componentDict, func, globalIns, globalOut, globalState);
         const bootstrapOutput = wrappedFunction(...args);
         if (_isPromise(bootstrapOutput)) {
@@ -110,8 +112,9 @@ function _getParsedParts(parsedDict, globalState, componentDict, parentComponent
             if (!(key in parsedDict) && (key in componentDict)) {
                 _addToParsedDict(parsedDict, globalState, componentDict, key);
             }
-            if (key in parsedDict) {
-                return parsedDict[key];
+            const parsedDictVal = _getFromParsedDict(parsedDict, key);
+            if (parsedDictVal.found) {
+                return parsedDictVal.value;
             }
             throw (new Error(`Error parsing \`${parentComponentName}\` component: ` +
                 `Part \`${key}\` is not defined`));
@@ -120,12 +123,29 @@ function _getParsedParts(parsedDict, globalState, componentDict, parentComponent
     }
     return parts;
 }
+function _getFromParsedDict(parsedDict, searchKey) {
+    const searchKeyParts = searchKey.split(".");
+    const result = {
+        value: parsedDict,
+        found: false,
+    };
+    for (const key of searchKeyParts) {
+        if (key in result.value) {
+            result.value = result.value[key];
+            result.found = true;
+            continue;
+        }
+        result.found = false;
+    }
+    return result;
+}
 function _addToParsedDict(parsedDict, globalState, componentDict, componentName) {
     componentDict[componentName] = _getCompleteComponent(componentDict[componentName]);
     const { ins, out, perform, parts } = componentDict[componentName];
     const parsedParts = _getParsedParts(parsedDict, globalState, componentDict, componentName, parts);
     try {
-        const factory = parsedDict[perform];
+        const parsedDictVal = _getFromParsedDict(parsedDict, perform);
+        const factory = parsedDictVal.value;
         if (typeof factory !== "function") {
             throw new Error(`${perform} is not a function`);
         }

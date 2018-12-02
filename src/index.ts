@@ -5,7 +5,8 @@ import { dirname as pathDirname, join as pathJoin, resolve as pathResolve } from
 import * as R from "ramda";
 import { inspect as utilInspect } from "util";
 import {
-    AnyAsyncFunction, AnyFunction, IComponent, IDeclarativeConfig, IUserComponent, IUserDeclarativeConfig, TChimera,
+    AnyAsyncFunction, AnyFunction, IComponent, IDeclarativeConfig,
+    IKeyInParsedDict, IUserComponent, IUserDeclarativeConfig, TChimera,
 } from "./interfaces/descriptor";
 
 const FG_BRIGHT = "\x1b[1m";
@@ -35,7 +36,7 @@ export function execute(containerFile: string, injectionFile: string = null): An
     if (injectionFile) {
         config.injection = require(injectionFile);
     } else {
-        config.injection = X;
+        config.injection = { X };
     }
     // get bootstrap and run it
     return X.declarative(config);
@@ -58,7 +59,8 @@ function declarative(partialDeclarativeConfig: Partial<IUserDeclarativeConfig>):
         (componentName) => _addToParsedDict(parsedDict, globalState, componentDict, componentName),
     );
     // return bootstrap function
-    if (!(bootstrap in parsedDict)) {
+    const parsedDictVal = _getFromParsedDict(parsedDict, bootstrap);
+    if (!parsedDictVal.found) {
         throw(new Error(`Bootstrap component \`${bootstrap}\` is not defined`));
     }
     return _getWrappedBootstrapFunction(bootstrap, componentDict, parsedDict, globalIns, globalOut, globalState);
@@ -90,8 +92,9 @@ function _getWrappedBootstrapFunction(
                 globalState[key] = value;
             });
         }
-        const func = parsedDict[bootstrap];
-        const wrappedFunction = bootstrap in componentDict ?
+        const parsedDictVal = _getFromParsedDict(parsedDict, bootstrap);
+        const func = parsedDictVal.value;
+        const wrappedFunction = bootstrap in componentDict && parsedDictVal.found ?
             func : _getWrappedFunction(bootstrap, componentDict, func, globalIns, globalOut, globalState);
         const bootstrapOutput = wrappedFunction(...args);
         if (_isPromise(bootstrapOutput)) {
@@ -123,8 +126,9 @@ function _getParsedParts(
             if (!(key in parsedDict) && (key in componentDict)) {
                 _addToParsedDict(parsedDict, globalState, componentDict, key);
             }
-            if (key in parsedDict) {
-                return parsedDict[key];
+            const parsedDictVal = _getFromParsedDict(parsedDict, key);
+            if (parsedDictVal.found) {
+                return parsedDictVal.value;
             }
             throw(new Error(
                 `Error parsing \`${parentComponentName}\` component: ` +
@@ -134,6 +138,23 @@ function _getParsedParts(
         return parts;
     }
     return parts;
+}
+
+function _getFromParsedDict(parsedDict: {[key: string]: any}, searchKey: string): IKeyInParsedDict {
+    const searchKeyParts = searchKey.split(".");
+    const result: IKeyInParsedDict = {
+        value: parsedDict,
+        found: false,
+    };
+    for (const key of searchKeyParts) {
+        if (key in result.value) {
+            result.value = result.value[key];
+            result.found = true;
+            continue;
+        }
+        result.found = false;
+    }
+    return result;
 }
 
 function _addToParsedDict(
@@ -146,7 +167,8 @@ function _addToParsedDict(
     const { ins, out, perform, parts } = componentDict[componentName];
     const parsedParts = _getParsedParts(parsedDict, globalState, componentDict, componentName, parts);
     try {
-        const factory = parsedDict[perform];
+        const parsedDictVal = _getFromParsedDict(parsedDict, perform);
+        const factory = parsedDictVal.value;
         if (typeof factory !== "function") {
             throw new Error(`${perform} is not a function`);
         }

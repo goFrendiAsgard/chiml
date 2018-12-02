@@ -17,11 +17,11 @@ describe("declarative style", () => {
             out: "f",
             bootstrap: "main",
             // parts can contains any values/JavaScript object
-            injection: Object.assign({ asyncMinus: lib_1.asyncMinus, commandRootSquare: lib_1.commandRootSquare, nodebackMultiply: lib_1.nodebackMultiply, syncAdd: lib_1.syncAdd }, index_1.X),
+            injection: { asyncMinus: lib_1.asyncMinus, commandRootSquare: lib_1.commandRootSquare, nodebackMultiply: lib_1.nodebackMultiply, syncAdd: lib_1.syncAdd, X: index_1.X },
             // comp should only contains valid JSON object
             component: {
                 main: {
-                    perform: "pipeP",
+                    perform: "X.pipeP",
                     parts: [
                         "<aPlusBAndAMinB>",
                         "<cByD>",
@@ -29,7 +29,7 @@ describe("declarative style", () => {
                     ],
                 },
                 aPlusBAndAMinB: {
-                    perform: "concurrent",
+                    perform: "X.concurrent",
                     parts: ["<aPlusB>", "<aMinB>"],
                 },
                 aPlusB: {
@@ -45,13 +45,13 @@ describe("declarative style", () => {
                 cByD: {
                     ins: ["c", "d"],
                     out: "e",
-                    perform: "wrapNodeback",
+                    perform: "X.wrapNodeback",
                     parts: "<nodebackMultiply>",
                 },
                 rootSquareE: {
                     ins: "e",
                     out: "f",
-                    perform: "wrapCommand",
+                    perform: "X.wrapCommand",
                     parts: ["<commandRootSquare>"],
                 },
             },
@@ -76,11 +76,11 @@ describe("declarative style", () => {
         const main = index_1.X.declarative({
             ins: "num",
             bootstrap: "addFour",
-            injection: Object.assign({}, index_1.X),
+            injection: { X: index_1.X },
             component: {
                 addFour: {
                     ins: "num",
-                    perform: "add",
+                    perform: "X.add",
                     parts: 4,
                 },
             },
@@ -92,11 +92,11 @@ describe("declarative style", () => {
         const main = index_1.X.declarative({
             ins: "name",
             bootstrap: "sayHello",
-            injection: Object.assign({}, index_1.X),
+            injection: { X: index_1.X },
             component: {
                 sayHello: {
                     ins: "name",
-                    perform: "concat",
+                    perform: "X.concat",
                     parts: "Hello ",
                 },
             },
@@ -104,14 +104,38 @@ describe("declarative style", () => {
         const result = main("world");
         expect(result).toBe("Hello world");
     });
+    it("works with dotted injection as bootstrap", () => {
+        const main = index_1.X.declarative({
+            ins: ["num", "power"],
+            bootstrap: "Math.pow",
+            injection: { Math },
+        });
+        const result = main(5, 2);
+        expect(result).toBe(25);
+    });
+    it("works with dotted injection as component", () => {
+        const main = index_1.X.declarative({
+            ins: ["num", "power"],
+            bootstrap: "powerBy",
+            injection: { Math },
+            component: {
+                powerBy: {
+                    ins: ["num", "power"],
+                    perform: "Math.pow",
+                },
+            },
+        });
+        const result = main(5, 2);
+        expect(result).toBe(25);
+    });
     it("throw error if bootstrap's given parameter is less than expected", () => {
         const main = index_1.X.declarative({
             ins: "name",
             bootstrap: "sayHello",
-            injection: Object.assign({}, index_1.X),
+            injection: { X: index_1.X },
             component: {
                 sayHello: {
-                    perform: "concat",
+                    perform: "X.concat",
                     parts: "Hello ",
                 },
             },
@@ -128,10 +152,10 @@ describe("declarative style", () => {
         try {
             const main = index_1.X.declarative({
                 bootstrap: "average",
-                injection: Object.assign({}, index_1.X),
+                injection: { X: index_1.X },
                 component: {
                     average: {
-                        perform: "pipe",
+                        perform: "X.pipe",
                         parts: "<rataRata>",
                     },
                 },
@@ -146,11 +170,11 @@ describe("declarative style", () => {
         try {
             const main = index_1.X.declarative({
                 bootstrap: "oraono",
-                injection: Object.assign({}, index_1.X),
+                injection: { X: index_1.X },
                 component: {
                     nor: {
-                        perform: "pipe",
-                        parts: ["<or>", "<not>"],
+                        perform: "X.pipe",
+                        parts: ["<X.or>", "<X.not>"],
                     },
                 },
             });
@@ -163,11 +187,14 @@ describe("declarative style", () => {
     it("throw error if pipe yield error", () => {
         try {
             const main = index_1.X.declarative({
-                injection: Object.assign({ errorAction: () => { throw (new Error("invalid action")); } }, index_1.X),
+                injection: {
+                    errorAction: () => { throw (new Error("invalid action")); },
+                    X: index_1.X,
+                },
                 component: {
                     errorTest: {
                         perform: "errorAction",
-                        parts: ["<or>"],
+                        parts: ["<X.or>"],
                     },
                 },
                 bootstrap: "errorTest",
@@ -184,12 +211,15 @@ describe("declarative style", () => {
                 ins: "n",
                 out: "result",
                 bootstrap: "main",
-                injection: Object.assign({ errorComponent: (val) => {
+                injection: {
+                    errorComponent: (val) => {
                         if (val === 9) {
                             throw (new Error("I hate nine"));
                         }
                         return val;
-                    } }, index_1.X),
+                    },
+                    X: index_1.X,
+                },
                 component: {
                     main: {
                         ins: "n",
@@ -211,13 +241,16 @@ describe("declarative style", () => {
                 ins: "n",
                 out: "result",
                 bootstrap: "main",
-                injection: Object.assign({ errorComponent: (val) => {
+                injection: {
+                    errorComponent: (val) => {
                         if (val === 9) {
                             // tslint:disable
                             throw ("I hate nine");
                         }
                         return val;
-                    } }, index_1.X),
+                    },
+                    X: index_1.X,
+                },
                 component: {
                     main: {
                         ins: "n",
@@ -238,12 +271,15 @@ describe("declarative style", () => {
             ins: "n",
             out: "result",
             bootstrap: "main",
-            injection: Object.assign({ errorComponent: (val) => {
+            injection: {
+                errorComponent: (val) => {
                     if (val === 9) {
                         return Promise.reject("I hate nine");
                     }
                     return Promise.resolve(val);
-                } }, index_1.X),
+                },
+                X: index_1.X,
+            },
             component: {
                 main: {
                     ins: "n",
@@ -259,12 +295,15 @@ describe("declarative style", () => {
     it("throw error if component yield rejected Promise, and only defined in injection", () => {
         const main = index_1.X.declarative({
             bootstrap: "main",
-            injection: Object.assign({ main: (val) => {
+            injection: {
+                main: (val) => {
                     if (val === 9) {
                         return Promise.reject("I hate nine");
                     }
                     return Promise.resolve(val);
-                } }, index_1.X),
+                },
+                X: index_1.X,
+            },
         });
         const result = main(9);
         result.then((val) => expect(true).toBeFalsy())
@@ -274,7 +313,11 @@ describe("declarative style", () => {
         try {
             const main = index_1.X.declarative({
                 bootstrap: "main",
-                injection: Object.assign({ four: 4, five: 5 }, index_1.X),
+                injection: {
+                    four: 4,
+                    five: 5,
+                    X: index_1.X,
+                },
                 component: {
                     main: {
                         perform: "four",
@@ -292,10 +335,14 @@ describe("declarative style", () => {
         try {
             const main = index_1.X.declarative({
                 bootstrap: "main",
-                injection: Object.assign({ four: 4, five: 5 }, index_1.X),
+                injection: {
+                    four: 4,
+                    five: 5,
+                    X: index_1.X,
+                },
                 component: {
                     main: {
-                        perform: "add",
+                        perform: "X.add",
                         parts: ["<four>", "<five>"]
                     },
                 },
@@ -304,7 +351,7 @@ describe("declarative style", () => {
             expect(true).toBeFalsy();
         }
         catch (error) {
-            expect(error.message).toContain("Error parsing `main` component. `add` yield error: add( 4, 5 ) is not a function");
+            expect(error.message).toContain("Error parsing `main` component. `X.add` yield error: X.add( 4, 5 ) is not a function");
         }
     });
 });
