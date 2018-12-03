@@ -48,7 +48,7 @@ bootstrap: main
 component:
 
     main:
-        perform: pipeP
+        perform: X.pipeP
         parts:
             - <fetchImageAndCalendar>
             - <composeCalendar>
@@ -68,7 +68,6 @@ In order to make the implementation, we need to break-down our plan and make it 
 * `composeCalendar`: After getting the imageUrl and the calendar, compose them into HTML-script. String concatenation should do it. And in UNIX-like system, we have `echo` command. So, we can just use it. No need to code anything.
 * `writeCalendar`: Save the HTML-script into a HTML-file. Writing to a calendar is as easy as `echo "content" > file.html`
 * `showCalendar`: Open the HTML-file using a browser. We can open google chrome usiing this command: `google-chrome file://some-folder/some-file.html`
-```
 
 Below is the detail implementation, as well as our executable CHIML program:
 
@@ -80,7 +79,7 @@ bootstrap: main
 component:
 
     main:
-        perform: pipeP
+        perform: X.pipeP
         parts:
             - <fetchImageAndCalendar>
             - <composeCalendar>
@@ -88,7 +87,7 @@ component:
             - <showCalendar>
 
     fetchImageAndCalendar:
-        perform: concurrent
+        perform: X.concurrent
         parts:
             - <fetchImageUrl>
             - <fetchCalendar>
@@ -98,39 +97,39 @@ component:
             - imageUrl
             - calendar
         out: result
-        perform: wrapCommand
+        perform: X.wrapCommand
         parts: echo '<img src="' && echo ${1} && echo '"/>' && echo "<pre>" && echo ${2} && echo "</pre>"
 
     writeCalendar:
         ins: result
-        perform: wrapCommand
+        perform: X.wrapCommand
         parts: echo ${1} > ${PWD}/calendar.html
 
     showCalendar:
         ins: []
-        perform: wrapCommand
+        perform: X.wrapCommand
         parts: google-chrome file://${PWD}/calendar.html
 
     fetchCalendar:
         ins: year
         out: calendar
-        perform: wrapCommand
+        perform: X.wrapCommand
         parts: ncal ${1} -h
 
     fetchImageUrl:
         out: imageUrl
-        perform: pipeP
+        perform: X.pipeP
         parts:
             - <fetchImageObj>
             - <getImageUrl>
 
     fetchImageObj:
         ins: []
-        perform: wrapCommand
+        perform: X.wrapCommand
         parts: curl https://aws.random.cat/meow
 
     getImageUrl:
-        perform: prop
+        perform: X.prop
         parts: file
 ```
 
@@ -180,60 +179,17 @@ __package.json__
 
 ```json
 {
-  "name": "chiml",
-  "version": "0.2.2",
-  "description": "Flow-based-programming inspired dependency injection",
-  "main": "dist/index.js",
-  "bin": {
-    "chie": "dist/chie.js"
-  },
+  "name": "example",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
   "scripts": {
-    "lint": "tslint -c tslint.json 'src/**/*.{ts,tsx}'",
-    "pretest": "npm run lint && tsc --sourcemap && chmod 755 ./dist -R",
-    "test": "jest"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/goFrendiAsgard/chiml.git"
-  },
-  "jest": {
-    "transform": {
-      "\\.(ts|tsx)$": "ts-jest"
-    },
-    "testRegex": "/.*\\.test\\.(ts|tsx)$",
-    "moduleFileExtensions": [
-      "ts",
-      "tsx",
-      "js"
-    ],
-    "verbose": false,
-    "collectCoverage": true
-  },
-  "keywords": [
-    "dependency-injection",
-    "fbp-inspired",
-    "orchestration-language",
-    "chimera-framework"
-  ],
-  "author": "goFrendi",
+  "author": "",
   "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/goFrendiAsgard/chiml/issues"
-  },
-  "homepage": "https://github.com/goFrendiAsgard/chiml#readme",
   "dependencies": {
-    "get-args": "^2.0.0",
-    "js-yaml": "^3.12.0",
-    "ramda": "^0.25.0"
-  },
-  "devDependencies": {
-    "@types/jest": "^23.3.2",
-    "@types/js-yaml": "^3.11.2",
-    "@types/node": "^10.11.3",
-    "@types/ramda": "^0.26.0",
-    "jest": "^23.6.0",
-    "ts-jest": "^23.10.3",
-    "tslint": "^5.11.0"
+    "chiml": "^0.2.2"
   }
 }
 ```
@@ -250,7 +206,7 @@ injection: ./dist/catInjection.js
 component:
 
     main:
-        perform: pipeP
+        perform: X.pipeP
         parts:
             - <fetchImageAndCalendar>
             - <composeCalendar>
@@ -258,7 +214,7 @@ component:
             - <showCalendar>
 
     fetchImageAndCalendar:
-        perform: concurrent
+        perform: X.concurrent
         parts:
             - <fetchImageUrl>
             - <fetchCalendar>
@@ -272,34 +228,34 @@ component:
 
     writeCalendar:
         ins: result
-        perform: wrapCommand
+        perform: X.wrapCommand
         parts: <writeHtmlCommand>
 
     showCalendar:
         ins: []
-        perform: wrapCommand
+        perform: X.wrapCommand
         parts: <showCalendarCommand>
 
     fetchCalendar:
         ins: year
         out: calendar
-        perform: wrapCommand
+        perform: X.wrapCommand
         parts: <calCommand>
 
     fetchImageUrl:
         out: imageUrl
-        perform: pipeP
+        perform: X.pipeP
         parts:
             - <fetchImageObj>
             - <getImageUrl>
 
     fetchImageObj:
         ins: []
-        perform: wrapCommand
+        perform: X.wrapCommand
         parts: <imageFetcherCommand>
 
     getImageUrl:
-        perform: prop
+        perform: X.prop
         parts: <imageKey>
 ```
 
@@ -310,7 +266,7 @@ Interface is like a contract. In this case, we want our interface to provide sev
 __descriptor.ts__
 
 ```typescript
-import { TChimera } from "chiml/dist/interfaces/descriptor";
+import { TChimera } from "chiml/src/interfaces/descriptor";
 export interface IBaseAnimalCalendarInjection {
     calCommand: string;
     composeHtml: (imageUrl: string, calendar: string) => string;
@@ -318,9 +274,8 @@ export interface IBaseAnimalCalendarInjection {
     imageKey: string;
     writeHtmlCommand: string;
     showCalendarCommand: string;
+    X: TChimera;
 }
-
-export type TAnimalCalendarInjection = TChimera & IBaseAnimalCalendarInjection;
 ```
 
 After creating the interface, we can proceed by creating `baseInjection.ts`.
@@ -329,7 +284,8 @@ __baseInjection.ts__
 
 ```typescript
 import { X } from "chiml";
-import { IBaseAnimalCalendarInjection, TAnimalCalendarInjection } from "./interfaces/descriptor";
+import { TChimera } from "chiml/src/interfaces/descriptor";
+import { IBaseAnimalCalendarInjection } from "./interfaces/descriptor";
 
 export class BaseInjection implements IBaseAnimalCalendarInjection {
 
@@ -338,6 +294,7 @@ export class BaseInjection implements IBaseAnimalCalendarInjection {
     public imageKey: string = "image";
     public writeHtmlCommand: string = `echo \${1} > "${__dirname}/calendar.html"`;
     public showCalendarCommand: string = `google-chrome file://${__dirname}/calendar.html`;
+    public X: TChimera = X;
 
     public composeHtml(imageUrl: string, calendar: string): string {
         return `<img style="max-width: 50%; float:left;" src="${imageUrl}" />` +
@@ -352,9 +309,8 @@ Lastly, let's make `catInjection.ts` and `dogInjection.ts`.
 __catInjection.ts__
 
 ```typescript
-import { X } from "chiml";
 import { BaseInjection } from "./baseInjection";
-import { IBaseAnimalCalendarInjection, TAnimalCalendarInjection } from "./interfaces/descriptor";
+import { IBaseAnimalCalendarInjection } from "./interfaces/descriptor";
 
 class CatInjection extends BaseInjection implements IBaseAnimalCalendarInjection {
     public imageFetcherCommand: string = "curl https://aws.random.cat/meow";
@@ -363,7 +319,7 @@ class CatInjection extends BaseInjection implements IBaseAnimalCalendarInjection
     public showCalendarCommand: string = `google-chrome file://${__dirname}/../cat.html`;
 }
 
-const injection: TAnimalCalendarInjection = Object.assign(new CatInjection(), X);
+const injection = new CatInjection();
 module.exports = injection;
 ```
 
@@ -372,7 +328,7 @@ __dogInjection.ts__
 ```typescript
 import { X } from "chiml";
 import { BaseInjection } from "./baseInjection";
-import { IBaseAnimalCalendarInjection, TAnimalCalendarInjection } from "./interfaces/descriptor";
+import { IBaseAnimalCalendarInjection } from "./interfaces/descriptor";
 
 class DogInjection extends BaseInjection implements IBaseAnimalCalendarInjection {
     public imageFetcherCommand: string = "curl https://random.dog/woof.json";
@@ -381,7 +337,7 @@ class DogInjection extends BaseInjection implements IBaseAnimalCalendarInjection
     public showCalendarCommand: string = `google-chrome file://${__dirname}/../dog.html`;
 }
 
-const injection: TAnimalCalendarInjection = Object.assign(new DogInjection(), X);
+const injection = new DogInjection();
 module.exports = injection;
 ```
 

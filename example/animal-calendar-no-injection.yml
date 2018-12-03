@@ -4,7 +4,7 @@ bootstrap: main
 component:
 
     main:
-        perform: pipeP
+        perform: X.pipeP
         parts:
             - <fetchImageAndCalendar>
             - <composeCalendar>
@@ -12,7 +12,7 @@ component:
             - <showCalendar>
 
     fetchImageAndCalendar:
-        perform: concurrent
+        perform: X.concurrent
         parts:
             - <fetchImageUrl>
             - <fetchCalendar>
@@ -22,37 +22,37 @@ component:
             - imageUrl
             - calendar
         out: result
-        perform: wrapCommand
+        perform: X.wrapCommand
         parts: echo '<img src="' && echo ${1} && echo '"/>' && echo "<pre>" && echo ${2} && echo "</pre>"
 
     writeCalendar:
         ins: result
-        perform: wrapCommand
+        perform: X.wrapCommand
         parts: echo ${1} > ${PWD}/calendar.html
 
     showCalendar:
         ins: []
-        perform: wrapCommand
+        perform: X.wrapCommand
         parts: google-chrome file://${PWD}/calendar.html
 
     fetchCalendar:
         ins: year
         out: calendar
-        perform: wrapCommand
+        perform: X.wrapCommand
         parts: ncal ${1} -h
 
     fetchImageUrl:
         out: imageUrl
-        perform: pipeP
+        perform: X.pipeP
         parts:
             - <fetchImageObj>
             - <getImageUrl>
 
     fetchImageObj:
         ins: []
-        perform: wrapCommand
+        perform: X.wrapCommand
         parts: curl https://aws.random.cat/meow
 
     getImageUrl:
-        perform: prop
+        perform: X.prop
         parts: file

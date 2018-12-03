@@ -6,6 +6,5 @@ export interface IBaseAnimalCalendarInjection {
     imageKey: string;
     writeHtmlCommand: string;
     showCalendarCommand: string;
+    X: TChimera;
 }
-
-export type TAnimalCalendarInjection = TChimera & IBaseAnimalCalendarInjection;

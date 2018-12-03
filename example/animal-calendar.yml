@@ -5,7 +5,7 @@ injection: ./dist/catInjection.js
 component:
 
     main:
-        perform: pipeP
+        perform: X.pipeP
         parts:
             - <fetchImageAndCalendar>
             - <composeCalendar>
@@ -13,7 +13,7 @@ component:
             - <showCalendar>
 
     fetchImageAndCalendar:
-        perform: concurrent
+        perform: X.concurrent
         parts:
             - <fetchImageUrl>
             - <fetchCalendar>
@@ -27,32 +27,32 @@ component:
 
     writeCalendar:
         ins: result
-        perform: wrapCommand
+        perform: X.wrapCommand
         parts: <writeHtmlCommand>
 
     showCalendar:
         ins: []
-        perform: wrapCommand
+        perform: X.wrapCommand
         parts: <showCalendarCommand>
 
     fetchCalendar:
         ins: year
         out: calendar
-        perform: wrapCommand
+        perform: X.wrapCommand
         parts: <calCommand>
 
     fetchImageUrl:
         out: imageUrl
-        perform: pipeP
+        perform: X.pipeP
         parts:
             - <fetchImageObj>
             - <getImageUrl>
 
     fetchImageObj:
         ins: []
-        perform: wrapCommand
+        perform: X.wrapCommand
         parts: <imageFetcherCommand>
 
     getImageUrl:
-        perform: prop
+        perform: X.prop
         parts: <imageKey>

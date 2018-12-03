@@ -1,6 +1,5 @@
-import { X } from "chiml";
 import { BaseInjection } from "./baseInjection";
-import { IBaseAnimalCalendarInjection, TAnimalCalendarInjection } from "./interfaces/descriptor";
+import { IBaseAnimalCalendarInjection } from "./interfaces/descriptor";
 
 class CatInjection extends BaseInjection implements IBaseAnimalCalendarInjection {
     public imageFetcherCommand: string = "curl https://aws.random.cat/meow";
@@ -9,5 +8,5 @@ class CatInjection extends BaseInjection implements IBaseAnimalCalendarInjection
     public showCalendarCommand: string = `google-chrome file://${__dirname}/../cat.html`;
 }
 
-const injection: TAnimalCalendarInjection = Object.assign(new CatInjection(), X);
+const injection = new CatInjection();
 module.exports = injection;
