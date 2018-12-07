@@ -88,6 +88,12 @@ describe("wrapCommand", () => {
         expect(result).toBe("Hello world");
         return null;
     }));
+    it("works on command with templated-parameter without curly brace", () => __awaiter(this, void 0, void 0, function* () {
+        const wrapped = index_1.X.wrapCommand("echo $2 $1");
+        const result = yield wrapped("world", "Hello");
+        expect(result).toBe("Hello world");
+        return null;
+    }));
     it("throw error on command-error", () => __awaiter(this, void 0, void 0, function* () {
         const wrapped = index_1.X.wrapCommand("mantan not found");
         try {

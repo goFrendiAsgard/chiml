@@ -97,6 +97,13 @@ describe("wrapCommand", () => {
         return null;
     });
 
+    it("works on command with templated-parameter without curly brace", async () => {
+        const wrapped = X.wrapCommand("echo $2 $1");
+        const result = await wrapped("world", "Hello");
+        expect(result).toBe("Hello world");
+        return null;
+    });
+
     it("throw error on command-error", async () => {
         const wrapped = X.wrapCommand("mantan not found");
         try {

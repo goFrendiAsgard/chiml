@@ -379,14 +379,17 @@ function _runStringCommand(stringCommand, options) {
  * @param ins any[]
  */
 function _getStringCommandWithParams(strCmd, ins) {
-    if (strCmd.match(/.*\$\{[0-9]+\}.*/g)) {
+    if (strCmd.match(/.*\$\{[0-9]+\}.*/g) || strCmd.match(/.*\$[0-9]+.*/g)) {
         // command contains `${number}`
         let commandWithParams = strCmd;
         ins.forEach((value, index) => {
             const paramIndex = index + 1;
-            const pattern = `$\{${paramIndex}}`;
+            const patternWithCurlyBrace = `$\{${paramIndex}\}`;
+            const patternWithoutCurlyBrace = `$${paramIndex}`;
             const replacement = _getDoubleQuotedString(String(value));
-            commandWithParams = commandWithParams.replace(pattern, replacement);
+            commandWithParams = commandWithParams
+                .replace(patternWithCurlyBrace, replacement)
+                .replace(patternWithoutCurlyBrace, replacement);
         });
         return commandWithParams;
     }
