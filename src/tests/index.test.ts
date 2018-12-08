@@ -90,6 +90,13 @@ describe("wrapCommand", () => {
         return null;
     });
 
+    it("works on command with ${PWD}", async () => {
+        const wrapped = X.wrapCommand("echo ${PWD}");
+        const result = await wrapped("Hello world");
+        expect(result).toContain("Hello world");
+        return null;
+    });
+
     it("works on command with templated-parameter", async () => {
         const wrapped = X.wrapCommand("echo ${2} ${1}");
         const result = await wrapped("world", "Hello");
@@ -97,10 +104,24 @@ describe("wrapCommand", () => {
         return null;
     });
 
+    it("works on command with escaped templated-parameter", async () => {
+        const wrapped = X.wrapCommand("echo ${2} \\${1}");
+        const result = await wrapped("world", "Hello");
+        expect(result).toBe("Hello ${1}");
+        return null;
+    });
+
     it("works on command with templated-parameter without curly brace", async () => {
         const wrapped = X.wrapCommand("echo $2 $1");
         const result = await wrapped("world", "Hello");
         expect(result).toBe("Hello world");
+        return null;
+    });
+
+    it("works on command with escaped templated-parameter without curly brace", async () => {
+        const wrapped = X.wrapCommand("echo $2 \\$1");
+        const result = await wrapped("world", "Hello");
+        expect(result).toBe("Hello $1");
         return null;
     });
 

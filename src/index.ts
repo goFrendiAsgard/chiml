@@ -55,7 +55,7 @@ function declarative(partialDeclarativeConfig: Partial<IUserDeclarativeConfig>):
     const parsedDict = declarativeConfig.injection;
     const componentNameList = Object.keys(componentDict);
     const globalState = {};
-    // parse all `<key>`, create function, and register it to parsedDict
+    // parse all `${key}`, create function, and register it to parsedDict
     componentNameList.forEach(
         (componentName) => _addToParsedDict(parsedDict, globalState, componentDict, componentName),
     );
@@ -430,18 +430,18 @@ function _runStringCommand(stringCommand: string, options?: { [key: string]: any
  * @param ins any[]
  */
 function _getStringCommandWithParams(strCmd: string, ins: any[]): string {
-    if (strCmd.match(/.*\$\{[0-9]+\}.*/g) || strCmd.match(/.*\$[0-9]+.*/g)) {
-        // command contains `${number}`
+    const pattern = /(.*)([^\\])\$([\{]?)([0-9]+)([\}]?)(.*)/g;
+    if (strCmd.match(pattern)) {
         let commandWithParams = strCmd;
-        ins.forEach((value, index) => {
-            const paramIndex = index + 1;
-            const patternWithCurlyBrace = `$\{${paramIndex}\}`;
-            const patternWithoutCurlyBrace = `$${paramIndex}`;
-            const replacement = _getDoubleQuotedString(String(value));
-            commandWithParams = commandWithParams
-                .replace(patternWithCurlyBrace, replacement)
-                .replace(patternWithoutCurlyBrace, replacement);
-        });
+        for (const inputElement of ins) {
+            commandWithParams = commandWithParams.replace(
+                pattern,
+                (match, prefix, dollarPrefix, openBrace, paramIndex, closeBrace, suffix): string => {
+                    const replacement = _getDoubleQuotedString(String(ins[paramIndex - 1]));
+                    return prefix + dollarPrefix + replacement + suffix;
+                },
+            );
+        }
         return commandWithParams;
     }
     const inputs = ins.map((element) => _getDoubleQuotedString(String(element))).join(" ");
