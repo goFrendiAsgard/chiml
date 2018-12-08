@@ -1,21 +1,21 @@
 ins: year
 out: result
-bootstrap: main
+bootstrap: execute
 component:
 
-    main:
+    execute:
         perform: X.pipeP
         parts:
-            - <fetchImageAndCalendar>
-            - <composeCalendar>
-            - <writeCalendar>
-            - <showCalendar>
+            - ${fetchImageAndCalendar}
+            - ${composeCalendar}
+            - ${writeCalendar}
+            - ${showCalendar}
 
     fetchImageAndCalendar:
         perform: X.concurrent
         parts:
-            - <fetchImageUrl>
-            - <fetchCalendar>
+            - ${fetchImageUrl}
+            - ${fetchCalendar}
 
     composeCalendar:
         ins:
@@ -45,8 +45,8 @@ component:
         out: imageUrl
         perform: X.pipeP
         parts:
-            - <fetchImageObj>
-            - <getImageUrl>
+            - ${fetchImageObj}
+            - ${getImageUrl}
 
     fetchImageObj:
         ins: []

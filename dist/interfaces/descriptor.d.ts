@@ -41,6 +41,7 @@ export interface IUserComponent {
 }
 export interface IBaseChimera {
     declarative: (partialDeclarativeConfig: Partial<IUserDeclarativeConfig>) => AnyFunction;
+    execute: (containerFile: string, injectionFile?: string) => AnyFunction;
     foldInput: (fn: AnyFunction) => ((arr: any[]) => any);
     spreadInput: (fn: (arr: any[]) => any) => AnyFunction;
     concurrent: (...fnList: AnyAsyncFunction[]) => AnyAsyncFunction;

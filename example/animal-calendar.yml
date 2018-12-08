@@ -1,22 +1,22 @@
 ins: year
 out: result
-bootstrap: main
+bootstrap: execute
 injection: ./dist/catInjection.js
 component:
 
-    main:
+    execute:
         perform: X.pipeP
         parts:
-            - <fetchImageAndCalendar>
-            - <composeCalendar>
-            - <writeCalendar>
-            - <showCalendar>
+            - ${fetchImageAndCalendar}
+            - ${composeCalendar}
+            - ${writeCalendar}
+            - ${showCalendar}
 
     fetchImageAndCalendar:
         perform: X.concurrent
         parts:
-            - <fetchImageUrl>
-            - <fetchCalendar>
+            - ${fetchImageUrl}
+            - ${fetchCalendar}
 
     composeCalendar:
         ins:
@@ -28,31 +28,31 @@ component:
     writeCalendar:
         ins: result
         perform: X.wrapCommand
-        parts: <writeHtmlCommand>
+        parts: ${writeHtmlCommand}
 
     showCalendar:
         ins: []
         perform: X.wrapCommand
-        parts: <showCalendarCommand>
+        parts: ${showCalendarCommand}
 
     fetchCalendar:
         ins: year
         out: calendar
         perform: X.wrapCommand
-        parts: <calCommand>
+        parts: ${calCommand}
 
     fetchImageUrl:
         out: imageUrl
         perform: X.pipeP
         parts:
-            - <fetchImageObj>
-            - <getImageUrl>
+            - ${fetchImageObj}
+            - ${getImageUrl}
 
     fetchImageObj:
         ins: []
         perform: X.wrapCommand
-        parts: <imageFetcherCommand>
+        parts: ${imageFetcherCommand}
 
     getImageUrl:
         perform: X.prop
-        parts: <imageKey>
+        parts: ${imageKey}

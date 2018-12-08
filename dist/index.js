@@ -21,6 +21,7 @@ const FG_YELLOW = "\x1b[33m";
 const RESET_COLOR = "\x1b[0m";
 exports.X = Object.assign({}, R, {
     declarative,
+    execute,
     foldInput,
     spreadInput,
     concurrent,
@@ -105,7 +106,7 @@ function _getParsedParts(parsedDict, globalState, componentDict, parentComponent
         return newVals;
     }
     if (typeof parts === "string") {
-        const tagPattern = /^\s*<(.+)>\s*$/gi;
+        const tagPattern = /^\s*\$\{(.+)\}\s*$/gi;
         const match = tagPattern.exec(parts);
         if (match) {
             const key = match[1];

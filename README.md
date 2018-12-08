@@ -44,16 +44,16 @@ This bird-view planning can be written in YAML as follow:
 ```yaml
 ins: year
 out: result
-bootstrap: main
+bootstrap: execute
 component:
 
-    main:
+    execute:
         perform: X.pipeP
         parts:
-            - <fetchImageAndCalendar>
-            - <composeCalendar>
-            - <writeCalendar>
-            - <showCalendar>
+            - ${fetchImageAndCalendar}
+            - ${composeCalendar}
+            - ${writeCalendar}
+            - ${showCalendar}
 ```
 
 ## Implementation (without dependency-injection)
@@ -75,22 +75,22 @@ Below is the detail implementation, as well as our executable CHIML program:
 # file: animal-calendar-no-injection.yml
 ins: year
 out: result
-bootstrap: main
+bootstrap: execute
 component:
 
-    main:
+    execute:
         perform: X.pipeP
         parts:
-            - <fetchImageAndCalendar>
-            - <composeCalendar>
-            - <writeCalendar>
-            - <showCalendar>
+            - ${fetchImageAndCalendar}
+            - ${composeCalendar}
+            - ${writeCalendar}
+            - ${showCalendar}
 
     fetchImageAndCalendar:
         perform: X.concurrent
         parts:
-            - <fetchImageUrl>
-            - <fetchCalendar>
+            - ${fetchImageUrl}
+            - ${fetchCalendar}
 
     composeCalendar:
         ins:
@@ -120,8 +120,8 @@ component:
         out: imageUrl
         perform: X.pipeP
         parts:
-            - <fetchImageObj>
-            - <getImageUrl>
+            - ${fetchImageObj}
+            - ${getImageUrl}
 
     fetchImageObj:
         ins: []
@@ -201,23 +201,23 @@ __animal-calendar.yml__
 ```yaml
 ins: year
 out: result
-bootstrap: main
+bootstrap: execute
 injection: ./dist/catInjection.js
 component:
 
-    main:
+    execute:
         perform: X.pipeP
         parts:
-            - <fetchImageAndCalendar>
-            - <composeCalendar>
-            - <writeCalendar>
-            - <showCalendar>
+            - ${fetchImageAndCalendar}
+            - ${composeCalendar}
+            - ${writeCalendar}
+            - ${showCalendar}
 
     fetchImageAndCalendar:
         perform: X.concurrent
         parts:
-            - <fetchImageUrl>
-            - <fetchCalendar>
+            - ${fetchImageUrl}
+            - ${fetchCalendar}
 
     composeCalendar:
         ins:
@@ -229,34 +229,34 @@ component:
     writeCalendar:
         ins: result
         perform: X.wrapCommand
-        parts: <writeHtmlCommand>
+        parts: ${writeHtmlCommand}
 
     showCalendar:
         ins: []
         perform: X.wrapCommand
-        parts: <showCalendarCommand>
+        parts: ${showCalendarCommand}
 
     fetchCalendar:
         ins: year
         out: calendar
         perform: X.wrapCommand
-        parts: <calCommand>
+        parts: ${calCommand}
 
     fetchImageUrl:
         out: imageUrl
         perform: X.pipeP
         parts:
-            - <fetchImageObj>
-            - <getImageUrl>
+            - ${fetchImageObj}
+            - ${getImageUrl}
 
     fetchImageObj:
         ins: []
         perform: X.wrapCommand
-        parts: <imageFetcherCommand>
+        parts: ${imageFetcherCommand}
 
     getImageUrl:
         perform: X.prop
-        parts: <imageKey>
+        parts: ${imageKey}
 ```
 
 By default, this container will use `./dist/cat.js`. The file is currently inexist. You might notice that we have some `undefined components` like `composeHtml`, `writeHtmlCommand`, `showCalendarCommand`, `calCommand`, `imageFetcherCommand`, and `imageKey`. It's okay, we will define the interface and the implementation later.

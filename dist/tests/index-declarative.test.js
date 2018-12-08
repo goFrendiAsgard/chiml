@@ -23,14 +23,14 @@ describe("declarative style", () => {
                 main: {
                     perform: "X.pipeP",
                     parts: [
-                        "<aPlusBAndAMinB>",
-                        "<cByD>",
-                        "<rootSquareE>",
+                        "${aPlusBAndAMinB}",
+                        "${cByD}",
+                        "${rootSquareE}",
                     ],
                 },
                 aPlusBAndAMinB: {
                     perform: "X.concurrent",
-                    parts: ["<aPlusB>", "<aMinB>"],
+                    parts: ["${aPlusB}", "${aMinB}"],
                 },
                 aPlusB: {
                     ins: ["a", "b"],
@@ -46,13 +46,13 @@ describe("declarative style", () => {
                     ins: ["c", "d"],
                     out: "e",
                     perform: "X.wrapNodeback",
-                    parts: "<nodebackMultiply>",
+                    parts: "${nodebackMultiply}",
                 },
                 rootSquareE: {
                     ins: "e",
                     out: "f",
                     perform: "X.wrapCommand",
-                    parts: ["<commandRootSquare>"],
+                    parts: ["${commandRootSquare}"],
                 },
             },
         });
@@ -156,7 +156,7 @@ describe("declarative style", () => {
                 component: {
                     average: {
                         perform: "X.pipe",
-                        parts: "<rataRata>",
+                        parts: "${rataRata}",
                     },
                 },
             });
@@ -174,7 +174,7 @@ describe("declarative style", () => {
                 component: {
                     nor: {
                         perform: "X.pipe",
-                        parts: ["<X.or>", "<X.not>"],
+                        parts: ["${X.or}", "${X.not}"],
                     },
                 },
             });
@@ -194,7 +194,7 @@ describe("declarative style", () => {
                 component: {
                     errorTest: {
                         perform: "errorAction",
-                        parts: ["<X.or>"],
+                        parts: ["${X.or}"],
                     },
                 },
                 bootstrap: "errorTest",
@@ -343,7 +343,7 @@ describe("declarative style", () => {
                 component: {
                     main: {
                         perform: "X.add",
-                        parts: ["<four>", "<five>"]
+                        parts: ["${four}", "${five}"]
                     },
                 },
             });

@@ -17,6 +17,7 @@ const RESET_COLOR = "\x1b[0m";
 
 export const X: TChimera = Object.assign({}, R, {
     declarative,
+    execute,
     foldInput,
     spreadInput,
     concurrent,
@@ -119,7 +120,7 @@ function _getParsedParts(
         return newVals;
     }
     if (typeof parts === "string") {
-        const tagPattern = /^\s*<(.+)>\s*$/gi;
+        const tagPattern = /^\s*\$\{(.+)\}\s*$/gi;
         const match = tagPattern.exec(parts);
         if (match) {
             const key = match[1];
