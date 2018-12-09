@@ -126,6 +126,24 @@ describe("declarative style", () => {
         expect(result).toBe(25);
     });
 
+    it("works with escaped parameter", () => {
+        const main = X.declarative({
+            bootstrap: "run",
+            injection: {
+                hi: "hello",
+                X,
+            },
+            component: {
+                run: {
+                    perform: "X.concat",
+                    parts: "\\${hi}",
+                },
+            },
+        });
+        const result = main("world");
+        expect(result).toBe("${hi}world");
+    });
+
     it("throw error if bootstrap's given parameter is less than expected", () => {
         const main = X.declarative({
             ins: "name",

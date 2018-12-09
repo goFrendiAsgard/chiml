@@ -119,6 +119,7 @@ function _getParsedParts(parsedDict, globalState, componentDict, parentComponent
             throw (new Error(`Error parsing \`${parentComponentName}\` component: ` +
                 `Part \`${key}\` is not defined`));
         }
+        parts = parts.replace(/^\s*\\\$\{(.+)\}\s*$/gi, "\${$1}");
         return parts;
     }
     return parts;

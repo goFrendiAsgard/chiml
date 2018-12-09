@@ -136,6 +136,7 @@ function _getParsedParts(
                     `Part \`${key}\` is not defined`,
             ));
         }
+        parts = parts.replace(/^\s*\\\$\{(.+)\}\s*$/gi, "\${$1}");
         return parts;
     }
     return parts;

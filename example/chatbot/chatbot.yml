@@ -1,0 +1,18 @@
+ins: message
+out: reply
+bootstrap: loadStateAndConverse
+component:
+
+    loadStateAndConverse:
+        perform: X.pipeP
+        parts:
+            - ${loadState}
+            - ${converse}
+            - ${saveState}
+
+    loadState:
+        perform: X.pipeP
+        parts:
+            - ${}
+
+

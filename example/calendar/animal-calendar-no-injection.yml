@@ -23,7 +23,7 @@ component:
             - calendar
         out: result
         perform: X.wrapCommand
-        parts: echo '<img src="' && echo ${1} && echo '"/>' && echo "<pre>" && echo ${2} && echo "</pre>"
+        parts: echo '<img src="' ${1} '"/><pre>' ${2} '</pre>'
 
     writeCalendar:
         ins: result
