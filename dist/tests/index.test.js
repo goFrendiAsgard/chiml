@@ -86,6 +86,7 @@ describe("wrapCommand", () => {
         const wrapped = index_1.X.wrapCommand("echo ${PWD}");
         const result = yield wrapped("Hello world");
         expect(result).toContain("Hello world");
+        expect(result).toContain("chiml");
         return null;
     }));
     it("works on command with templated-parameter", () => __awaiter(this, void 0, void 0, function* () {
@@ -98,6 +99,18 @@ describe("wrapCommand", () => {
         const wrapped = index_1.X.wrapCommand("echo ${2} \\${1}");
         const result = yield wrapped("world", "Hello");
         expect(result).toBe("Hello ${1}");
+        return null;
+    }));
+    it("works on command with templated-parameter, even if ins count is less than expected", () => __awaiter(this, void 0, void 0, function* () {
+        const wrapped = index_1.X.wrapCommand("echo ${2} ${1}");
+        const result = yield wrapped("Hello");
+        expect(result).toBe("Hello");
+        return null;
+    }));
+    it("works on command with templated-parameter, even if parameter index used more than once", () => __awaiter(this, void 0, void 0, function* () {
+        const wrapped = index_1.X.wrapCommand("echo ${2} ${2} ${1}");
+        const result = yield wrapped("world", "Hello");
+        expect(result).toBe("Hello Hello world");
         return null;
     }));
     it("works on command with templated-parameter without curly brace", () => __awaiter(this, void 0, void 0, function* () {

@@ -94,6 +94,7 @@ describe("wrapCommand", () => {
         const wrapped = X.wrapCommand("echo ${PWD}");
         const result = await wrapped("Hello world");
         expect(result).toContain("Hello world");
+        expect(result).toContain("chiml");
         return null;
     });
 
@@ -108,6 +109,20 @@ describe("wrapCommand", () => {
         const wrapped = X.wrapCommand("echo ${2} \\${1}");
         const result = await wrapped("world", "Hello");
         expect(result).toBe("Hello ${1}");
+        return null;
+    });
+
+    it("works on command with templated-parameter, even if ins count is less than expected", async () => {
+        const wrapped = X.wrapCommand("echo ${2} ${1}");
+        const result = await wrapped("Hello");
+        expect(result).toBe("Hello");
+        return null;
+    });
+
+    it("works on command with templated-parameter, even if parameter index used more than once", async () => {
+        const wrapped = X.wrapCommand("echo ${2} ${2} ${1}");
+        const result = await wrapped("world", "Hello");
+        expect(result).toBe("Hello Hello world");
         return null;
     });
 

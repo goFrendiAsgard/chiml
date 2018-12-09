@@ -39,11 +39,9 @@ function execute(containerFile, injectionFile = null) {
     }
     if (injectionFile) {
         config.injection = require(injectionFile);
+        return exports.X.declarative(config);
     }
-    else {
-        config.injection = { X: exports.X };
-    }
-    // get bootstrap and run it
+    config.injection = { X: exports.X };
     return exports.X.declarative(config);
 }
 exports.execute = execute;
@@ -80,10 +78,11 @@ function _getWrappedBootstrapFunction(bootstrap, componentDict, parsedDict, glob
                 };
                 throw (_getEmbededError(error, "", globalState, structure));
             }
-            args.forEach((value, index) => {
+            globalState = args.reduce((newGlobalState, value, index) => {
                 const key = globalIns[index];
-                globalState[key] = value;
-            });
+                newGlobalState[key] = value;
+                return newGlobalState;
+            }, globalState);
         }
         const parsedDictVal = _getFromParsedDict(parsedDict, bootstrap);
         const func = parsedDictVal.value;
@@ -126,19 +125,19 @@ function _getParsedParts(parsedDict, globalState, componentDict, parentComponent
 }
 function _getFromParsedDict(parsedDict, searchKey) {
     const searchKeyParts = searchKey.split(".");
-    const result = {
+    const initialResult = {
         value: parsedDict,
         found: false,
     };
-    for (const key of searchKeyParts) {
+    return searchKeyParts.reduce((result, key) => {
         if (key in result.value) {
             result.value = result.value[key];
             result.found = true;
-            continue;
+            return result;
         }
         result.found = false;
-    }
-    return result;
+        return result;
+    }, initialResult);
 }
 function _addToParsedDict(parsedDict, globalState, componentDict, componentName) {
     componentDict[componentName] = _getCompleteComponent(componentDict[componentName]);
@@ -203,9 +202,7 @@ function _getWrappedFunction(componentName, componentDict, func, ins, out, state
     return wrappedFunction;
 }
 function _getArrayFromObject(keys, obj) {
-    const arr = [];
-    keys.forEach((key) => arr.push(obj[key]));
-    return arr;
+    return keys.map((key) => obj[key]);
 }
 function _getEmbededError(error, message, state, structure) {
     if (typeof error !== "object" || !error.message) {
@@ -380,16 +377,16 @@ function _runStringCommand(stringCommand, options) {
  * @param ins any[]
  */
 function _getStringCommandWithParams(strCmd, ins) {
-    const pattern = /(.*)([^\\])\$([\{]?)([0-9]+)([\}]?)(.*)/g;
+    const pattern = /([^\\])\$[\{]?([0-9]+)[\}]?/g;
     if (strCmd.match(pattern)) {
-        let commandWithParams = strCmd;
-        for (const inputElement of ins) {
-            commandWithParams = commandWithParams.replace(pattern, (match, prefix, dollarPrefix, openBrace, paramIndex, closeBrace, suffix) => {
-                const replacement = _getDoubleQuotedString(String(ins[paramIndex - 1]));
-                return prefix + dollarPrefix + replacement + suffix;
-            });
-        }
-        return commandWithParams;
+        return strCmd.replace(pattern, (match, notBackSlash, paramIndex) => {
+            const insIndex = paramIndex - 1;
+            if (insIndex < ins.length) {
+                const replacement = _getDoubleQuotedString(String(ins[insIndex]));
+                return notBackSlash + replacement;
+            }
+            return "";
+        });
     }
     const inputs = ins.map((element) => _getDoubleQuotedString(String(element))).join(" ");
     return `${strCmd} ${inputs}`;

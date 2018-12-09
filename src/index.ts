@@ -36,10 +36,9 @@ export function execute(containerFile: string, injectionFile: string = null): An
     }
     if (injectionFile) {
         config.injection = require(injectionFile);
-    } else {
-        config.injection = { X };
+        return X.declarative(config);
     }
-    // get bootstrap and run it
+    config.injection = { X };
     return X.declarative(config);
 }
 
@@ -88,10 +87,11 @@ function _getWrappedBootstrapFunction(
                 };
                 throw(_getEmbededError(error, "", globalState, structure));
             }
-            args.forEach((value, index) => {
+            globalState = args.reduce((newGlobalState, value, index) => {
                 const key = globalIns[index];
-                globalState[key] = value;
-            });
+                newGlobalState[key] = value;
+                return newGlobalState;
+            }, globalState);
         }
         const parsedDictVal = _getFromParsedDict(parsedDict, bootstrap);
         const func = parsedDictVal.value;
@@ -143,19 +143,19 @@ function _getParsedParts(
 
 function _getFromParsedDict(parsedDict: {[key: string]: any}, searchKey: string): IKeyInParsedDict {
     const searchKeyParts = searchKey.split(".");
-    const result: IKeyInParsedDict = {
+    const initialResult: IKeyInParsedDict = {
         value: parsedDict,
         found: false,
     };
-    for (const key of searchKeyParts) {
+    return searchKeyParts.reduce((result, key) => {
         if (key in result.value) {
             result.value = result.value[key];
             result.found = true;
-            continue;
+            return result;
         }
         result.found = false;
-    }
-    return result;
+        return result;
+    }, initialResult);
 }
 
 function _addToParsedDict(
@@ -239,9 +239,7 @@ function _getWrappedFunction(
 }
 
 function _getArrayFromObject(keys: string[], obj: {[key: string]: any}): any[] {
-    const arr = [];
-    keys.forEach((key) => arr.push(obj[key]));
-    return arr;
+    return keys.map((key) => obj[key]);
 }
 
 function _getEmbededError(
@@ -430,19 +428,16 @@ function _runStringCommand(stringCommand: string, options?: { [key: string]: any
  * @param ins any[]
  */
 function _getStringCommandWithParams(strCmd: string, ins: any[]): string {
-    const pattern = /(.*)([^\\])\$([\{]?)([0-9]+)([\}]?)(.*)/g;
+    const pattern = /([^\\])\$[\{]?([0-9]+)[\}]?/g;
     if (strCmd.match(pattern)) {
-        let commandWithParams = strCmd;
-        for (const inputElement of ins) {
-            commandWithParams = commandWithParams.replace(
-                pattern,
-                (match, prefix, dollarPrefix, openBrace, paramIndex, closeBrace, suffix): string => {
-                    const replacement = _getDoubleQuotedString(String(ins[paramIndex - 1]));
-                    return prefix + dollarPrefix + replacement + suffix;
-                },
-            );
-        }
-        return commandWithParams;
+        return strCmd.replace(pattern, (match, notBackSlash, paramIndex): string => {
+            const insIndex = paramIndex - 1;
+            if (insIndex < ins.length) {
+                const replacement = _getDoubleQuotedString(String(ins[insIndex]));
+                return notBackSlash + replacement;
+            }
+            return "";
+        });
     }
     const inputs = ins.map((element) => _getDoubleQuotedString(String(element))).join(" ");
     return `${strCmd} ${inputs}`;
