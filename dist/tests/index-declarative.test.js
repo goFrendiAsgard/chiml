@@ -146,18 +146,18 @@ describe("declarative style", () => {
         expect(result).toBe("${hi}world");
     });
     it("throw error if bootstrap's given parameter is less than expected", () => {
-        const main = index_1.X.declarative({
-            ins: "name",
-            bootstrap: "sayHello",
-            injection: { X: index_1.X },
-            component: {
-                sayHello: {
-                    perform: "X.concat",
-                    parts: "Hello ",
-                },
-            },
-        });
         try {
+            const main = index_1.X.declarative({
+                ins: "name",
+                bootstrap: "sayHello",
+                injection: { X: index_1.X },
+                component: {
+                    sayHello: {
+                        perform: "X.concat",
+                        parts: "Hello ",
+                    },
+                },
+            });
             const result = main();
             expect(true).toBeFalsy();
         }
@@ -177,6 +177,7 @@ describe("declarative style", () => {
                     },
                 },
             });
+            const result = main();
             expect(true).toBeFalsy();
         }
         catch (error) {
@@ -195,6 +196,7 @@ describe("declarative style", () => {
                     },
                 },
             });
+            const result = main();
             expect(true).toBeFalsy();
         }
         catch (error) {
@@ -216,10 +218,12 @@ describe("declarative style", () => {
                 },
                 bootstrap: "errorTest",
             });
+            const result = main();
             expect(true).toBeFalsy();
         }
         catch (error) {
-            expect(error.message).toContain("Error parsing `errorTest` component. `errorAction` yield error: invalid action");
+            expect(error.message).toContain("Error executing `errorTest()` component: Error perform `errorAction(");
+            expect(error.message).toContain("invalid action");
         }
     });
     it("throw error if component yield error-object on execution", () => {
@@ -368,7 +372,48 @@ describe("declarative style", () => {
             expect(true).toBeFalsy();
         }
         catch (error) {
-            expect(error.message).toContain("Error parsing `main` component. `X.add` yield error: X.add( 4, 5 ) is not a function");
+            expect(error.message).toContain("Error executing `main()` component: Error perform `X.add( 4, 5 )()`");
+        }
+    });
+    it("throw error if component's perform not found", () => {
+        try {
+            const main = index_1.X.declarative({
+                bootstrap: "main",
+                injection: {
+                    X: index_1.X,
+                },
+                component: {
+                    main: {
+                        perform: "four",
+                    },
+                },
+            });
+            const result = main();
+            expect(true).toBeFalsy();
+        }
+        catch (error) {
+            expect(error.message).toContain("Error parsing `main` component. `four` yield error: four is not a function");
+        }
+    });
+    it("throw error if component's parts is not executable", () => {
+        try {
+            const main = index_1.X.declarative({
+                bootstrap: "main",
+                injection: {
+                    X: index_1.X,
+                },
+                component: {
+                    main: {
+                        perform: "X.add",
+                        parts: ["${four}", "${five}"]
+                    },
+                },
+            });
+            const result = main();
+            expect(true).toBeFalsy();
+        }
+        catch (error) {
+            expect(error.message).toContain("Error executing `main()` component: Error parsing `main` component: Part `four` is not defined");
         }
     });
 });

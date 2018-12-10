@@ -145,18 +145,18 @@ describe("declarative style", () => {
     });
 
     it("throw error if bootstrap's given parameter is less than expected", () => {
-        const main = X.declarative({
-            ins: "name",
-            bootstrap: "sayHello",
-            injection: {X},
-            component: {
-                sayHello: {
-                    perform: "X.concat",
-                    parts: "Hello ",
-                },
-            },
-        });
         try {
+            const main = X.declarative({
+                ins: "name",
+                bootstrap: "sayHello",
+                injection: {X},
+                component: {
+                    sayHello: {
+                        perform: "X.concat",
+                        parts: "Hello ",
+                    },
+                },
+            });
             const result = main();
             expect(true).toBeFalsy();
         } catch (error) {
@@ -176,6 +176,7 @@ describe("declarative style", () => {
                     },
                 },
             });
+            const result = main();
             expect(true).toBeFalsy();
         } catch (error) {
             expect(error.message).toContain("Error parsing `average` component: Part `rataRata` is not defined");
@@ -194,6 +195,7 @@ describe("declarative style", () => {
                     },
                 },
             });
+            const result = main();
             expect(true).toBeFalsy();
         } catch (error) {
             expect(error.message).toContain("Bootstrap component `oraono` is not defined");
@@ -215,11 +217,11 @@ describe("declarative style", () => {
                 },
                 bootstrap: "errorTest",
             });
+            const result = main();
             expect(true).toBeFalsy();
         } catch (error) {
-            expect(error.message).toContain(
-                "Error parsing `errorTest` component. `errorAction` yield error: invalid action",
-            );
+            expect(error.message).toContain("Error executing `errorTest()` component: Error perform `errorAction(");
+            expect(error.message).toContain("invalid action");
         }
     });
 
@@ -377,7 +379,52 @@ describe("declarative style", () => {
             expect(true).toBeFalsy();
         } catch (error) {
             expect(error.message).toContain(
-                "Error parsing `main` component. `X.add` yield error: X.add( 4, 5 ) is not a function",
+                "Error executing `main()` component: Error perform `X.add( 4, 5 )()`",
+            );
+        }
+    });
+
+    it("throw error if component's perform not found", () => {
+        try {
+            const main = X.declarative({
+                bootstrap: "main",
+                injection: {
+                    X,
+                },
+                component: {
+                    main: {
+                        perform: "four",
+                    },
+                },
+            });
+            const result = main();
+            expect(true).toBeFalsy();
+        } catch (error) {
+            expect(error.message).toContain(
+                "Error parsing `main` component. `four` yield error: four is not a function",
+            );
+        }
+    });
+
+    it("throw error if component's parts is not executable", () => {
+        try {
+            const main = X.declarative({
+                bootstrap: "main",
+                injection: {
+                    X,
+                },
+                component: {
+                    main: {
+                        perform: "X.add",
+                        parts: ["${four}", "${five}"]
+                    },
+                },
+            });
+            const result = main();
+            expect(true).toBeFalsy();
+        } catch (error) {
+            expect(error.message).toContain(
+                "Error executing `main()` component: Error parsing `main` component: Part `four` is not defined",
             );
         }
     });

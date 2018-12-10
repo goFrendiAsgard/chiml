@@ -124,9 +124,11 @@ function _getParsedParts(
         const match = tagPattern.exec(parts);
         if (match) {
             const key = match[1];
+            /*
             if (!(key in parsedDict) && (key in componentDict)) {
                 _addToParsedDict(parsedDict, globalState, componentDict, key);
             }
+            */
             const parsedDictVal = _getFromParsedDict(parsedDict, key);
             if (parsedDictVal.found) {
                 return parsedDictVal.value;
@@ -167,17 +169,24 @@ function _addToParsedDict(
 ): void {
     componentDict[componentName] = _getCompleteComponent(componentDict[componentName]);
     const { ins, out, perform, parts } = componentDict[componentName];
-    const parsedParts = _getParsedParts(parsedDict, globalState, componentDict, componentName, parts);
     try {
         const parsedDictVal = _getFromParsedDict(parsedDict, perform);
         const factory = parsedDictVal.value;
         if (typeof factory !== "function") {
             throw new Error(`${perform} is not a function`);
         }
-        const func = _isEmptyArray(parsedParts) ? factory : factory(...parsedParts);
-        if (typeof func !== "function") {
-            const partsAsString = _getArgsStringRepresentation(parsedParts);
-            throw new Error(`${perform}${partsAsString} is not a function`);
+        function func(...args) {
+            if (_isEmptyArray(parts)) {
+                return factory(...args);
+            }
+            const parsedParts = _getParsedParts(parsedDict, globalState, componentDict, componentName, parts);
+            try {
+                return factory(...parsedParts)(...args);
+            } catch (error) {
+                const partsAsString = _getArgsStringRepresentation(parsedParts);
+                const argsAsString = _getArgsStringRepresentation(args);
+                throw new Error(`Error perform \`${perform}${partsAsString}${argsAsString}\` ` + error.message);
+            }
         }
         parsedDict[componentName] = _getWrappedFunction(componentName, componentDict, func, ins, out, globalState);
     } catch (error) {
@@ -206,11 +215,11 @@ function _getWrappedFunction(
 ): AnyFunction {
     function wrappedFunction(...args) {
         const realArgs = ins === null ? args : _getArrayFromObject(ins, state);
+        const realArgsAsString = _getArgsStringRepresentation(realArgs);
         try {
             const funcOut = func(...realArgs);
             if (_isPromise(funcOut)) {
                 const funcOutWithErrorHandler = funcOut.catch((error) => {
-                    const realArgsAsString = _getArgsStringRepresentation(realArgs);
                     const errorMessage = `Error executing \`${componentName}${realArgsAsString}\` async component:`;
                     const structure = { component: {} };
                     structure.component[componentName] = componentDict[componentName];
@@ -229,7 +238,6 @@ function _getWrappedFunction(
             }
             return funcOut;
         } catch (error) {
-            const realArgsAsString = _getArgsStringRepresentation(realArgs);
             const errorMessage = `Error executing \`${componentName}${realArgsAsString}\` component:`;
             const structure = { component: {} };
             structure.component[componentName] = componentDict[componentName];
@@ -256,7 +264,7 @@ function _getEmbededError(
     const stateString = JSON.stringify(state, null, 2);
     const structureString = JSON.stringify(structure, null, 2)
         .replace(/\n(\s*)}/gi, "\n$1  ...\n$1}");
-    error.message = `\n${FG_BRIGHT}` +
+    error.message = error.message.indexOf(message) !== -1 ? error.message : `\n${FG_BRIGHT}` +
         `${FG_RED}ERROR: ${newErrorMessage}\n` +
         `${FG_CYAN}STATE: ${stateString}\n` +
         `${FG_YELLOW}STRUCTURE: ${structureString}${RESET_COLOR}\n`;
@@ -278,8 +286,7 @@ function _getCompleteDeclarativeConfig(partialConfig: Partial<IUserDeclarativeCo
     }
     // complete all component in `completeConfig.component`
     Object.keys(completeConfig.component).forEach((componentName) => {
-        const completeComponent = _getCompleteComponent(completeConfig.component[componentName]);
-        completeConfig.component[componentName] = completeComponent;
+        completeConfig.component[componentName] = _getCompleteComponent(completeConfig.component[componentName]);
     });
     return completeConfig;
 }

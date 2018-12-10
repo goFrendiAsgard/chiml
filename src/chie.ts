@@ -16,7 +16,7 @@ if (require.main === module) {
         // get bootstrap and run it
         const bootstrap = execute(containerFile, injectionFile);
         const result = bootstrap(...args);
-        if ("then" in result) {
+        if (typeof result === "object" && "then" in result) {
             result
                 .then((realResult) => console.log(realResult))
                 .catch((error) => console.error(error));
