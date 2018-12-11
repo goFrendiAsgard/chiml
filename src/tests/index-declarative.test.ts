@@ -429,4 +429,27 @@ describe("declarative style", () => {
         }
     });
 
+    it("throw error on infinite recursive call", () => {
+        try {
+            const main = X.declarative({
+                bootstrap: "main",
+                injection: {
+                    X,
+                },
+                component: {
+                    main: {
+                        perform: "X.pipe",
+                        parts: ["${main}"]
+                    },
+                },
+            });
+            const result = main(10);
+            expect(true).toBeFalsy();
+        } catch (error) {
+            expect(error.message).toContain(
+                "Error executing `main( 10 )` component: Maximum call stack size exceeded",
+            );
+        }
+    });
+
 });

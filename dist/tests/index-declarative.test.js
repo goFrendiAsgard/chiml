@@ -416,5 +416,26 @@ describe("declarative style", () => {
             expect(error.message).toContain("Error executing `main()` component: Error parsing `main` component: Part `four` is not defined");
         }
     });
+    it("throw error on infinite recursive call", () => {
+        try {
+            const main = index_1.X.declarative({
+                bootstrap: "main",
+                injection: {
+                    X: index_1.X,
+                },
+                component: {
+                    main: {
+                        perform: "X.pipe",
+                        parts: ["${main}"]
+                    },
+                },
+            });
+            const result = main(10);
+            expect(true).toBeFalsy();
+        }
+        catch (error) {
+            expect(error.message).toContain("Error executing `main( 10 )` component: Maximum call stack size exceeded");
+        }
+    });
 });
 //# sourceMappingURL=index-declarative.test.js.map

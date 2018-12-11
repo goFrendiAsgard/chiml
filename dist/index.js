@@ -56,17 +56,17 @@ function declarative(partialDeclarativeConfig) {
     const { bootstrap } = declarativeConfig;
     const parsedDict = declarativeConfig.injection;
     const componentNameList = Object.keys(componentDict);
-    const globalState = {};
+    const state = {};
     // parse all `${key}`, create function, and register it to parsedDict
-    componentNameList.forEach((componentName) => _addToParsedDict(parsedDict, globalState, componentDict, componentName));
+    componentNameList.forEach((componentName) => _addToParsedDict(parsedDict, state, componentDict, componentName));
     // return bootstrap function
     const parsedDictVal = _getFromParsedDict(parsedDict, bootstrap);
     if (!parsedDictVal.found) {
         throw (new Error(`Bootstrap component \`${bootstrap}\` is not defined`));
     }
-    return _getWrappedBootstrapFunction(bootstrap, componentDict, parsedDict, globalIns, globalOut, globalState);
+    return _getWrappedBootstrapFunction(bootstrap, componentDict, parsedDict, globalIns, globalOut, state);
 }
-function _getWrappedBootstrapFunction(bootstrap, componentDict, parsedDict, globalIns, globalOut, globalState) {
+function _getWrappedBootstrapFunction(bootstrap, componentDict, parsedDict, globalIns, globalOut, state) {
     function wrappedBootstrapFunction(...args) {
         if (globalIns !== null) {
             if (args.length < globalIns.length) {
@@ -76,32 +76,31 @@ function _getWrappedBootstrapFunction(bootstrap, componentDict, parsedDict, glob
                     out: globalOut,
                     bootstrap,
                 };
-                throw (_getEmbededError(error, "", globalState, structure));
+                throw (_getEmbededError(error, "", state, structure));
             }
-            globalState = args.reduce((newGlobalState, value, index) => {
-                const key = globalIns[index];
-                newGlobalState[key] = value;
-                return newGlobalState;
-            }, globalState);
+            state = args.reduce((newState, value, index) => {
+                newState[globalIns[index]] = value;
+                return newState;
+            }, state);
         }
         const parsedDictVal = _getFromParsedDict(parsedDict, bootstrap);
         const func = parsedDictVal.value;
         const wrappedFunction = bootstrap in componentDict && parsedDictVal.found ?
-            func : _getWrappedFunction(bootstrap, componentDict, func, globalIns, globalOut, globalState);
+            func : _getWrappedFunction(bootstrap, componentDict, func, globalIns, globalOut, state);
         const bootstrapOutput = wrappedFunction(...args);
         if (_isPromise(bootstrapOutput)) {
             if (globalOut === null) {
                 return bootstrapOutput;
             }
-            return bootstrapOutput.then((val) => globalState[globalOut]);
+            return bootstrapOutput.then((val) => state[globalOut]);
         }
-        return globalOut === null ? bootstrapOutput : globalState[globalOut];
+        return globalOut === null ? bootstrapOutput : state[globalOut];
     }
     return wrappedBootstrapFunction;
 }
-function _getParsedParts(parsedDict, globalState, componentDict, parentComponentName, parts) {
+function _getParsedParts(parsedDict, state, componentDict, parentComponentName, parts) {
     if (Array.isArray(parts)) {
-        const newVals = parts.map((element) => _getParsedParts(parsedDict, globalState, componentDict, parentComponentName, element));
+        const newVals = parts.map((element) => _getParsedParts(parsedDict, state, componentDict, parentComponentName, element));
         return newVals;
     }
     if (typeof parts === "string") {
@@ -109,11 +108,6 @@ function _getParsedParts(parsedDict, globalState, componentDict, parentComponent
         const match = tagPattern.exec(parts);
         if (match) {
             const key = match[1];
-            /*
-            if (!(key in parsedDict) && (key in componentDict)) {
-                _addToParsedDict(parsedDict, globalState, componentDict, key);
-            }
-            */
             const parsedDictVal = _getFromParsedDict(parsedDict, key);
             if (parsedDictVal.found) {
                 return parsedDictVal.value;
@@ -142,7 +136,7 @@ function _getFromParsedDict(parsedDict, searchKey) {
         return result;
     }, initialResult);
 }
-function _addToParsedDict(parsedDict, globalState, componentDict, componentName) {
+function _addToParsedDict(parsedDict, state, componentDict, componentName) {
     componentDict[componentName] = _getCompleteComponent(componentDict[componentName]);
     const { ins, out, perform, parts } = componentDict[componentName];
     try {
@@ -155,7 +149,7 @@ function _addToParsedDict(parsedDict, globalState, componentDict, componentName)
             if (_isEmptyArray(parts)) {
                 return factory(...args);
             }
-            const parsedParts = _getParsedParts(parsedDict, globalState, componentDict, componentName, parts);
+            const parsedParts = _getParsedParts(parsedDict, state, componentDict, componentName, parts);
             try {
                 return factory(...parsedParts)(...args);
             }
@@ -165,12 +159,12 @@ function _addToParsedDict(parsedDict, globalState, componentDict, componentName)
                 throw new Error(`Error perform \`${perform}${partsAsString}${argsAsString}\` ` + error.message);
             }
         }
-        parsedDict[componentName] = _getWrappedFunction(componentName, componentDict, func, ins, out, globalState);
+        parsedDict[componentName] = _getWrappedFunction(componentName, componentDict, func, ins, out, state);
     }
     catch (error) {
         const structure = { component: {} };
         structure.component[componentName] = componentDict[componentName];
-        throw (_getEmbededError(error, `Error parsing \`${componentName}\` component. \`${perform}\` yield error:`, globalState, structure));
+        throw (_getEmbededError(error, `Error parsing \`${componentName}\` component. \`${perform}\` yield error:`, state, structure));
     }
 }
 function _getArgsStringRepresentation(args) {
@@ -218,11 +212,14 @@ function _getEmbededError(error, message, state, structure) {
     if (typeof error !== "object" || !error.message) {
         error = new Error(error);
     }
+    if (error.message.indexOf("ERROR: ") > -1) {
+        return error;
+    }
     const newErrorMessage = message === "" ? error.message : `${message} ${error.message}`;
     const stateString = JSON.stringify(state, null, 2);
     const structureString = JSON.stringify(structure, null, 2)
         .replace(/\n(\s*)}/gi, "\n$1  ...\n$1}");
-    error.message = error.message.indexOf(message) !== -1 ? error.message : `\n${FG_BRIGHT}` +
+    error.message = `\n${FG_BRIGHT}` +
         `${FG_RED}ERROR: ${newErrorMessage}\n` +
         `${FG_CYAN}STATE: ${stateString}\n` +
         `${FG_YELLOW}STRUCTURE: ${structureString}${RESET_COLOR}\n`;
