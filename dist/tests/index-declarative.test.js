@@ -222,8 +222,7 @@ describe("declarative style", () => {
             expect(true).toBeFalsy();
         }
         catch (error) {
-            expect(error.message).toContain("Error executing `errorTest()` component: Error perform `errorAction(");
-            expect(error.message).toContain("invalid action");
+            expect(error.message).toContain("Error executing `errorTest()` component: invalid action");
         }
     });
     it("throw error if component yield error-object on execution", () => {
@@ -349,7 +348,7 @@ describe("declarative style", () => {
             expect(true).toBeFalsy();
         }
         catch (error) {
-            expect(error.message).toContain("Error parsing `main` component. `four` yield error: four is not a function");
+            expect(error.message).toContain("Error parsing `main` component. `four` yield error: `four` is not a function");
         }
     });
     it("throw error if component's perform(...parts) is not executable", () => {
@@ -372,7 +371,7 @@ describe("declarative style", () => {
             expect(true).toBeFalsy();
         }
         catch (error) {
-            expect(error.message).toContain("Error executing `main()` component: Error perform `X.add( 4, 5 )()`");
+            expect(error.message).toContain("Error executing `main()` component: `X.add( 4, 5 )` is not a function");
         }
     });
     it("throw error if component's perform not found", () => {
@@ -392,7 +391,7 @@ describe("declarative style", () => {
             expect(true).toBeFalsy();
         }
         catch (error) {
-            expect(error.message).toContain("Error parsing `main` component. `four` yield error: four is not a function");
+            expect(error.message).toContain("Error parsing `main` component. `four` yield error: `four` is not a function");
         }
     });
     it("throw error if component's parts is not executable", () => {

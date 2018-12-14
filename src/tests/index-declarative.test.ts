@@ -220,8 +220,7 @@ describe("declarative style", () => {
             const result = main();
             expect(true).toBeFalsy();
         } catch (error) {
-            expect(error.message).toContain("Error executing `errorTest()` component: Error perform `errorAction(");
-            expect(error.message).toContain("invalid action");
+            expect(error.message).toContain("Error executing `errorTest()` component: invalid action");
         }
     });
 
@@ -354,7 +353,7 @@ describe("declarative style", () => {
             expect(true).toBeFalsy();
         } catch (error) {
             expect(error.message).toContain(
-                "Error parsing `main` component. `four` yield error: four is not a function",
+                "Error parsing `main` component. `four` yield error: `four` is not a function",
             );
         }
     });
@@ -379,7 +378,7 @@ describe("declarative style", () => {
             expect(true).toBeFalsy();
         } catch (error) {
             expect(error.message).toContain(
-                "Error executing `main()` component: Error perform `X.add( 4, 5 )()`",
+                "Error executing `main()` component: `X.add( 4, 5 )` is not a function",
             );
         }
     });
@@ -401,7 +400,7 @@ describe("declarative style", () => {
             expect(true).toBeFalsy();
         } catch (error) {
             expect(error.message).toContain(
-                "Error parsing `main` component. `four` yield error: four is not a function",
+                "Error parsing `main` component. `four` yield error: `four` is not a function",
             );
         }
     });

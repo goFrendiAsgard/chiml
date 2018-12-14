@@ -154,10 +154,8 @@ function _getFromParsedDict(parsedDict: {[key: string]: any}, searchKey: string)
 }
 
 function _addToParsedDict(
-    parsedDict: {[key: string]: any},
-    state: {[key: string]: any},
-    componentDict: {[key: string]: any},
-    componentName: string,
+    parsedDict: {[key: string]: any}, state: {[key: string]: any},
+    componentDict: {[key: string]: any}, componentName: string,
 ): void {
     componentDict[componentName] = _getCompleteComponent(componentDict[componentName]);
     const { ins, out, perform, parts } = componentDict[componentName];
@@ -165,20 +163,19 @@ function _addToParsedDict(
         const parsedDictVal = _getFromParsedDict(parsedDict, perform);
         const factory = parsedDictVal.value;
         if (typeof factory !== "function") {
-            throw new Error(`${perform} is not a function`);
+            throw new Error(`\`${perform}\` is not a function`);
         }
         function func(...args) {
             if (_isEmptyArray(parts)) {
                 return factory(...args);
             }
             const parsedParts = _getParsedParts(parsedDict, state, componentDict, componentName, parts);
-            try {
-                return factory(...parsedParts)(...args);
-            } catch (error) {
+            const internalFunction = factory(...parsedParts);
+            if (typeof internalFunction !== "function") {
                 const partsAsString = _getArgsStringRepresentation(parsedParts);
-                const argsAsString = _getArgsStringRepresentation(args);
-                throw new Error(`Error perform \`${perform}${partsAsString}${argsAsString}\` ` + error.message);
+                throw new Error(`\`${perform}${partsAsString}\` is not a function`);
             }
+            return factory(...parsedParts)(...args);
         }
         parsedDict[componentName] = _getWrappedFunction(componentName, componentDict, func, ins, out, state);
     } catch (error) {
@@ -198,12 +195,8 @@ function _getArgsStringRepresentation(args: any[]) {
 }
 
 function _getWrappedFunction(
-    componentName: string,
-    componentDict: {[key: string]: Partial<IComponent>},
-    func: AnyFunction,
-    ins: string[] | null,
-    out: string | null,
-    state: {[key: string]: any},
+    componentName: string, componentDict: {[key: string]: Partial<IComponent>},
+    func: AnyFunction, ins: string[] | null, out: string | null, state: {[key: string]: any},
 ): AnyFunction {
     function wrappedFunction(...args) {
         const realArgs = ins === null ? args : _getArrayFromObject(ins, state);
@@ -221,12 +214,12 @@ function _getWrappedFunction(
                     return funcOutWithErrorHandler;
                 }
                 return funcOutWithErrorHandler.then((val) => {
-                    state[out] = val;
+                    _setState(state, out, val);
                     return val;
                 });
             }
             if (out != null) {
-                state[out] = funcOut;
+                _setState(state, out, funcOut);
             }
             return funcOut;
         } catch (error) {
@@ -239,15 +232,16 @@ function _getWrappedFunction(
     return wrappedFunction;
 }
 
+function _setState(state: {[key: string]: any}, key: string, value: any) {
+    state[key] = value;
+}
+
 function _getArrayFromObject(keys: string[], obj: {[key: string]: any}): any[] {
     return keys.map((key) => obj[key]);
 }
 
 function _getEmbededError(
-    error: any,
-    message: string,
-    state: {[key: string]: any},
-    structure: {[key: string]: any},
+    error: any, message: string, state: {[key: string]: any}, structure: {[key: string]: any},
 ): any {
     if (typeof error !== "object" || !error.message) {
         error = new Error(error);

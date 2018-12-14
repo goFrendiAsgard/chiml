@@ -143,21 +143,19 @@ function _addToParsedDict(parsedDict, state, componentDict, componentName) {
         const parsedDictVal = _getFromParsedDict(parsedDict, perform);
         const factory = parsedDictVal.value;
         if (typeof factory !== "function") {
-            throw new Error(`${perform} is not a function`);
+            throw new Error(`\`${perform}\` is not a function`);
         }
         function func(...args) {
             if (_isEmptyArray(parts)) {
                 return factory(...args);
             }
             const parsedParts = _getParsedParts(parsedDict, state, componentDict, componentName, parts);
-            try {
-                return factory(...parsedParts)(...args);
-            }
-            catch (error) {
+            const internalFunction = factory(...parsedParts);
+            if (typeof internalFunction !== "function") {
                 const partsAsString = _getArgsStringRepresentation(parsedParts);
-                const argsAsString = _getArgsStringRepresentation(args);
-                throw new Error(`Error perform \`${perform}${partsAsString}${argsAsString}\` ` + error.message);
+                throw new Error(`\`${perform}${partsAsString}\` is not a function`);
             }
+            return factory(...parsedParts)(...args);
         }
         parsedDict[componentName] = _getWrappedFunction(componentName, componentDict, func, ins, out, state);
     }
@@ -187,12 +185,12 @@ function _getWrappedFunction(componentName, componentDict, func, ins, out, state
                     return funcOutWithErrorHandler;
                 }
                 return funcOutWithErrorHandler.then((val) => {
-                    state[out] = val;
+                    _setState(state, out, val);
                     return val;
                 });
             }
             if (out != null) {
-                state[out] = funcOut;
+                _setState(state, out, funcOut);
             }
             return funcOut;
         }
@@ -204,6 +202,9 @@ function _getWrappedFunction(componentName, componentDict, func, ins, out, state
         }
     }
     return wrappedFunction;
+}
+function _setState(state, key, value) {
+    state[key] = value;
 }
 function _getArrayFromObject(keys, obj) {
     return keys.map((key) => obj[key]);
