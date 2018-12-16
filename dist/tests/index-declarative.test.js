@@ -162,6 +162,7 @@ describe("declarative style", () => {
             expect(true).toBeFalsy();
         }
         catch (error) {
+            console.error(error.message);
             expect(error.message).toContain("Program expecting 1 arguments, but 0 given");
         }
     });
@@ -181,10 +182,11 @@ describe("declarative style", () => {
             expect(true).toBeFalsy();
         }
         catch (error) {
-            expect(error.message).toContain("Error parsing `average` component: Part `rataRata` is not defined");
+            console.error(error.message);
+            expect(error.message).toContain("Error parsing component `average`: Part `rataRata` is not defined");
         }
     });
-    it("throw error if main is not exists", () => {
+    it("throw error if bootstrap is not exists", () => {
         try {
             const main = index_1.X.declarative({
                 bootstrap: "oraono",
@@ -200,6 +202,7 @@ describe("declarative style", () => {
             expect(true).toBeFalsy();
         }
         catch (error) {
+            console.error(error.message);
             expect(error.message).toContain("Bootstrap component `oraono` is not defined");
         }
     });
@@ -222,7 +225,8 @@ describe("declarative style", () => {
             expect(true).toBeFalsy();
         }
         catch (error) {
-            expect(error.message).toContain("Error executing `errorTest()` component: invalid action");
+            console.error(error.message);
+            expect(error.message).toContain("Error executing component `errorTest()`: invalid action");
         }
     });
     it("throw error if component yield error-object on execution", () => {
@@ -252,7 +256,8 @@ describe("declarative style", () => {
             expect(true).toBeFalsy();
         }
         catch (error) {
-            expect(error.message).toContain("Error executing `main( 9 )` component: I hate nine");
+            console.error(error.message);
+            expect(error.message).toContain("Error executing component `main( 9 )`: I hate nine");
         }
     });
     it("throw error if component yield error-string on execution", () => {
@@ -283,10 +288,11 @@ describe("declarative style", () => {
             expect(true).toBeFalsy();
         }
         catch (error) {
-            expect(error.message).toContain("Error executing `main( 9 )` component: I hate nine");
+            console.error(error.message);
+            expect(error.message).toContain("Error executing component `main( 9 )`: I hate nine");
         }
     });
-    it("throw error if component yield rejected Promise", () => {
+    it("throw error if component yield rejected Promise", () => __awaiter(this, void 0, void 0, function* () {
         const main = index_1.X.declarative({
             ins: "n",
             out: "result",
@@ -309,10 +315,13 @@ describe("declarative style", () => {
             },
         });
         const result = main(9);
-        result.then((val) => expect(true).toBeFalsy())
-            .catch((error) => expect(error.message).toContain("Error executing `main( 9 )` async component: I hate nine"));
-    });
-    it("throw error if component yield rejected Promise, and only defined in injection", () => {
+        return yield result.then((val) => expect(true).toBeFalsy())
+            .catch((error) => {
+            console.error(error.message);
+            expect(error.message).toContain("Error executing component `main( 9 )`: I hate nine");
+        });
+    }));
+    it("throw error if component yield rejected Promise, and only defined in injection", () => __awaiter(this, void 0, void 0, function* () {
         const main = index_1.X.declarative({
             bootstrap: "main",
             injection: {
@@ -326,9 +335,12 @@ describe("declarative style", () => {
             },
         });
         const result = main(9);
-        result.then((val) => expect(true).toBeFalsy())
-            .catch((error) => expect(error.message).toContain("Error executing `main( 9 )` async component: I hate nine"));
-    });
+        return yield result.then((val) => expect(true).toBeFalsy())
+            .catch((error) => {
+            console.error(error.message);
+            expect(error.message).toContain("Error executing component `main( 9 )`: I hate nine");
+        });
+    }));
     it("throw error if component's perform is not executable", () => {
         try {
             const main = index_1.X.declarative({
@@ -348,7 +360,55 @@ describe("declarative style", () => {
             expect(true).toBeFalsy();
         }
         catch (error) {
-            expect(error.message).toContain("Error parsing `main` component. `four` yield error: `four` is not a function");
+            console.error(error.message);
+            expect(error.message).toContain("Error parsing component `main`: `four` is not a function");
+        }
+    });
+    it("throw error when re-assign state", () => {
+        try {
+            const main = index_1.X.declarative({
+                ins: "flag",
+                bootstrap: "main",
+                injection: {
+                    X: index_1.X,
+                },
+                component: {
+                    main: {
+                        ins: "flag",
+                        out: "flag",
+                        perform: "X.not",
+                    },
+                },
+            });
+            const result = main(true);
+            expect(true).toBeFalsy();
+        }
+        catch (error) {
+            console.error(error.message);
+            expect(error.message).toContain("Error executing component `main( true )`: Cannot reassign `flag`");
+        }
+    });
+    it("throw error when modify existing state", () => {
+        try {
+            const main = index_1.X.declarative({
+                ins: "obj",
+                bootstrap: "main",
+                injection: {
+                    mutator: (obj) => obj.num++,
+                },
+                component: {
+                    main: {
+                        ins: "obj",
+                        perform: "mutator",
+                    },
+                },
+            });
+            const result = main({ num: 1 });
+            expect(true).toBeFalsy();
+        }
+        catch (error) {
+            console.error(error.message);
+            expect(error.message).toContain("Error executing component `main( { num: 1 } )`: Cannot assign to read only property 'num'");
         }
     });
     it("throw error if component's perform(...parts) is not executable", () => {
@@ -371,7 +431,8 @@ describe("declarative style", () => {
             expect(true).toBeFalsy();
         }
         catch (error) {
-            expect(error.message).toContain("Error executing `main()` component: `X.add( 4, 5 )` is not a function");
+            console.error(error.message);
+            expect(error.message).toContain("Error executing component `main()`: `X.add( 4, 5 )` is not a function");
         }
     });
     it("throw error if component's perform not found", () => {
@@ -391,7 +452,8 @@ describe("declarative style", () => {
             expect(true).toBeFalsy();
         }
         catch (error) {
-            expect(error.message).toContain("Error parsing `main` component. `four` yield error: `four` is not a function");
+            console.error(error.message);
+            expect(error.message).toContain("Error parsing component `main`: `four` is not a function");
         }
     });
     it("throw error if component's parts is not executable", () => {
@@ -412,7 +474,8 @@ describe("declarative style", () => {
             expect(true).toBeFalsy();
         }
         catch (error) {
-            expect(error.message).toContain("Error executing `main()` component: Error parsing `main` component: Part `four` is not defined");
+            console.error(error.message);
+            expect(error.message).toContain("Error parsing component `main`: Part `four` is not defined");
         }
     });
     it("throw error on infinite recursive call", () => {
@@ -433,7 +496,8 @@ describe("declarative style", () => {
             expect(true).toBeFalsy();
         }
         catch (error) {
-            expect(error.message).toContain("Error executing `main( 10 )` component: Maximum call stack size exceeded");
+            console.error(error.message);
+            expect(error.message).toContain("Error executing component `main( 10 )`: Maximum call stack size exceeded");
         }
     });
 });

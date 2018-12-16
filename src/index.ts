@@ -14,6 +14,7 @@ const FG_CYAN = "\x1b[36m";
 const FG_RED = "\x1b[31m";
 const FG_YELLOW = "\x1b[33m";
 const RESET_COLOR = "\x1b[0m";
+const TAG_PATTERN = /^\s*\$\{(.+)\}\s*$/gi;
 
 export const X: TChimera = Object.assign({}, R, {
     declarative,
@@ -61,7 +62,14 @@ function declarative(partialDeclarativeConfig: Partial<IUserDeclarativeConfig>):
     // return bootstrap function
     const parsedDictVal = _getFromParsedDict(parsedDict, bootstrap);
     if (!parsedDictVal.found) {
-        throw(new Error(`Bootstrap component \`${bootstrap}\` is not defined`));
+        const error = new Error(`Bootstrap component \`${bootstrap}\` is not defined`);
+        const structure = {
+            ins: globalIns,
+            out: globalOut,
+            bootstrap,
+        };
+        throw(_getEmbededError(error, "", state, structure));
+
     }
     return _getWrappedBootstrapFunction(bootstrap, componentDict, parsedDict, globalIns, globalOut, state);
 }
@@ -85,10 +93,9 @@ function _getWrappedBootstrapFunction(
                 };
                 throw(_getEmbededError(error, "", state, structure));
             }
-            state = args.reduce((newState, value, index) => {
-                newState[globalIns[index]] = value;
-                return newState;
-            }, state);
+            args.forEach((arg, index) => {
+                _setState(state, globalIns[index], arg);
+            });
         }
         const parsedDictVal = _getFromParsedDict(parsedDict, bootstrap);
         const func = parsedDictVal.value;
@@ -117,18 +124,12 @@ function _getParsedParts(
         return newVals;
     }
     if (typeof parts === "string") {
-        const tagPattern = /^\s*\$\{(.+)\}\s*$/gi;
+        const tagPattern = new RegExp(TAG_PATTERN);
         const match = tagPattern.exec(parts);
         if (match) {
             const key = match[1];
             const parsedDictVal = _getFromParsedDict(parsedDict, key);
-            if (parsedDictVal.found) {
-                return parsedDictVal.value;
-            }
-            throw(new Error(
-                `Error parsing \`${parentComponentName}\` component: ` +
-                    `Part \`${key}\` is not defined`,
-            ));
+            return parsedDictVal.value;
         }
         parts = parts.replace(/^\s*\\\$\{(.+)\}\s*$/gi, "\${$1}");
         return parts;
@@ -165,10 +166,17 @@ function _addToParsedDict(
         if (typeof factory !== "function") {
             throw new Error(`\`${perform}\` is not a function`);
         }
-        function func(...args) {
-            if (_isEmptyArray(parts)) {
+        if (_isEmptyArray(parts)) {
+            function nonComposedFunc(...args) {
                 return factory(...args);
             }
+            parsedDict[componentName] = _getWrappedFunction(
+                componentName, componentDict, nonComposedFunc, ins, out, state,
+            );
+            return undefined;
+        }
+        _checkComponentParts(parsedDict, componentDict, componentName);
+        function composedFunc(...args) {
             const parsedParts = _getParsedParts(parsedDict, state, componentDict, componentName, parts);
             const internalFunction = factory(...parsedParts);
             if (typeof internalFunction !== "function") {
@@ -177,17 +185,44 @@ function _addToParsedDict(
             }
             return factory(...parsedParts)(...args);
         }
-        parsedDict[componentName] = _getWrappedFunction(componentName, componentDict, func, ins, out, state);
+        parsedDict[componentName] = _getWrappedFunction(componentName, componentDict, composedFunc, ins, out, state);
     } catch (error) {
-        const structure = { component: {} };
-        structure.component[componentName] = componentDict[componentName];
-        throw(_getEmbededError(
-            error,
-            `Error parsing \`${componentName}\` component. \`${perform}\` yield error:`,
-            state,
-            structure,
-        ));
+        throw(_getEmbededParsingError(error, state, componentName, componentDict));
     }
+}
+
+function _checkComponentParts(
+    parsedDict: {[key: string]: any}, componentDict: {[key: string]: any}, componentName: string,
+) {
+    const { parts } = componentDict[componentName];
+    parts.forEach((part) => {
+        if (typeof part === "string") {
+            const tagPattern = new RegExp(TAG_PATTERN);
+            const match = tagPattern.exec(part);
+            if (match) {
+                const key = match[1];
+                const { found } = _getFromParsedDict(parsedDict, key);
+                if (!(key in componentDict) && !(found)) {
+                    throw new Error(`Part \`${key}\` is not defined`);
+                }
+            }
+        }
+    });
+}
+
+function _getEmbededParsingError(
+    error: any, state: {[key: string]: any},
+    componentName: string, componentDict: {[key: string]: any},
+) {
+    const { perform } = componentDict[componentName];
+    const structure = { component: {} };
+    structure.component[componentName] = componentDict[componentName];
+    return _getEmbededError(
+        error,
+        `Error parsing component \`${componentName}\`:`,
+        state,
+        structure,
+    );
 }
 
 function _getArgsStringRepresentation(args: any[]) {
@@ -205,10 +240,9 @@ function _getWrappedFunction(
             const funcOut = func(...realArgs);
             if (_isPromise(funcOut)) {
                 const funcOutWithErrorHandler = funcOut.catch((error) => {
-                    const errorMessage = `Error executing \`${componentName}${realArgsAsString}\` async component:`;
-                    const structure = { component: {} };
-                    structure.component[componentName] = componentDict[componentName];
-                    return Promise.reject(_getEmbededError(error, errorMessage, state, structure));
+                    return Promise.reject(
+                        _getEmbededExecutionError(error, state, componentName, componentDict, realArgs),
+                    );
                 });
                 if (out === null) {
                     return funcOutWithErrorHandler;
@@ -223,17 +257,40 @@ function _getWrappedFunction(
             }
             return funcOut;
         } catch (error) {
-            const errorMessage = `Error executing \`${componentName}${realArgsAsString}\` component:`;
-            const structure = { component: {} };
-            structure.component[componentName] = componentDict[componentName];
-            throw(_getEmbededError(error, errorMessage, state, structure));
+            throw(_getEmbededExecutionError(error, state, componentName, componentDict, realArgs));
         }
     }
     return wrappedFunction;
 }
 
+function _getEmbededExecutionError(
+    error: any, state: {[key: string]: any},
+    componentName: string, componentDict: {[key: string]: Partial<IComponent>},
+    args: any[],
+): any {
+    const realArgsAsString = _getArgsStringRepresentation(args);
+    const errorMessage = `Error executing component \`${componentName}${realArgsAsString}\`:`;
+    const structure = { component: {} };
+    structure.component[componentName] = componentDict[componentName];
+    return _getEmbededError(error, errorMessage, state, structure);
+}
+
 function _setState(state: {[key: string]: any}, key: string, value: any) {
-    state[key] = value;
+    if (key in state) {
+        throw(new Error(`Cannot reassign \`${key}\``));
+    }
+    state[key] = _freeze(value);
+}
+
+function _freeze(value: any) {
+    if (typeof value === "object" || Array.isArray(value)) {
+        Object.freeze(value);
+        const keys = Object.keys(value);
+        keys.forEach((key) => {
+            _freeze(value[key]);
+        });
+    }
+    return value;
 }
 
 function _getArrayFromObject(keys: string[], obj: {[key: string]: any}): any[] {

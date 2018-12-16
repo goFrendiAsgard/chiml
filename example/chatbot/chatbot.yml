@@ -10,9 +10,8 @@ component:
             - ${converse}
             - ${saveState}
 
-    loadState:
-        perform: X.pipeP
-        parts:
-            - ${}
+    converse:
+        perform: X.cond
+        parts: []
 
 
