@@ -325,14 +325,15 @@ describe("declarative style", () => {
                 },
             },
         });
-        const result = main(9);
-        return await result.then((val) => expect(true).toBeFalsy())
-            .catch((error) => {
-                console.error(error.message);
-                expect(error.message).toContain(
-                    "Error executing component `main( 9 )`: I hate nine",
-                );
-            });
+        try {
+            const result = await main(9);
+            expect(true).toBeFalsy();
+        } catch (error) {
+            console.error(error.message);
+            expect(error.message).toContain(
+                "Error executing component `main( 9 )`: I hate nine",
+            );
+        }
     });
 
     it("throw error if component yield rejected Promise, and only defined in injection", async () => {
@@ -348,14 +349,15 @@ describe("declarative style", () => {
                 X,
             },
         });
-        const result = main(9);
-        return await result.then((val) => expect(true).toBeFalsy())
-            .catch((error) => {
-                console.error(error.message);
-                expect(error.message).toContain(
-                    "Error executing component `main( 9 )`: I hate nine",
-                );
-            });
+        try {
+            const result = await main(9);
+            expect(true).toBeFalsy();
+        } catch (error) {
+            console.error(error.message);
+            expect(error.message).toContain(
+                "Error executing component `main( 9 )`: I hate nine",
+            );
+        }
     });
 
     it("throw error if component's perform is not executable", () => {

@@ -55,9 +55,9 @@ function declarative(partialDeclarativeConfig) {
     const globalIns = declarativeConfig.ins;
     const globalOut = declarativeConfig.out;
     const { bootstrap } = declarativeConfig;
-    const parsedDict = declarativeConfig.injection;
     const componentNameList = Object.keys(componentDict);
     const state = {};
+    const parsedDict = declarativeConfig.injection;
     // parse all `${key}`, create function, and register it to parsedDict
     componentNameList.forEach((componentName) => _addToParsedDict(parsedDict, state, componentDict, componentName));
     // return bootstrap function
@@ -152,7 +152,7 @@ function _addToParsedDict(parsedDict, state, componentDict, componentName) {
                 return factory(...args);
             }
             parsedDict[componentName] = _getWrappedFunction(componentName, componentDict, nonComposedFunc, ins, out, state);
-            return undefined;
+            return parsedDict;
         }
         _checkComponentParts(parsedDict, componentDict, componentName);
         function composedFunc(...args) {
@@ -165,6 +165,7 @@ function _addToParsedDict(parsedDict, state, componentDict, componentName) {
             return factory(...parsedParts)(...args);
         }
         parsedDict[componentName] = _getWrappedFunction(componentName, componentDict, composedFunc, ins, out, state);
+        return parsedDict;
     }
     catch (error) {
         throw (_getEmbededParsingError(error, state, componentName, componentDict));
@@ -236,14 +237,15 @@ function _setState(state, key, value) {
         throw (new Error(`Cannot reassign \`${key}\``));
     }
     state[key] = _freeze(value);
+    return state;
 }
 function _freeze(value) {
     if (typeof value === "object" || Array.isArray(value)) {
-        Object.freeze(value);
         const keys = Object.keys(value);
         keys.forEach((key) => {
             _freeze(value[key]);
         });
+        Object.freeze(value);
     }
     return value;
 }

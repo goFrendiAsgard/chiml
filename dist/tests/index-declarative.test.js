@@ -314,12 +314,14 @@ describe("declarative style", () => {
                 },
             },
         });
-        const result = main(9);
-        return yield result.then((val) => expect(true).toBeFalsy())
-            .catch((error) => {
+        try {
+            const result = yield main(9);
+            expect(true).toBeFalsy();
+        }
+        catch (error) {
             console.error(error.message);
             expect(error.message).toContain("Error executing component `main( 9 )`: I hate nine");
-        });
+        }
     }));
     it("throw error if component yield rejected Promise, and only defined in injection", () => __awaiter(this, void 0, void 0, function* () {
         const main = index_1.X.declarative({
@@ -334,12 +336,14 @@ describe("declarative style", () => {
                 X: index_1.X,
             },
         });
-        const result = main(9);
-        return yield result.then((val) => expect(true).toBeFalsy())
-            .catch((error) => {
+        try {
+            const result = yield main(9);
+            expect(true).toBeFalsy();
+        }
+        catch (error) {
             console.error(error.message);
             expect(error.message).toContain("Error executing component `main( 9 )`: I hate nine");
-        });
+        }
     }));
     it("throw error if component's perform is not executable", () => {
         try {

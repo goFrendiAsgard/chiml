@@ -52,9 +52,9 @@ function declarative(partialDeclarativeConfig: Partial<IUserDeclarativeConfig>):
     const globalIns = declarativeConfig.ins;
     const globalOut = declarativeConfig.out;
     const { bootstrap } = declarativeConfig;
-    const parsedDict = declarativeConfig.injection;
     const componentNameList = Object.keys(componentDict);
     const state = {};
+    const parsedDict = declarativeConfig.injection;
     // parse all `${key}`, create function, and register it to parsedDict
     componentNameList.forEach(
         (componentName) => _addToParsedDict(parsedDict, state, componentDict, componentName),
@@ -157,7 +157,7 @@ function _getFromParsedDict(parsedDict: {[key: string]: any}, searchKey: string)
 function _addToParsedDict(
     parsedDict: {[key: string]: any}, state: {[key: string]: any},
     componentDict: {[key: string]: any}, componentName: string,
-): void {
+): {[key: string]: any} {
     componentDict[componentName] = _getCompleteComponent(componentDict[componentName]);
     const { ins, out, perform, parts } = componentDict[componentName];
     try {
@@ -173,7 +173,7 @@ function _addToParsedDict(
             parsedDict[componentName] = _getWrappedFunction(
                 componentName, componentDict, nonComposedFunc, ins, out, state,
             );
-            return undefined;
+            return parsedDict;
         }
         _checkComponentParts(parsedDict, componentDict, componentName);
         function composedFunc(...args) {
@@ -186,6 +186,7 @@ function _addToParsedDict(
             return factory(...parsedParts)(...args);
         }
         parsedDict[componentName] = _getWrappedFunction(componentName, componentDict, composedFunc, ins, out, state);
+        return parsedDict;
     } catch (error) {
         throw(_getEmbededParsingError(error, state, componentName, componentDict));
     }
@@ -275,20 +276,21 @@ function _getEmbededExecutionError(
     return _getEmbededError(error, errorMessage, state, structure);
 }
 
-function _setState(state: {[key: string]: any}, key: string, value: any) {
+function _setState(state: {[key: string]: any}, key: string, value: any): {[key: string]: any} {
     if (key in state) {
         throw(new Error(`Cannot reassign \`${key}\``));
     }
     state[key] = _freeze(value);
+    return state;
 }
 
 function _freeze(value: any) {
     if (typeof value === "object" || Array.isArray(value)) {
-        Object.freeze(value);
         const keys = Object.keys(value);
         keys.forEach((key) => {
             _freeze(value[key]);
         });
+        Object.freeze(value);
     }
     return value;
 }
