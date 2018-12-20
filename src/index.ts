@@ -54,11 +54,10 @@ function declarative(partialDeclarativeConfig: Partial<IUserDeclarativeConfig>):
     const { bootstrap } = declarativeConfig;
     const componentNameList = Object.keys(componentDict);
     const state = {};
-    const parsedDict = declarativeConfig.injection;
     // parse all `${key}`, create function, and register it to parsedDict
-    componentNameList.forEach(
-        (componentName) => _addToParsedDict(parsedDict, state, componentDict, componentName),
-    );
+    const parsedDict = componentNameList.reduce((tmpParsedDict, componentName) => {
+        return _addToParsedDict(tmpParsedDict, state, componentDict, componentName);
+    }, declarativeConfig.injection);
     // return bootstrap function
     const parsedDictVal = _getFromParsedDict(parsedDict, bootstrap);
     if (!parsedDictVal.found) {
@@ -93,9 +92,9 @@ function _getWrappedBootstrapFunction(
                 };
                 throw(_getEmbededError(error, "", state, structure));
             }
-            args.forEach((arg, index) => {
-                _setState(state, globalIns[index], arg);
-            });
+            state = args.reduce((tmpState, arg, index) => {
+                return _setState(tmpState, globalIns[index], arg);
+            }, state);
         }
         const parsedDictVal = _getFromParsedDict(parsedDict, bootstrap);
         const func = parsedDictVal.value;
