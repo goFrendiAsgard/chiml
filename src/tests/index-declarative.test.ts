@@ -144,6 +144,29 @@ describe("declarative style", () => {
         expect(result).toBe("${hi}world");
     });
 
+    it("works when input state has circular reference", () => {
+        const main = X.declarative({
+            ins: "obj",
+            out: "result",
+            bootstrap: "main",
+            injection: {
+                X,
+            },
+            component: {
+                main: {
+                    ins: "obj",
+                    out: "result",
+                    perform: "X.prop",
+                    parts: "num",
+                },
+            },
+        });
+        const obj = {num: 5, circular: null};
+        obj.circular = obj;
+        const result = main(obj);
+        expect(result).toBe(5);
+    });
+
     it("throw error if bootstrap's given parameter is less than expected", () => {
         try {
             const main = X.declarative({

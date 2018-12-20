@@ -241,11 +241,14 @@ function _setState(state, key, value) {
 }
 function _freeze(value) {
     if (typeof value === "object" || Array.isArray(value)) {
+        if (Object.isFrozen(value)) {
+            return value;
+        }
+        Object.freeze(value);
         const keys = Object.keys(value);
         keys.forEach((key) => {
             _freeze(value[key]);
         });
-        Object.freeze(value);
     }
     return value;
 }
