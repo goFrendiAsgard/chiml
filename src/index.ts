@@ -117,21 +117,29 @@ function _getParsedParts(
     componentDict: {[key: string]: any}, parentComponentName: string, parts: any,
 ): any {
     if (Array.isArray(parts)) {
-        const newVals = parts.map(
+        return parts.map(
             (element) => _getParsedParts(parsedDict, state, componentDict, parentComponentName, element),
         );
-        return newVals;
+    }
+    if (typeof parts === "object") {
+        return Object.keys(parts).reduce((newObj, key) => {
+            const val = parts[key];
+            return Object.assign({}, newObj, {
+                [key]: _getParsedParts(parsedDict, state, componentDict, parentComponentName, val),
+            });
+        }, {});
     }
     if (typeof parts === "string") {
         const tagPattern = new RegExp(TAG_PATTERN);
         const match = tagPattern.exec(parts);
         if (match) {
+            // parse `${value}` template
             const key = match[1];
             const parsedDictVal = _getFromParsedDict(parsedDict, key);
             return parsedDictVal.value;
         }
-        parts = parts.replace(/^\s*\\\$\{(.+)\}\s*$/gi, "\${$1}");
-        return parts;
+        // un-escape `\${value}` into `${value}`
+        return parts.replace(/^\s*\\\$\{(.+)\}\s*$/gi, "\${$1}");
     }
     return parts;
 }
@@ -144,12 +152,9 @@ function _getFromParsedDict(parsedDict: {[key: string]: any}, searchKey: string)
     };
     return searchKeyParts.reduce((result, key) => {
         if (key in result.value) {
-            result.value = result.value[key];
-            result.found = true;
-            return result;
+            return Object.assign({}, result, { found: true, value: result.value[key] });
         }
-        result.found = false;
-        return result;
+        return Object.assign({}, result, { found: false });
     }, initialResult);
 }
 
@@ -161,13 +166,13 @@ function _addToParsedDict(
     const { ins, out, perform, parts } = componentDict[componentName];
     try {
         const parsedDictVal = _getFromParsedDict(parsedDict, perform);
-        const factory = parsedDictVal.value;
-        if (typeof factory !== "function") {
+        const performer = parsedDictVal.value;
+        if (typeof performer !== "function") {
             throw new Error(`\`${perform}\` is not a function`);
         }
         if (_isEmptyArray(parts)) {
             function nonComposedFunc(...args) {
-                return factory(...args);
+                return performer(...args);
             }
             parsedDict[componentName] = _getWrappedFunction(
                 componentName, componentDict, nonComposedFunc, ins, out, state,
@@ -177,12 +182,10 @@ function _addToParsedDict(
         _checkComponentParts(parsedDict, componentDict, componentName);
         function composedFunc(...args) {
             const parsedParts = _getParsedParts(parsedDict, state, componentDict, componentName, parts);
-            const internalFunction = factory(...parsedParts);
-            if (typeof internalFunction !== "function") {
-                const partsAsString = _getArgsStringRepresentation(parsedParts);
-                throw new Error(`\`${perform}${partsAsString}\` is not a function`);
-            }
-            return factory(...parsedParts)(...args);
+            const performerPlusParts = performer(...parsedParts);
+            const realFunction = typeof performerPlusParts === "function" ?
+                performerPlusParts : () => performerPlusParts;
+            return realFunction(...args);
         }
         parsedDict[componentName] = _getWrappedFunction(componentName, componentDict, composedFunc, ins, out, state);
         return parsedDict;
@@ -195,7 +198,7 @@ function _checkComponentParts(
     parsedDict: {[key: string]: any}, componentDict: {[key: string]: any}, componentName: string,
 ) {
     const { parts } = componentDict[componentName];
-    parts.forEach((part) => {
+    return parts.reduce((done, part) => {
         if (typeof part === "string") {
             const tagPattern = new RegExp(TAG_PATTERN);
             const match = tagPattern.exec(part);
@@ -207,7 +210,7 @@ function _checkComponentParts(
                 }
             }
         }
-    });
+    }, true);
 }
 
 function _getEmbededParsingError(
@@ -215,11 +218,10 @@ function _getEmbededParsingError(
     componentName: string, componentDict: {[key: string]: any},
 ) {
     const { perform } = componentDict[componentName];
-    const structure = { component: {} };
-    structure.component[componentName] = componentDict[componentName];
+    const structure = { component: {[componentName]: componentDict[componentName]} };
     return _getEmbededError(
         error,
-        `Error parsing component \`${componentName}\`:`,
+        `Parse error, component \`${componentName}\`:`,
         state,
         structure,
     );
@@ -235,7 +237,6 @@ function _getWrappedFunction(
 ): AnyFunction {
     function wrappedFunction(...args) {
         const realArgs = ins === null ? args : _getArrayFromObject(ins, state);
-        const realArgsAsString = _getArgsStringRepresentation(realArgs);
         try {
             const funcOut = func(...realArgs);
             if (_isPromise(funcOut)) {
@@ -269,9 +270,8 @@ function _getEmbededExecutionError(
     args: any[],
 ): any {
     const realArgsAsString = _getArgsStringRepresentation(args);
-    const errorMessage = `Error executing component \`${componentName}${realArgsAsString}\`:`;
-    const structure = { component: {} };
-    structure.component[componentName] = componentDict[componentName];
+    const errorMessage = `Runtime error, component \`${componentName}${realArgsAsString}\`:`;
+    const structure = { component: {[componentName]: componentDict[componentName]} };
     return _getEmbededError(error, errorMessage, state, structure);
 }
 
@@ -283,16 +283,21 @@ function _setState(state: {[key: string]: any}, key: string, value: any): {[key:
     return state;
 }
 
-function _freeze(value: any) {
-    if (typeof value === "object" || Array.isArray(value)) {
-        if (Object.isFrozen(value)) {
-            return value;
-        }
-        Object.freeze(value);
+function _freeze(value: any, processedValues: any[] = []) {
+    const valueIsObject = typeof value === "object";
+    const valueIsFunction = typeof value === "function";
+    const valueIsArray = Array.isArray(value);
+    const valueIsProcessed = processedValues.indexOf(value) > -1;
+    if ((valueIsObject || valueIsFunction || valueIsArray) && valueIsProcessed) {
+        return value;
+    }
+    if (valueIsObject || valueIsArray) {
+        processedValues.push(value);
         const keys = Object.keys(value);
         keys.forEach((key) => {
-            _freeze(value[key]);
+            _freeze(value[key], processedValues);
         });
+        Object.freeze(value);
     }
     return value;
 }
@@ -329,16 +334,18 @@ function _getCompleteDeclarativeConfig(partialConfig: Partial<IUserDeclarativeCo
         component: {},
         bootstrap: "main",
     };
-    const completeConfig = Object.assign({}, defaultDeclarativeConfig, partialConfig) as IDeclarativeConfig;
-    // make sure `completeConfig.ins` is either null or an array. Otherwise, turn it into an array
-    if (completeConfig.ins !== null && !Array.isArray(completeConfig.ins)) {
-        completeConfig.ins = [completeConfig.ins];
-    }
-    // complete all component in `completeConfig.component`
-    Object.keys(completeConfig.component).forEach((componentName) => {
-        completeConfig.component[componentName] = _getCompleteComponent(completeConfig.component[componentName]);
-    });
-    return completeConfig;
+    const filledConfig = Object.assign({}, defaultDeclarativeConfig, partialConfig) as IDeclarativeConfig;
+    // make sure `ins` is either null or array. Otherwise, turn it into array
+    const ins = filledConfig.ins !== null && !Array.isArray(filledConfig.ins) ? [filledConfig.ins] : filledConfig.ins;
+    // get complete component
+    const componentNameList = Object.keys(filledConfig.component);
+    const component = componentNameList.reduce((tmpComponent, componentName) => {
+        return Object.assign({}, tmpComponent, {
+            [componentName]: _getCompleteComponent(filledConfig.component[componentName]),
+        });
+    }, {});
+    // return complete config
+    return Object.assign({}, filledConfig, { component, ins });
 }
 
 function _getCompleteComponent(partialComponent: Partial<IUserComponent>): IComponent {
@@ -348,16 +355,14 @@ function _getCompleteComponent(partialComponent: Partial<IUserComponent>): IComp
         perform: null,
         parts: [],
     };
-    const component = Object.assign({}, defaultComponent, partialComponent) as IComponent;
-    // make sure `component.ins` is either null or an array. Otherwise, turn it into an array
-    if (component.ins !== null && !Array.isArray(component.ins)) {
-        component.ins = [component.ins];
-    }
-    // make sure `component.parts` is an array. Otherwise, turn it into an array
-    if (!Array.isArray(component.parts)) {
-        component.parts = [component.parts];
-    }
-    return component;
+    const filledComponent = Object.assign({}, defaultComponent, partialComponent) as IComponent;
+    // make sure `ins` is either null or an array. Otherwise, turn it into an array
+    const ins = filledComponent.ins !== null && !Array.isArray(filledComponent.ins) ?
+        [filledComponent.ins] : filledComponent.ins;
+    // make sure `parts` is an array. Otherwise, turn it into an array
+    const parts = Array.isArray(filledComponent.parts) ? filledComponent.parts : [filledComponent.parts];
+    // return component component
+    return Object.assign({}, filledComponent, { ins, parts });
 }
 
 /**

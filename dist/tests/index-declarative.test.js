@@ -11,16 +11,16 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const index_1 = require("../index");
 const lib_1 = require("./fixtures/lib");
 describe("declarative style", () => {
-    it("works", () => __awaiter(this, void 0, void 0, function* () {
+    it("works for normal config", () => __awaiter(this, void 0, void 0, function* () {
         const main = index_1.X.declarative({
             ins: ["a", "b"],
             out: "f",
-            bootstrap: "main",
+            bootstrap: "run",
             // parts can contains any values/JavaScript object
             injection: { asyncMinus: lib_1.asyncMinus, commandRootSquare: lib_1.commandRootSquare, nodebackMultiply: lib_1.nodebackMultiply, syncAdd: lib_1.syncAdd, X: index_1.X },
             // comp should only contains valid JSON object
             component: {
-                main: {
+                run: {
                     perform: "X.pipeP",
                     parts: [
                         "${aPlusBAndAMinB}",
@@ -88,7 +88,31 @@ describe("declarative style", () => {
         const result = main(3);
         expect(result).toBe(7);
     });
-    it("works with non-template string parts", () => {
+    it("works with injected-dotted-element as bootstrap", () => {
+        const main = index_1.X.declarative({
+            ins: ["num", "power"],
+            bootstrap: "Math.pow",
+            injection: { Math },
+        });
+        const result = main(5, 2);
+        expect(result).toBe(25);
+    });
+    it("works with injected-dotted-element as component", () => {
+        const main = index_1.X.declarative({
+            ins: ["num", "power"],
+            bootstrap: "powerBy",
+            injection: { Math },
+            component: {
+                powerBy: {
+                    ins: ["num", "power"],
+                    perform: "Math.pow",
+                },
+            },
+        });
+        const result = main(5, 2);
+        expect(result).toBe(25);
+    });
+    it("works with non-template-string parts", () => {
         const main = index_1.X.declarative({
             ins: "name",
             bootstrap: "sayHello",
@@ -104,31 +128,31 @@ describe("declarative style", () => {
         const result = main("world");
         expect(result).toBe("Hello world");
     });
-    it("works with dotted injection as bootstrap", () => {
+    it("works with escaped template-string", () => {
         const main = index_1.X.declarative({
-            ins: ["num", "power"],
-            bootstrap: "Math.pow",
-            injection: { Math },
-        });
-        const result = main(5, 2);
-        expect(result).toBe(25);
-    });
-    it("works with dotted injection as component", () => {
-        const main = index_1.X.declarative({
-            ins: ["num", "power"],
-            bootstrap: "powerBy",
-            injection: { Math },
+            bootstrap: "run",
+            injection: {
+                four: 4,
+                five: 5,
+                createAreaCalculator: (box) => () => {
+                    return box.width * box.height;
+                },
+                X: index_1.X,
+            },
             component: {
-                powerBy: {
-                    ins: ["num", "power"],
-                    perform: "Math.pow",
+                run: {
+                    perform: "createAreaCalculator",
+                    parts: {
+                        width: "${four}",
+                        height: "${five}",
+                    },
                 },
             },
         });
-        const result = main(5, 2);
-        expect(result).toBe(25);
+        const result = main();
+        expect(result).toBe(20);
     });
-    it("works with escaped parameter", () => {
+    it("works with nested template-string", () => {
         const main = index_1.X.declarative({
             bootstrap: "run",
             injection: {
@@ -149,12 +173,12 @@ describe("declarative style", () => {
         const main = index_1.X.declarative({
             ins: "obj",
             out: "result",
-            bootstrap: "main",
+            bootstrap: "run",
             injection: {
                 X: index_1.X,
             },
             component: {
-                main: {
+                run: {
                     ins: "obj",
                     out: "result",
                     perform: "X.prop",
@@ -166,6 +190,24 @@ describe("declarative style", () => {
         obj.circular = obj;
         const result = main(obj);
         expect(result).toBe(5);
+    });
+    it("automatically translate component into function", () => {
+        const main = index_1.X.declarative({
+            bootstrap: "run",
+            injection: {
+                four: 4,
+                five: 5,
+                X: index_1.X,
+            },
+            component: {
+                run: {
+                    perform: "X.add",
+                    parts: ["${four}", "${five}"],
+                },
+            },
+        });
+        const result = main();
+        expect(result).toBe(9);
     });
     it("throw error if bootstrap's given parameter is less than expected", () => {
         try {
@@ -205,7 +247,7 @@ describe("declarative style", () => {
         }
         catch (error) {
             console.error(error.message);
-            expect(error.message).toContain("Error parsing component `average`: Part `rataRata` is not defined");
+            expect(error.message).toContain("Parse error, component `average`: Part `rataRata` is not defined");
         }
     });
     it("throw error if bootstrap is not exists", () => {
@@ -248,7 +290,7 @@ describe("declarative style", () => {
         }
         catch (error) {
             console.error(error.message);
-            expect(error.message).toContain("Error executing component `errorTest()`: invalid action");
+            expect(error.message).toContain("Runtime error, component `errorTest()`: invalid action");
         }
     });
     it("throw error if component yield error-object on execution", () => {
@@ -256,7 +298,7 @@ describe("declarative style", () => {
             const main = index_1.X.declarative({
                 ins: "n",
                 out: "result",
-                bootstrap: "main",
+                bootstrap: "run",
                 injection: {
                     errorComponent: (val) => {
                         if (val === 9) {
@@ -267,7 +309,7 @@ describe("declarative style", () => {
                     X: index_1.X,
                 },
                 component: {
-                    main: {
+                    run: {
                         ins: "n",
                         out: "result",
                         perform: "errorComponent",
@@ -279,7 +321,7 @@ describe("declarative style", () => {
         }
         catch (error) {
             console.error(error.message);
-            expect(error.message).toContain("Error executing component `main( 9 )`: I hate nine");
+            expect(error.message).toContain("Runtime error, component `run( 9 )`: I hate nine");
         }
     });
     it("throw error if component yield error-string on execution", () => {
@@ -287,7 +329,7 @@ describe("declarative style", () => {
             const main = index_1.X.declarative({
                 ins: "n",
                 out: "result",
-                bootstrap: "main",
+                bootstrap: "run",
                 injection: {
                     errorComponent: (val) => {
                         if (val === 9) {
@@ -299,7 +341,7 @@ describe("declarative style", () => {
                     X: index_1.X,
                 },
                 component: {
-                    main: {
+                    run: {
                         ins: "n",
                         out: "result",
                         perform: "errorComponent",
@@ -311,14 +353,14 @@ describe("declarative style", () => {
         }
         catch (error) {
             console.error(error.message);
-            expect(error.message).toContain("Error executing component `main( 9 )`: I hate nine");
+            expect(error.message).toContain("Runtime error, component `run( 9 )`: I hate nine");
         }
     });
     it("throw error if component yield rejected Promise", () => __awaiter(this, void 0, void 0, function* () {
         const main = index_1.X.declarative({
             ins: "n",
             out: "result",
-            bootstrap: "main",
+            bootstrap: "run",
             injection: {
                 errorComponent: (val) => {
                     if (val === 9) {
@@ -329,7 +371,7 @@ describe("declarative style", () => {
                 X: index_1.X,
             },
             component: {
-                main: {
+                run: {
                     ins: "n",
                     out: "result",
                     perform: "errorComponent",
@@ -342,14 +384,14 @@ describe("declarative style", () => {
         }
         catch (error) {
             console.error(error.message);
-            expect(error.message).toContain("Error executing component `main( 9 )`: I hate nine");
+            expect(error.message).toContain("Runtime error, component `run( 9 )`: I hate nine");
         }
     }));
     it("throw error if component yield rejected Promise, and only defined in injection", () => __awaiter(this, void 0, void 0, function* () {
         const main = index_1.X.declarative({
-            bootstrap: "main",
+            bootstrap: "run",
             injection: {
-                main: (val) => {
+                run: (val) => {
                     if (val === 9) {
                         return Promise.reject("I hate nine");
                     }
@@ -364,20 +406,20 @@ describe("declarative style", () => {
         }
         catch (error) {
             console.error(error.message);
-            expect(error.message).toContain("Error executing component `main( 9 )`: I hate nine");
+            expect(error.message).toContain("Runtime error, component `run( 9 )`: I hate nine");
         }
     }));
     it("throw error if component's perform is not executable", () => {
         try {
             const main = index_1.X.declarative({
-                bootstrap: "main",
+                bootstrap: "run",
                 injection: {
                     four: 4,
                     five: 5,
                     X: index_1.X,
                 },
                 component: {
-                    main: {
+                    run: {
                         perform: "four",
                     },
                 },
@@ -387,19 +429,19 @@ describe("declarative style", () => {
         }
         catch (error) {
             console.error(error.message);
-            expect(error.message).toContain("Error parsing component `main`: `four` is not a function");
+            expect(error.message).toContain("Parse error, component `run`: `four` is not a function");
         }
     });
     it("throw error when re-assign state", () => {
         try {
             const main = index_1.X.declarative({
                 ins: "flag",
-                bootstrap: "main",
+                bootstrap: "run",
                 injection: {
                     X: index_1.X,
                 },
                 component: {
-                    main: {
+                    run: {
                         ins: "flag",
                         out: "flag",
                         perform: "X.not",
@@ -411,19 +453,19 @@ describe("declarative style", () => {
         }
         catch (error) {
             console.error(error.message);
-            expect(error.message).toContain("Error executing component `main( true )`: Cannot reassign `flag`");
+            expect(error.message).toContain("Runtime error, component `run( true )`: Cannot reassign `flag`");
         }
     });
     it("throw error when modify existing state", () => {
         try {
             const main = index_1.X.declarative({
                 ins: "obj",
-                bootstrap: "main",
+                bootstrap: "run",
                 injection: {
                     mutator: (obj) => obj.num++,
                 },
                 component: {
-                    main: {
+                    run: {
                         ins: "obj",
                         perform: "mutator",
                     },
@@ -434,42 +476,18 @@ describe("declarative style", () => {
         }
         catch (error) {
             console.error(error.message);
-            expect(error.message).toContain("Error executing component `main( { num: 1 } )`: Cannot assign to read only property 'num'");
-        }
-    });
-    it("throw error if component's perform(...parts) is not executable", () => {
-        try {
-            const main = index_1.X.declarative({
-                bootstrap: "main",
-                injection: {
-                    four: 4,
-                    five: 5,
-                    X: index_1.X,
-                },
-                component: {
-                    main: {
-                        perform: "X.add",
-                        parts: ["${four}", "${five}"]
-                    },
-                },
-            });
-            const result = main();
-            expect(true).toBeFalsy();
-        }
-        catch (error) {
-            console.error(error.message);
-            expect(error.message).toContain("Error executing component `main()`: `X.add( 4, 5 )` is not a function");
+            expect(error.message).toContain("Runtime error, component `run( { num: 1 } )`: Cannot assign to read only property 'num'");
         }
     });
     it("throw error if component's perform not found", () => {
         try {
             const main = index_1.X.declarative({
-                bootstrap: "main",
+                bootstrap: "run",
                 injection: {
                     X: index_1.X,
                 },
                 component: {
-                    main: {
+                    run: {
                         perform: "four",
                     },
                 },
@@ -479,18 +497,18 @@ describe("declarative style", () => {
         }
         catch (error) {
             console.error(error.message);
-            expect(error.message).toContain("Error parsing component `main`: `four` is not a function");
+            expect(error.message).toContain("Parse error, component `run`: `four` is not a function");
         }
     });
     it("throw error if component's parts is not executable", () => {
         try {
             const main = index_1.X.declarative({
-                bootstrap: "main",
+                bootstrap: "run",
                 injection: {
                     X: index_1.X,
                 },
                 component: {
-                    main: {
+                    run: {
                         perform: "X.add",
                         parts: ["${four}", "${five}"]
                     },
@@ -501,20 +519,20 @@ describe("declarative style", () => {
         }
         catch (error) {
             console.error(error.message);
-            expect(error.message).toContain("Error parsing component `main`: Part `four` is not defined");
+            expect(error.message).toContain("Parse error, component `run`: Part `four` is not defined");
         }
     });
     it("throw error on infinite recursive call", () => {
         try {
             const main = index_1.X.declarative({
-                bootstrap: "main",
+                bootstrap: "run",
                 injection: {
                     X: index_1.X,
                 },
                 component: {
-                    main: {
+                    run: {
                         perform: "X.pipe",
-                        parts: ["${main}"]
+                        parts: ["${run}"]
                     },
                 },
             });
@@ -523,7 +541,7 @@ describe("declarative style", () => {
         }
         catch (error) {
             console.error(error.message);
-            expect(error.message).toContain("Error executing component `main( 10 )`: Maximum call stack size exceeded");
+            expect(error.message).toContain("Runtime error, component `run( 10 )`: Maximum call stack size exceeded");
         }
     });
 });
