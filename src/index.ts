@@ -62,7 +62,7 @@ function declarative(partialDeclarativeConfig: Partial<IUserDeclarativeConfig>):
     // return bootstrap function
     const parsedDictVal = _getFromParsedDict(parsedDict, bootstrap);
     if (!parsedDictVal.found) {
-        const error = new Error(`Bootstrap component \`${bootstrap}\` is not defined`);
+        const error = new Error(`Parse error, bootstrap component \`${bootstrap}\` is not defined`);
         const structure = {
             ins: globalIns,
             out: globalOut,
@@ -75,27 +75,25 @@ function declarative(partialDeclarativeConfig: Partial<IUserDeclarativeConfig>):
 }
 
 function _getWrappedBootstrapFunction(
-    bootstrap: string,
-    componentDict: {[key: string]: Partial<IComponent>},
-    parsedDict: {[key: string]: any},
-    globalIns: string[],
-    globalOut: string,
-    state: {[key: string]: any},
+    bootstrap: string, componentDict: {[key: string]: Partial<IComponent>},
+    parsedDict: {[key: string]: any}, globalIns: string[], globalOut: string, state: {[key: string]: any},
 ): AnyFunction {
     function wrappedBootstrapFunction(...args) {
         if (globalIns !== null) {
+            const structure = { ins: globalIns, out: globalOut, bootstrap };
+            const argsStringRepresentation = _getArgsStringRepresentation(args);
+            const embededErrorMessage = `Runtime error, \`${bootstrap}${argsStringRepresentation}\`:`;
             if (args.length < globalIns.length) {
                 const error = new Error(`Program expecting ${globalIns.length} arguments, but ${args.length} given`);
-                const structure = {
-                    ins: globalIns,
-                    out: globalOut,
-                    bootstrap,
-                };
-                throw(_getEmbededError(error, "", state, structure));
+                throw(_getEmbededError(error, embededErrorMessage, state, structure));
             }
-            state = args.reduce((tmpState, arg, index) => {
-                return _setState(tmpState, globalIns[index], arg);
-            }, state);
+            try {
+                state = args.reduce((tmpState, arg, index) => {
+                    return _setState(tmpState, globalIns[index], arg);
+                }, state);
+            } catch (error) {
+                throw(_getEmbededError(error, embededErrorMessage, state, structure));
+            }
         }
         const parsedDictVal = _getFromParsedDict(parsedDict, bootstrap);
         const func = parsedDictVal.value;

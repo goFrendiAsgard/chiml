@@ -65,7 +65,7 @@ function declarative(partialDeclarativeConfig) {
     // return bootstrap function
     const parsedDictVal = _getFromParsedDict(parsedDict, bootstrap);
     if (!parsedDictVal.found) {
-        const error = new Error(`Bootstrap component \`${bootstrap}\` is not defined`);
+        const error = new Error(`Parse error, bootstrap component \`${bootstrap}\` is not defined`);
         const structure = {
             ins: globalIns,
             out: globalOut,
@@ -78,18 +78,21 @@ function declarative(partialDeclarativeConfig) {
 function _getWrappedBootstrapFunction(bootstrap, componentDict, parsedDict, globalIns, globalOut, state) {
     function wrappedBootstrapFunction(...args) {
         if (globalIns !== null) {
+            const structure = { ins: globalIns, out: globalOut, bootstrap };
+            const argsStringRepresentation = _getArgsStringRepresentation(args);
+            const embededErrorMessage = `Runtime error, \`${bootstrap}${argsStringRepresentation}\`:`;
             if (args.length < globalIns.length) {
                 const error = new Error(`Program expecting ${globalIns.length} arguments, but ${args.length} given`);
-                const structure = {
-                    ins: globalIns,
-                    out: globalOut,
-                    bootstrap,
-                };
-                throw (_getEmbededError(error, "", state, structure));
+                throw (_getEmbededError(error, embededErrorMessage, state, structure));
             }
-            state = args.reduce((tmpState, arg, index) => {
-                return _setState(tmpState, globalIns[index], arg);
-            }, state);
+            try {
+                state = args.reduce((tmpState, arg, index) => {
+                    return _setState(tmpState, globalIns[index], arg);
+                }, state);
+            }
+            catch (error) {
+                throw (_getEmbededError(error, embededErrorMessage, state, structure));
+            }
         }
         const parsedDictVal = _getFromParsedDict(parsedDict, bootstrap);
         const func = parsedDictVal.value;
@@ -249,14 +252,6 @@ function _getFromMaybeImmutable(val) {
 }
 function _getArrayFromObject(keys, obj) {
     return keys.map((key) => _getFromMaybeImmutable(obj[key]));
-    /*
-        const val = obj[key];
-        if (typeof val === "object" && typeof val.toJS === "function") {
-            return val.toJS();
-        }
-        return val;
-    });
-    */
 }
 function _getEmbededError(error, message, state, structure) {
     if (typeof error !== "object" || !error.message) {

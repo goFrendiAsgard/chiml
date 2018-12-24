@@ -185,34 +185,8 @@ describe("declarative style", () => {
             },
         });
         const result = main({num: 1});
-        console.error(result);
         expect(result.num).toBe(1);
     });
-
-    /*
-    it("works when input state has circular reference", () => {
-        const main = X.declarative({
-            ins: "obj",
-            out: "result",
-            bootstrap: "run",
-            injection: {
-                X,
-            },
-            component: {
-                run: {
-                    ins: "obj",
-                    out: "result",
-                    perform: "X.prop",
-                    parts: "num",
-                },
-            },
-        });
-        const obj = {num: 5, circular: null};
-        obj.circular = obj;
-        const result = main(obj);
-        expect(result).toBe(5);
-    });
-    */
 
     it("automatically translate component into function", () => {
         const main = X.declarative({
@@ -233,6 +207,36 @@ describe("declarative style", () => {
         expect(result).toBe(9);
     });
 
+    it("circular state should throw error", () => {
+        try {
+            const main = X.declarative({
+                ins: "obj",
+                out: "result",
+                bootstrap: "run",
+                injection: {
+                    X,
+                },
+                component: {
+                    run: {
+                        ins: "obj",
+                        out: "result",
+                        perform: "X.prop",
+                        parts: "circular",
+                    },
+                },
+            });
+            const obj = {circular: null};
+            obj.circular = obj;
+            const result = main(obj);
+            expect(true).toBeFalsy();
+        } catch (error) {
+            console.error(error.message);
+            expect(error.message).toContain(
+                "Runtime error, `run( { circular: [Circular] } )`: Cannot convert circular structure to Immutable",
+            );
+        }
+    });
+
     it("throw error if bootstrap's given parameter is less than expected", () => {
         try {
             const main = X.declarative({
@@ -251,7 +255,7 @@ describe("declarative style", () => {
         } catch (error) {
             console.error(error.message);
             expect(error.message).toContain(
-                "Program expecting 1 arguments, but 0 given",
+                "Runtime error, `sayHello()`: Program expecting 1 arguments, but 0 given",
             );
         }
     });
@@ -295,7 +299,7 @@ describe("declarative style", () => {
         } catch (error) {
             console.error(error.message);
             expect(error.message).toContain(
-                "Bootstrap component `oraono` is not defined",
+                "Parse error, bootstrap component `oraono` is not defined",
             );
         }
     });
