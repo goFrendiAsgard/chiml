@@ -42,10 +42,12 @@
   "homepage": "https://github.com/goFrendiAsgard/chiml#readme",
   "dependencies": {
     "get-args": "^2.0.0",
+    "immutable": "^4.0.0-rc.12",
     "js-yaml": "^3.12.0",
     "ramda": "^0.25.0"
   },
   "devDependencies": {
+    "@types/immutable": "^3.8.7",
     "@types/jest": "^23.3.2",
     "@types/js-yaml": "^3.11.2",
     "@types/node": "^10.11.3",

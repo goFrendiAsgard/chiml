@@ -169,13 +169,33 @@ describe("declarative style", () => {
         const result = main("world");
         expect(result).toBe("${hi}world");
     });
-    it("works when input state has circular reference", () => {
+    it("state should be immutable", () => {
         const main = index_1.X.declarative({
+            ins: "obj",
+            out: "obj",
+            bootstrap: "run",
+            injection: {
+                mutator: (obj) => obj.num++,
+            },
+            component: {
+                run: {
+                    ins: "obj",
+                    perform: "mutator",
+                },
+            },
+        });
+        const result = main({ num: 1 });
+        console.error(result);
+        expect(result.num).toBe(1);
+    });
+    /*
+    it("works when input state has circular reference", () => {
+        const main = X.declarative({
             ins: "obj",
             out: "result",
             bootstrap: "run",
             injection: {
-                X: index_1.X,
+                X,
             },
             component: {
                 run: {
@@ -186,11 +206,12 @@ describe("declarative style", () => {
                 },
             },
         });
-        const obj = { num: 5, circular: null };
+        const obj = {num: 5, circular: null};
         obj.circular = obj;
         const result = main(obj);
         expect(result).toBe(5);
     });
+    */
     it("automatically translate component into function", () => {
         const main = index_1.X.declarative({
             bootstrap: "run",
@@ -454,29 +475,6 @@ describe("declarative style", () => {
         catch (error) {
             console.error(error.message);
             expect(error.message).toContain("Runtime error, component `run( true )`: Cannot reassign `flag`");
-        }
-    });
-    it("throw error when modify existing state", () => {
-        try {
-            const main = index_1.X.declarative({
-                ins: "obj",
-                bootstrap: "run",
-                injection: {
-                    mutator: (obj) => obj.num++,
-                },
-                component: {
-                    run: {
-                        ins: "obj",
-                        perform: "mutator",
-                    },
-                },
-            });
-            const result = main({ num: 1 });
-            expect(true).toBeFalsy();
-        }
-        catch (error) {
-            console.error(error.message);
-            expect(error.message).toContain("Runtime error, component `run( { num: 1 } )`: Cannot assign to read only property 'num'");
         }
     });
     it("throw error if component's perform not found", () => {

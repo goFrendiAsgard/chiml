@@ -1,5 +1,6 @@
 import { ChildProcess, exec } from "child_process";
 import { readFileSync as fsReadFileSync } from "fs";
+import { fromJS } from "immutable";
 import { safeLoad as yamlSafeLoad } from "js-yaml";
 import { dirname as pathDirname, join as pathJoin, resolve as pathResolve } from "path";
 import * as R from "ramda";
@@ -105,9 +106,9 @@ function _getWrappedBootstrapFunction(
             if (globalOut === null) {
                 return bootstrapOutput;
             }
-            return bootstrapOutput.then((val) => state[globalOut]);
+            return bootstrapOutput.then((val) => _getFromMaybeImmutable(state[globalOut]));
         }
-        return globalOut === null ? bootstrapOutput : state[globalOut];
+        return globalOut === null ? bootstrapOutput : _getFromMaybeImmutable(state[globalOut]);
     }
     return wrappedBootstrapFunction;
 }
@@ -279,31 +280,19 @@ function _setState(state: {[key: string]: any}, key: string, value: any): {[key:
     if (key in state) {
         throw(new Error(`Cannot reassign \`${key}\``));
     }
-    state[key] = _freeze(value);
+    state[key] = fromJS(value);
     return state;
 }
 
-function _freeze(value: any, processedValues: any[] = []) {
-    const valueIsObject = typeof value === "object";
-    const valueIsFunction = typeof value === "function";
-    const valueIsArray = Array.isArray(value);
-    const valueIsProcessed = processedValues.indexOf(value) > -1;
-    if ((valueIsObject || valueIsFunction || valueIsArray) && valueIsProcessed) {
-        return value;
+function _getFromMaybeImmutable(val: any) {
+    if (typeof val === "object" && typeof val.toJS === "function") {
+        return val.toJS();
     }
-    if (valueIsObject || valueIsArray) {
-        processedValues.push(value);
-        const keys = Object.keys(value);
-        keys.forEach((key) => {
-            _freeze(value[key], processedValues);
-        });
-        Object.freeze(value);
-    }
-    return value;
+    return val;
 }
 
 function _getArrayFromObject(keys: string[], obj: {[key: string]: any}): any[] {
-    return keys.map((key) => obj[key]);
+    return keys.map((key) => _getFromMaybeImmutable(obj[key]));
 }
 
 function _getEmbededError(

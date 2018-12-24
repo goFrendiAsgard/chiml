@@ -10,6 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const child_process_1 = require("child_process");
 const fs_1 = require("fs");
+const immutable_1 = require("immutable");
 const js_yaml_1 = require("js-yaml");
 const path_1 = require("path");
 const R = require("ramda");
@@ -99,9 +100,9 @@ function _getWrappedBootstrapFunction(bootstrap, componentDict, parsedDict, glob
             if (globalOut === null) {
                 return bootstrapOutput;
             }
-            return bootstrapOutput.then((val) => state[globalOut]);
+            return bootstrapOutput.then((val) => _getFromMaybeImmutable(state[globalOut]));
         }
-        return globalOut === null ? bootstrapOutput : state[globalOut];
+        return globalOut === null ? bootstrapOutput : _getFromMaybeImmutable(state[globalOut]);
     }
     return wrappedBootstrapFunction;
 }
@@ -237,29 +238,25 @@ function _setState(state, key, value) {
     if (key in state) {
         throw (new Error(`Cannot reassign \`${key}\``));
     }
-    state[key] = _freeze(value);
+    state[key] = immutable_1.fromJS(value);
     return state;
 }
-function _freeze(value, processedValues = []) {
-    const valueIsObject = typeof value === "object";
-    const valueIsFunction = typeof value === "function";
-    const valueIsArray = Array.isArray(value);
-    const valueIsProcessed = processedValues.indexOf(value) > -1;
-    if ((valueIsObject || valueIsFunction || valueIsArray) && valueIsProcessed) {
-        return value;
+function _getFromMaybeImmutable(val) {
+    if (typeof val === "object" && typeof val.toJS === "function") {
+        return val.toJS();
     }
-    if (valueIsObject || valueIsArray) {
-        processedValues.push(value);
-        const keys = Object.keys(value);
-        keys.forEach((key) => {
-            _freeze(value[key], processedValues);
-        });
-        Object.freeze(value);
-    }
-    return value;
+    return val;
 }
 function _getArrayFromObject(keys, obj) {
-    return keys.map((key) => obj[key]);
+    return keys.map((key) => _getFromMaybeImmutable(obj[key]));
+    /*
+        const val = obj[key];
+        if (typeof val === "object" && typeof val.toJS === "function") {
+            return val.toJS();
+        }
+        return val;
+    });
+    */
 }
 function _getEmbededError(error, message, state, structure) {
     if (typeof error !== "object" || !error.message) {
