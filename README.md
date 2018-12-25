@@ -17,7 +17,7 @@ CHIML (Chimera Markup Language) is a dependency injection framework based on `Ra
 
 # Convention and Philosophy
 
-* States are immutable
+* States are immutable.
 * Components are functions.
 * Naming is important:
     - Everything that do something should be named as `verb`
@@ -47,13 +47,13 @@ By default, Chiml injects 2 Objects:
     - wrapNodeback: (fn: AnyFunction) => AnyAsyncFunction;
     - wrapSync: (fn: AnyFunction) => AnyAsyncFunction;
 
-# Example
+# Example (Calendar)
 
 ## Goal
 
 We want to show calendar on the browser. We also want to show a cute animal image next to the calendar.
 
-![dog calendar](./example/static/calendar.png)
+![dog calendar](./example/calendar/static/calendar.png)
 
 ## Input
 
