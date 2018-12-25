@@ -1,4 +1,3 @@
-import { X } from "chiml";
 import { BaseInjection } from "./baseInjection";
 import { IBaseAnimalCalendarInjection } from "./interfaces/descriptor";
 

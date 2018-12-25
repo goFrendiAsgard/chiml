@@ -48,7 +48,7 @@ bootstrap: execute
 component:
 
     execute:
-        perform: X.pipeP
+        perform: R.pipeP
         parts:
             - ${fetchImageAndCalendar}
             - ${composeCalendar}
@@ -79,7 +79,7 @@ bootstrap: execute
 component:
 
     execute:
-        perform: X.pipeP
+        perform: R.pipeP
         parts:
             - ${fetchImageAndCalendar}
             - ${composeCalendar}
@@ -118,7 +118,7 @@ component:
 
     fetchImageUrl:
         out: imageUrl
-        perform: X.pipeP
+        perform: R.pipeP
         parts:
             - ${fetchImageObj}
             - ${getImageUrl}
@@ -129,7 +129,7 @@ component:
         parts: curl https://aws.random.cat/meow
 
     getImageUrl:
-        perform: X.prop
+        perform: R.prop
         parts: file
 ```
 
@@ -153,7 +153,7 @@ We have something named `inversion of control` aka `dependency injection`. What 
 └── tsconfig.json
 ```
 
-First of all, I define my `tsconfig.json` and `package.json` as follow:
+First of all, I define my `tsconfig.json` as follow:
 
 __tsconfig.json__
 
@@ -175,25 +175,6 @@ __tsconfig.json__
 }
 ```
 
-__package.json__
-
-```json
-{
-  "name": "example",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "chiml": "^0.2.2"
-  }
-}
-```
-
 Then we define our container, `animal-calendar.yml`:
 
 __animal-calendar.yml__
@@ -206,7 +187,7 @@ injection: ./dist/catInjection.js
 component:
 
     execute:
-        perform: X.pipeP
+        perform: R.pipeP
         parts:
             - ${fetchImageAndCalendar}
             - ${composeCalendar}
@@ -244,7 +225,7 @@ component:
 
     fetchImageUrl:
         out: imageUrl
-        perform: X.pipeP
+        perform: R.pipeP
         parts:
             - ${fetchImageObj}
             - ${getImageUrl}
@@ -255,7 +236,7 @@ component:
         parts: ${imageFetcherCommand}
 
     getImageUrl:
-        perform: X.prop
+        perform: R.prop
         parts: ${imageKey}
 ```
 
@@ -266,7 +247,6 @@ Interface is like a contract. In this case, we want our interface to provide sev
 __descriptor.ts__
 
 ```typescript
-import { TChimera } from "chiml/src/interfaces/descriptor";
 export interface IBaseAnimalCalendarInjection {
     calCommand: string;
     composeHtml: (imageUrl: string, calendar: string) => string;
@@ -274,7 +254,6 @@ export interface IBaseAnimalCalendarInjection {
     imageKey: string;
     writeHtmlCommand: string;
     showCalendarCommand: string;
-    X: TChimera;
 }
 ```
 
@@ -283,8 +262,6 @@ After creating the interface, we can proceed by creating `baseInjection.ts`.
 __baseInjection.ts__
 
 ```typescript
-import { X } from "chiml";
-import { TChimera } from "chiml/src/interfaces/descriptor";
 import { IBaseAnimalCalendarInjection } from "./interfaces/descriptor";
 
 export class BaseInjection implements IBaseAnimalCalendarInjection {
@@ -294,7 +271,6 @@ export class BaseInjection implements IBaseAnimalCalendarInjection {
     public imageKey: string = "image";
     public writeHtmlCommand: string = `echo \${1} > "${__dirname}/calendar.html"`;
     public showCalendarCommand: string = `google-chrome file://${__dirname}/calendar.html`;
-    public X: TChimera = X;
 
     public composeHtml(imageUrl: string, calendar: string): string {
         return `<img style="max-width: 50%; float:left;" src="${imageUrl}" />` +
@@ -326,7 +302,6 @@ module.exports = injection;
 __dogInjection.ts__
 
 ```typescript
-import { X } from "chiml";
 import { BaseInjection } from "./baseInjection";
 import { IBaseAnimalCalendarInjection } from "./interfaces/descriptor";
 
@@ -346,12 +321,26 @@ Now we can show both, cat and dog calendar, using the following commands:
 ```
 tsc --build ./tsconfig.json
 
-chie ./dist/animal-calendar.yml 2018
+chie animal-calendar.yml 2018
 # or
-chie ./dist/animal-calendar.yml 2018
+chie animal-calendar.yml 2018
 # or
 chie --injection ./dist/dogInjection.js --container ./animal-calendar.yml 2019
 # or
 chie -i ./dist/dogInjection.js -c ./animal-calendar.yml 2019
 ```
 
+# API
+
+By default, Chiml injects 2 Objects:
+
+* R: [Ramda Js](https://ramdajs.com/docs/)
+* X: Chiml parser, injector, and some utilities not provided in ramda
+    - declare: (partialDeclarativeConfig: Partial<IUserDeclarativeConfig>) => AnyFunction;
+    - inject: (containerFile: string, injectionFile?: string) => AnyFunction;
+    - foldInput: (fn: AnyFunction) => ((arr: any[]) => any);
+    - spreadInput: (fn: (arr: any[]) => any) => AnyFunction;
+    - concurrent: (...fnList: AnyAsyncFunction[]) => AnyAsyncFunction;
+    - wrapCommand: (stringCommand: string) => AnyAsyncFunction;
+    - wrapNodeback: (fn: AnyFunction) => AnyAsyncFunction;
+    - wrapSync: (fn: AnyFunction) => AnyAsyncFunction;

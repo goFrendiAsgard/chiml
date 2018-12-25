@@ -1,4 +1,3 @@
-import { TChimera } from "chiml/src/interfaces/descriptor";
 export interface IBaseAnimalCalendarInjection {
     calCommand: string;
     composeHtml: (imageUrl: string, calendar: string) => string;
@@ -6,5 +5,4 @@ export interface IBaseAnimalCalendarInjection {
     imageKey: string;
     writeHtmlCommand: string;
     showCalendarCommand: string;
-    X: TChimera;
 }

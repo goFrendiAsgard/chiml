@@ -5,7 +5,7 @@ injection: ./dist/catInjection.js
 component:
 
     execute:
-        perform: X.pipeP
+        perform: R.pipeP
         parts:
             - ${fetchImageAndCalendar}
             - ${composeCalendar}
@@ -43,7 +43,7 @@ component:
 
     fetchImageUrl:
         out: imageUrl
-        perform: X.pipeP
+        perform: R.pipeP
         parts:
             - ${fetchImageObj}
             - ${getImageUrl}
@@ -54,5 +54,5 @@ component:
         parts: ${imageFetcherCommand}
 
     getImageUrl:
-        perform: X.prop
+        perform: R.prop
         parts: ${imageKey}

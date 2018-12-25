@@ -39,9 +39,9 @@ export interface IUserComponent {
     perform: string;
     parts: any[] | any | null;
 }
-export interface IBaseChimera {
-    declarative: (partialDeclarativeConfig: Partial<IUserDeclarativeConfig>) => AnyFunction;
-    execute: (containerFile: string, injectionFile?: string) => AnyFunction;
+export interface IChimera {
+    declare: (partialDeclarativeConfig: Partial<IUserDeclarativeConfig>) => AnyFunction;
+    inject: (containerFile: string, injectionFile?: string) => AnyFunction;
     foldInput: (fn: AnyFunction) => ((arr: any[]) => any);
     spreadInput: (fn: (arr: any[]) => any) => AnyFunction;
     concurrent: (...fnList: AnyAsyncFunction[]) => AnyAsyncFunction;
@@ -49,4 +49,5 @@ export interface IBaseChimera {
     wrapNodeback: (fn: AnyFunction) => AnyAsyncFunction;
     wrapSync: (fn: AnyFunction) => AnyAsyncFunction;
 }
-export declare type TChimera = IBaseChimera & Static;
+export declare type TChimera = IChimera;
+export declare type TRamda = Static;

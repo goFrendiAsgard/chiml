@@ -4,7 +4,7 @@ bootstrap: execute
 component:
 
     execute:
-        perform: X.pipeP
+        perform: R.pipeP
         parts:
             - ${fetchImageAndCalendar}
             - ${composeCalendar}
@@ -43,7 +43,7 @@ component:
 
     fetchImageUrl:
         out: imageUrl
-        perform: X.pipeP
+        perform: R.pipeP
         parts:
             - ${fetchImageObj}
             - ${getImageUrl}
@@ -54,5 +54,5 @@ component:
         parts: curl https://aws.random.cat/meow
 
     getImageUrl:
-        perform: X.prop
+        perform: R.prop
         parts: file

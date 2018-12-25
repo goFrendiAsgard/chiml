@@ -7,33 +7,33 @@ const containerPath = path_1.join(fixturePath, "container.yml");
 const containerNoInjectionPath = path_1.join(fixturePath, "container-no-injection.yml");
 const injectionAddPath = path_1.join(fixturePath, "injection-add.js");
 const injectionMinusPath = path_1.join(fixturePath, "injection-minus.js");
-describe("execute with default/no-injection", () => {
+describe("inject with default/no-injection", () => {
     it("works with default injection", () => {
-        const main = index_1.execute(containerPath);
+        const main = index_1.inject(containerPath);
         const result = main(2, 3);
         expect(result).toBe(5);
     });
     it("works with no injection", () => {
-        const main = index_1.execute(containerNoInjectionPath);
+        const main = index_1.inject(containerNoInjectionPath);
         const result = main(3, 2);
         expect(result).toBe(5);
     });
 });
-describe("execute with custom-injection", () => {
+describe("inject with custom-injection", () => {
     it("works with custom single injection: injectionMinusPath", () => {
-        const main = index_1.execute(containerPath, injectionMinusPath);
+        const main = index_1.inject(containerPath, injectionMinusPath);
         const result = main(3, 2);
         expect(result).toBe(1);
     });
     it("works with custom injection: [injectionAddPath, injectionMinusPath]", () => {
-        const main = index_1.execute(containerPath, [injectionAddPath, injectionMinusPath]);
+        const main = index_1.inject(containerPath, [injectionAddPath, injectionMinusPath]);
         const result = main(3, 2);
         expect(result).toBe(1);
     });
     it("works with custom injection: [injectionMinusPath, injectionAddPath]", () => {
-        const main = index_1.execute(containerPath, [injectionMinusPath, injectionAddPath]);
+        const main = index_1.inject(containerPath, [injectionMinusPath, injectionAddPath]);
         const result = main(3, 2);
         expect(result).toBe(5);
     });
 });
-//# sourceMappingURL=index-execute.test.js.map
+//# sourceMappingURL=index-inject.test.js.map

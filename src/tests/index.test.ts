@@ -1,10 +1,10 @@
-import { X } from "../index";
+import { R, X } from "../index";
 import { asyncMinus, commandRootSquare, nodebackMultiply, syncAdd } from "./fixtures/lib";
 
 describe("foldInput", () => {
 
     it("works", () => {
-        const fn = (...args) => X.sum(args);
+        const fn = (...args) => R.sum(args);
         const foldedFn = X.foldInput(fn);
         const result = foldedFn([1, 2, 3]);
         expect(result).toBe(6);
@@ -15,7 +15,7 @@ describe("foldInput", () => {
 describe("spreadInput", () => {
 
     it("works", () => {
-        const fn = (args) => X.sum(args);
+        const fn = (args) => R.sum(args);
         const spreadedFn = X.spreadInput(fn);
         const result = spreadedFn(1, 2, 3);
         expect(result).toBe(6);
@@ -26,7 +26,7 @@ describe("spreadInput", () => {
 describe("wrapSync", () => {
 
     it("works", async () => {
-        const fn = (args) => X.sum(args);
+        const fn = (args) => R.sum(args);
         const wrapped = X.wrapSync(fn);
         const result = await wrapped([1, 2, 3]);
         expect(result).toBe(6);
@@ -45,7 +45,7 @@ describe("wrapNodeback", () => {
         return null;
     });
 
-    it("works on multiple-return", async () => {
+    it("works with multiple-return", async () => {
         const fn = (a, b, cb) => cb(null, a + b, a - b);
         const wrapped = X.wrapNodeback(fn);
         const result = await wrapped(4, 5);
@@ -76,21 +76,21 @@ describe("wrapCommand", () => {
         return null;
     });
 
-    it("works on non-json-parsable return", async () => {
+    it("works with non-json-parsable return", async () => {
         const wrapped = X.wrapCommand("echo");
         const result = await wrapped("Hello world");
         expect(result).toBe("Hello world");
         return null;
     });
 
-    it("works on single-word command", async () => {
+    it("works with single-word command", async () => {
         const wrapped = X.wrapCommand("echo");
         const result = await wrapped("Hello world");
         expect(result).toBe("Hello world");
         return null;
     });
 
-    it("works on command with ${PWD}", async () => {
+    it("works with command with ${PWD}", async () => {
         const wrapped = X.wrapCommand("echo ${PWD}");
         const result = await wrapped("Hello world");
         expect(result).toContain("Hello world");
@@ -98,42 +98,42 @@ describe("wrapCommand", () => {
         return null;
     });
 
-    it("works on command with templated-parameter", async () => {
+    it("works with command that has templated-parameter", async () => {
         const wrapped = X.wrapCommand("echo ${2} ${1}");
         const result = await wrapped("world", "Hello");
         expect(result).toBe("Hello world");
         return null;
     });
 
-    it("works on command with escaped templated-parameter", async () => {
+    it("works with command that has escaped templated-parameter", async () => {
         const wrapped = X.wrapCommand("echo ${2} \\${1}");
         const result = await wrapped("world", "Hello");
         expect(result).toBe("Hello ${1}");
         return null;
     });
 
-    it("works on command with templated-parameter, even if ins count is less than expected", async () => {
+    it("works with command that has templated-parameter, even if ins count is less than expected", async () => {
         const wrapped = X.wrapCommand("echo ${2} ${1}");
         const result = await wrapped("Hello");
         expect(result).toBe("Hello");
         return null;
     });
 
-    it("works on command with templated-parameter, even if parameter index used more than once", async () => {
+    it("works with command that has templated-parameter, even if parameter index used more than once", async () => {
         const wrapped = X.wrapCommand("echo ${2} ${2} ${1}");
         const result = await wrapped("world", "Hello");
         expect(result).toBe("Hello Hello world");
         return null;
     });
 
-    it("works on command with templated-parameter without curly brace", async () => {
+    it("works with command that has templated-parameter without curly brace", async () => {
         const wrapped = X.wrapCommand("echo $2 $1");
         const result = await wrapped("world", "Hello");
         expect(result).toBe("Hello world");
         return null;
     });
 
-    it("works on command with escaped templated-parameter without curly brace", async () => {
+    it("works with command that has escaped templated-parameter without curly brace", async () => {
         const wrapped = X.wrapCommand("echo $2 \\$1");
         const result = await wrapped("world", "Hello");
         expect(result).toBe("Hello $1");
@@ -162,7 +162,7 @@ describe("imperative style", () => {
         const asyncAdd = X.wrapSync(syncAdd);
         const asyncAddAndMinus = X.concurrent(asyncAdd, asyncMinus);
         const convergedAsyncMultiply = X.foldInput(asyncMultiply);
-        const main: (a: number, b: number) => Promise<number> = X.pipeP(
+        const main: (a: number, b: number) => Promise<number> = R.pipeP(
             asyncAddAndMinus,
             convergedAsyncMultiply,
             asyncRootSquare,

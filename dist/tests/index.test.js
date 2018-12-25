@@ -12,7 +12,7 @@ const index_1 = require("../index");
 const lib_1 = require("./fixtures/lib");
 describe("foldInput", () => {
     it("works", () => {
-        const fn = (...args) => index_1.X.sum(args);
+        const fn = (...args) => index_1.R.sum(args);
         const foldedFn = index_1.X.foldInput(fn);
         const result = foldedFn([1, 2, 3]);
         expect(result).toBe(6);
@@ -20,7 +20,7 @@ describe("foldInput", () => {
 });
 describe("spreadInput", () => {
     it("works", () => {
-        const fn = (args) => index_1.X.sum(args);
+        const fn = (args) => index_1.R.sum(args);
         const spreadedFn = index_1.X.spreadInput(fn);
         const result = spreadedFn(1, 2, 3);
         expect(result).toBe(6);
@@ -28,7 +28,7 @@ describe("spreadInput", () => {
 });
 describe("wrapSync", () => {
     it("works", () => __awaiter(this, void 0, void 0, function* () {
-        const fn = (args) => index_1.X.sum(args);
+        const fn = (args) => index_1.R.sum(args);
         const wrapped = index_1.X.wrapSync(fn);
         const result = yield wrapped([1, 2, 3]);
         expect(result).toBe(6);
@@ -43,7 +43,7 @@ describe("wrapNodeback", () => {
         expect(result).toBe(9);
         return null;
     }));
-    it("works on multiple-return", () => __awaiter(this, void 0, void 0, function* () {
+    it("works with multiple-return", () => __awaiter(this, void 0, void 0, function* () {
         const fn = (a, b, cb) => cb(null, a + b, a - b);
         const wrapped = index_1.X.wrapNodeback(fn);
         const result = yield wrapped(4, 5);
@@ -70,56 +70,56 @@ describe("wrapCommand", () => {
         expect(result).toBe(2);
         return null;
     }));
-    it("works on non-json-parsable return", () => __awaiter(this, void 0, void 0, function* () {
+    it("works with non-json-parsable return", () => __awaiter(this, void 0, void 0, function* () {
         const wrapped = index_1.X.wrapCommand("echo");
         const result = yield wrapped("Hello world");
         expect(result).toBe("Hello world");
         return null;
     }));
-    it("works on single-word command", () => __awaiter(this, void 0, void 0, function* () {
+    it("works with single-word command", () => __awaiter(this, void 0, void 0, function* () {
         const wrapped = index_1.X.wrapCommand("echo");
         const result = yield wrapped("Hello world");
         expect(result).toBe("Hello world");
         return null;
     }));
-    it("works on command with ${PWD}", () => __awaiter(this, void 0, void 0, function* () {
+    it("works with command with ${PWD}", () => __awaiter(this, void 0, void 0, function* () {
         const wrapped = index_1.X.wrapCommand("echo ${PWD}");
         const result = yield wrapped("Hello world");
         expect(result).toContain("Hello world");
         expect(result).toContain("chiml");
         return null;
     }));
-    it("works on command with templated-parameter", () => __awaiter(this, void 0, void 0, function* () {
+    it("works with command that has templated-parameter", () => __awaiter(this, void 0, void 0, function* () {
         const wrapped = index_1.X.wrapCommand("echo ${2} ${1}");
         const result = yield wrapped("world", "Hello");
         expect(result).toBe("Hello world");
         return null;
     }));
-    it("works on command with escaped templated-parameter", () => __awaiter(this, void 0, void 0, function* () {
+    it("works with command that has escaped templated-parameter", () => __awaiter(this, void 0, void 0, function* () {
         const wrapped = index_1.X.wrapCommand("echo ${2} \\${1}");
         const result = yield wrapped("world", "Hello");
         expect(result).toBe("Hello ${1}");
         return null;
     }));
-    it("works on command with templated-parameter, even if ins count is less than expected", () => __awaiter(this, void 0, void 0, function* () {
+    it("works with command that has templated-parameter, even if ins count is less than expected", () => __awaiter(this, void 0, void 0, function* () {
         const wrapped = index_1.X.wrapCommand("echo ${2} ${1}");
         const result = yield wrapped("Hello");
         expect(result).toBe("Hello");
         return null;
     }));
-    it("works on command with templated-parameter, even if parameter index used more than once", () => __awaiter(this, void 0, void 0, function* () {
+    it("works with command that has templated-parameter, even if parameter index used more than once", () => __awaiter(this, void 0, void 0, function* () {
         const wrapped = index_1.X.wrapCommand("echo ${2} ${2} ${1}");
         const result = yield wrapped("world", "Hello");
         expect(result).toBe("Hello Hello world");
         return null;
     }));
-    it("works on command with templated-parameter without curly brace", () => __awaiter(this, void 0, void 0, function* () {
+    it("works with command that has templated-parameter without curly brace", () => __awaiter(this, void 0, void 0, function* () {
         const wrapped = index_1.X.wrapCommand("echo $2 $1");
         const result = yield wrapped("world", "Hello");
         expect(result).toBe("Hello world");
         return null;
     }));
-    it("works on command with escaped templated-parameter without curly brace", () => __awaiter(this, void 0, void 0, function* () {
+    it("works with command that has escaped templated-parameter without curly brace", () => __awaiter(this, void 0, void 0, function* () {
         const wrapped = index_1.X.wrapCommand("echo $2 \\$1");
         const result = yield wrapped("world", "Hello");
         expect(result).toBe("Hello $1");
@@ -145,7 +145,7 @@ describe("imperative style", () => {
         const asyncAdd = index_1.X.wrapSync(lib_1.syncAdd);
         const asyncAddAndMinus = index_1.X.concurrent(asyncAdd, lib_1.asyncMinus);
         const convergedAsyncMultiply = index_1.X.foldInput(asyncMultiply);
-        const main = index_1.X.pipeP(asyncAddAndMinus, convergedAsyncMultiply, asyncRootSquare);
+        const main = index_1.R.pipeP(asyncAddAndMinus, convergedAsyncMultiply, asyncRootSquare);
         // action
         const result = yield main(10, 6);
         expect(result).toBe(8);

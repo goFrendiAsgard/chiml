@@ -11,20 +11,21 @@ if (require.main === module) {
     const injectionFile = options.i || options.injection || null;
     const containerFile = options.c || options.container || args.shift() || null;
     if (containerFile === null) {
-        console.error("Container expected");
+        throw new Error("Container expected");
+    }
+    if (typeof containerFile !== "string") {
+        throw new Error("Container should be a single valid string");
+    }
+    // get bootstrap and run it
+    const bootstrap = index_1.inject(containerFile, injectionFile);
+    const result = bootstrap(...args);
+    if (typeof result === "object" && "then" in result) {
+        result
+            .then((realResult) => console.log(realResult))
+            .catch((error) => { throw error; });
     }
     else {
-        // get bootstrap and run it
-        const bootstrap = index_1.execute(containerFile, injectionFile);
-        const result = bootstrap(...args);
-        if (typeof result === "object" && "then" in result) {
-            result
-                .then((realResult) => console.log(realResult))
-                .catch((error) => console.error(error));
-        }
-        else {
-            console.log(result);
-        }
+        console.log(result);
     }
 }
 //# sourceMappingURL=chie.js.map
