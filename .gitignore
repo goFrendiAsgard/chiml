@@ -2,8 +2,8 @@ package-lock.json
 .cache
 .vscode
 node_modules
-/npm-debug.log
-/lab
+npm-debug.log
+/labs
 /coverage
 /example/calendar/dog.html
 /example/calendar/cat.html
