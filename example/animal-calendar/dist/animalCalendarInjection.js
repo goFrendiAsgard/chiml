@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-class BaseInjection {
+class AnimalCalendarInjection {
     constructor() {
         this.calCommand = "ncal ${1} -h";
         this.imageFetcherCommand = "curl https://somewhere.com/randomImage.json";
@@ -13,4 +13,4 @@ class BaseInjection {
             `<pre style="float:right">${calendar}</pre>`;
     }
 }
-exports.BaseInjection = BaseInjection;
+exports.AnimalCalendarInjection = AnimalCalendarInjection;

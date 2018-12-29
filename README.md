@@ -49,5 +49,5 @@ By default, Chiml injects 2 Objects:
 
 # Example (Calendar)
 
-* [Calendar](./example/calendar/)
+* [Animal Calendar](./example/animal-calendar/)
 * [Microservice](./example/microservice/)

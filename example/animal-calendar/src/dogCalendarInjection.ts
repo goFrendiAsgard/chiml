@@ -1,12 +1,12 @@
-import { BaseInjection } from "./baseInjection";
-import { IBaseAnimalCalendarInjection } from "./interfaces/descriptor";
+import { AnimalCalendarInjection } from "./animalCalendarInjection";
+import { IAnimalCalendarInjection } from "./interfaces/animalCalendarInjection";
 
-class DogInjection extends BaseInjection implements IBaseAnimalCalendarInjection {
+class DogCalendarInjection extends AnimalCalendarInjection implements IAnimalCalendarInjection {
     public imageFetcherCommand: string = "curl https://random.dog/woof.json";
     public imageKey: string = "url";
     public writeHtmlCommand: string = `echo \${1} > "${__dirname}/../dog.html"`;
     public showCalendarCommand: string = `google-chrome file://${__dirname}/../dog.html`;
 }
 
-const injection = new DogInjection();
+const injection = new DogCalendarInjection();
 module.exports = injection;

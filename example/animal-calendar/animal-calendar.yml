@@ -1,7 +1,7 @@
 ins: year
 out: result
 bootstrap: execute
-injection: ./dist/catInjection.js
+injection: ./dist/catCalendarInjection.js
 component:
 
     execute:

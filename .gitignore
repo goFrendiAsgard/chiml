@@ -5,6 +5,4 @@ node_modules
 npm-debug.log
 /labs
 /coverage
-/example/calendar/dog.html
-/example/calendar/cat.html
-/example/calendar/calendar.html
+/example/animal-calendar/*.html

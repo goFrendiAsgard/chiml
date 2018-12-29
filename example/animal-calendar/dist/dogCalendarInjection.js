@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const baseInjection_1 = require("./baseInjection");
-class DogInjection extends baseInjection_1.BaseInjection {
+const animalCalendarInjection_1 = require("./animalCalendarInjection");
+class DogCalendarInjection extends animalCalendarInjection_1.AnimalCalendarInjection {
     constructor() {
         super(...arguments);
         this.imageFetcherCommand = "curl https://random.dog/woof.json";
@@ -10,5 +10,5 @@ class DogInjection extends baseInjection_1.BaseInjection {
         this.showCalendarCommand = `google-chrome file://${__dirname}/../dog.html`;
     }
 }
-const injection = new DogInjection();
+const injection = new DogCalendarInjection();
 module.exports = injection;

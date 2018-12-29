@@ -127,11 +127,11 @@ We have something named `inversion of control` aka `dependency injection`. What 
 .
 ├── animal-calendar.yml
 ├── src
-│   ├── baseInjection.ts
-│   ├── catInjection.ts
-│   ├── dogInjection.ts
+│   ├── animalCalendarInjection.ts
+│   ├── catCalendarInjection.ts
+│   ├── dogCalendarInjection.ts
 │   └── interfaces
-│       └── descriptor.ts
+│       └── animalCalendarInjection.ts
 └── tsconfig.json
 ```
 
@@ -165,7 +165,7 @@ __animal-calendar.yml__
 ins: year
 out: result
 bootstrap: execute
-injection: ./dist/catInjection.js
+injection: ./dist/catCalendarInjection.js
 component:
 
     execute:
@@ -222,14 +222,14 @@ component:
         parts: ${imageKey}
 ```
 
-By default, this container will use `./dist/cat.js`. The file is currently inexist. You might notice that we have some `undefined components` like `composeHtml`, `writeHtmlCommand`, `showCalendarCommand`, `calCommand`, `imageFetcherCommand`, and `imageKey`. It's okay, we will define the interface and the implementation later.
+By default, this container will use `./dist/catCalendarInjection.js`. The file is currently inexist. You might notice that we have some `undefined components` like `composeHtml`, `writeHtmlCommand`, `showCalendarCommand`, `calCommand`, `imageFetcherCommand`, and `imageKey`. It's okay, we will define the interface and the implementation later.
 
-Interface is like a contract. In this case, we want our interface to provide several functions and values that can be used in the container. Below is the content of `/src/interfaces/descriptors.ts`:
+Interface is like a contract. In this case, we want our interface to provide several functions and values that can be used in the container. Below is the content of `/src/interfaces/animalCalendarInjections.ts`:
 
-__descriptor.ts__
+__src/interfaces/animalCalendarInjection.ts__
 
 ```typescript
-export interface IBaseAnimalCalendarInjection {
+export interface IAnimalCalendarInjection {
     calCommand: string;
     composeHtml: (imageUrl: string, calendar: string) => string;
     imageFetcherCommand: string;
@@ -239,14 +239,14 @@ export interface IBaseAnimalCalendarInjection {
 }
 ```
 
-After creating the interface, we can proceed by creating `baseInjection.ts`.
+After creating the interface, we can proceed by creating `animalCalendarInjection.ts`.
 
-__baseInjection.ts__
+__src/animalCalendarInjection.ts__
 
 ```typescript
-import { IBaseAnimalCalendarInjection } from "./interfaces/descriptor";
+import { IAnimalCalendarInjection } from "./interfaces/animalCalendarInjection";
 
-export class BaseInjection implements IBaseAnimalCalendarInjection {
+export class AnimalCalendarInjection implements IAnimalCalendarInjection {
 
     public calCommand: string = "ncal ${1} -h";
     public imageFetcherCommand: string = "curl https://somewhere.com/randomImage.json";
@@ -262,39 +262,39 @@ export class BaseInjection implements IBaseAnimalCalendarInjection {
 }
 ```
 
-Lastly, let's make `catInjection.ts` and `dogInjection.ts`.
+Lastly, let's make `catCalendarInjection.ts` and `dogCalendarInjection.ts`.
 
-__catInjection.ts__
+__src/catCalendarInjection.ts__
 
 ```typescript
-import { BaseInjection } from "./baseInjection";
-import { IBaseAnimalCalendarInjection } from "./interfaces/descriptor";
+import { AnimalCalendarInjection } from "./animalCalendarInjection";
+import { IAnimalCalendarInjection } from "./interfaces/animalCalendarInjection";
 
-class CatInjection extends BaseInjection implements IBaseAnimalCalendarInjection {
+class CatCalendarInjection extends AnimalCalendarInjection implements IAnimalCalendarInjection {
     public imageFetcherCommand: string = "curl https://aws.random.cat/meow";
     public imageKey: string = "file";
     public writeHtmlCommand: string = `echo \${1} > "${__dirname}/../cat.html"`;
     public showCalendarCommand: string = `google-chrome file://${__dirname}/../cat.html`;
 }
 
-const injection = new CatInjection();
+const injection = new CatCalendarInjection();
 module.exports = injection;
 ```
 
-__dogInjection.ts__
+__src/dogCalendarInjection.ts__
 
 ```typescript
-import { BaseInjection } from "./baseInjection";
-import { IBaseAnimalCalendarInjection } from "./interfaces/descriptor";
+import { AnimalCalendarInjection } from "./animalCalendarInjection";
+import { IAnimalCalendarInjection } from "./interfaces/animalCalendarInjection";
 
-class DogInjection extends BaseInjection implements IBaseAnimalCalendarInjection {
+class DogCalendarInjection extends AnimalCalendarInjection implements IAnimalCalendarInjection {
     public imageFetcherCommand: string = "curl https://random.dog/woof.json";
     public imageKey: string = "url";
     public writeHtmlCommand: string = `echo \${1} > "${__dirname}/../dog.html"`;
     public showCalendarCommand: string = `google-chrome file://${__dirname}/../dog.html`;
 }
 
-const injection = new DogInjection();
+const injection = new DogCalendarInjection();
 module.exports = injection;
 ```
 
@@ -309,13 +309,13 @@ or
 
 ```
 tsc --build ./tsconfig.json
-chie --injection ./dist/dogInjection.js --container ./animal-calendar.yml 2019
+chie --injection ./dist/dogCalendarInjection.js --container ./animal-calendar.yml 2019
 ```
 
 or
 
 ```
 tsc --build ./tsconfig.json
-chie -i ./dist/dogInjection.js -c ./animal-calendar.yml 2019
+chie -i ./dist/dogCalendarInjection.js -c ./animal-calendar.yml 2019
 ```
 
