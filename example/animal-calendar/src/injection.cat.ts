@@ -1,7 +1,7 @@
-import { AnimalCalendarInjection } from "./animalCalendarInjection";
-import { IAnimalCalendarInjection } from "./interfaces/animalCalendarInjection";
+import { BaseCalendarInjection } from "./baseCalendarInjection";
+import { IBaseCalendarInjection } from "./interfaces/baseCalendarInjection";
 
-class CatCalendarInjection extends AnimalCalendarInjection implements IAnimalCalendarInjection {
+class CatCalendarInjection extends BaseCalendarInjection implements IBaseCalendarInjection {
     public imageFetcherCommand: string = "curl https://aws.random.cat/meow";
     public imageKey: string = "file";
     public writeHtmlCommand: string = `echo \${1} > "${__dirname}/../cat.html"`;

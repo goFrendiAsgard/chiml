@@ -4,4 +4,4 @@ echo "TESTING CALENDAR"
 tsc --build ${DIR}/tsconfig.json
 node ${DIR}/../../dist/chie.js 2017 -c ${DIR}/animal-calendar-no-injection.yml
 node ${DIR}/../../dist/chie.js -c ${DIR}/animal-calendar.yml 2018
-node ${DIR}/../../dist/chie.js --injection ${DIR}/dist/dogCalendarInjection.js --container ${DIR}/animal-calendar.yml 2019
+node ${DIR}/../../dist/chie.js --injection ${DIR}/dist/injection.dog.js --container ${DIR}/animal-calendar.yml 2019

@@ -1,2 +1,2 @@
-injection: ./injection-add.js
-bootstrap: operation
+injection: ./operation.add.js
+bootstrap: operation.operate

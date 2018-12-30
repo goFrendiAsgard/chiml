@@ -1,0 +1,4 @@
+# if get a request, publish it
+injection: dist/cote.js
+bootstrap: start
+component:

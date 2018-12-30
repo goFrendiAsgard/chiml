@@ -17,7 +17,7 @@ CHIML (Chimera Markup Language) is a declarative dependency injection framework 
 
 # Convention and Philosophy
 
-* States are immutable once it is set.
+* Once set, States are immutable.
 * Components are functions.
 * Naming is important:
     - Everything that do something should be named as `verb`
@@ -47,7 +47,7 @@ By default, Chiml injects 2 Objects:
     - wrapNodeback: (fn: AnyFunction) => AnyAsyncFunction;
     - wrapSync: (fn: AnyFunction) => AnyAsyncFunction;
 
-# Example (Calendar)
+# Examples
 
 * [Animal Calendar](./example/animal-calendar/)
 * [Microservice](./example/microservice/)

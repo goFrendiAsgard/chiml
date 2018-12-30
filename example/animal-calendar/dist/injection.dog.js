@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const animalCalendarInjection_1 = require("./animalCalendarInjection");
-class DogCalendarInjection extends animalCalendarInjection_1.AnimalCalendarInjection {
+const baseCalendarInjection_1 = require("./baseCalendarInjection");
+class DogCalendarInjection extends baseCalendarInjection_1.BaseCalendarInjection {
     constructor() {
         super(...arguments);
         this.imageFetcherCommand = "curl https://random.dog/woof.json";

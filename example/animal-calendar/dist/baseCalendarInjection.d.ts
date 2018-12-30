@@ -1,5 +1,5 @@
-import { IAnimalCalendarInjection } from "./interfaces/animalCalendarInjection";
-export declare class AnimalCalendarInjection implements IAnimalCalendarInjection {
+import { IBaseCalendarInjection } from "./interfaces/baseCalendarInjection";
+export declare class BaseCalendarInjection implements IBaseCalendarInjection {
     calCommand: string;
     imageFetcherCommand: string;
     imageKey: string;

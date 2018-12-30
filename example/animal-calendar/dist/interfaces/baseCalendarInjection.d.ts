@@ -1,4 +1,4 @@
-export interface IAnimalCalendarInjection {
+export interface IBaseCalendarInjection {
     calCommand: string;
     composeHtml: (imageUrl: string, calendar: string) => string;
     imageFetcherCommand: string;

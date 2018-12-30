@@ -1,3 +1,0 @@
-injection:
-    - ./dist/adapters/cote.js
-    - ./dist/models/transaction.js

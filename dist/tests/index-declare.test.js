@@ -225,7 +225,7 @@ describe("error declarative style", () => {
             const obj = { circular: null };
             obj.circular = obj;
             const result = main(obj);
-            expect(true).toBeFalsy();
+            throw (new Error(`Expect error, but get result: ${result}`));
         }
         catch (error) {
             expect(error.message).toContain("Runtime error, bootstrap component `run( { circular: [Circular] } )`: " +
@@ -246,7 +246,7 @@ describe("error declarative style", () => {
                 },
             });
             const result = main();
-            expect(true).toBeFalsy();
+            throw (new Error(`Expect error, but get result: ${result}`));
         }
         catch (error) {
             expect(error.message).toContain("Runtime error, bootstrap component `sayHello()`: Program expecting 1 arguments, but 0 given");
@@ -265,7 +265,7 @@ describe("error declarative style", () => {
                 },
             });
             const result = main();
-            expect(true).toBeFalsy();
+            throw (new Error(`Expect error, but get result: ${result}`));
         }
         catch (error) {
             expect(error.message).toContain("Parse error, component `average`: Part `rataRata` is not defined");
@@ -284,7 +284,7 @@ describe("error declarative style", () => {
                 },
             });
             const result = main();
-            expect(true).toBeFalsy();
+            throw (new Error(`Expect error, but get result: ${result}`));
         }
         catch (error) {
             expect(error.message).toContain("Parse error, bootstrap component `oraono`: `oraono` is not defined");
@@ -306,7 +306,7 @@ describe("error declarative style", () => {
                 bootstrap: "errorTest",
             });
             const result = main();
-            expect(true).toBeFalsy();
+            throw (new Error(`Expect error, but get result: ${result}`));
         }
         catch (error) {
             expect(error.message).toContain("Runtime error, component `errorTest()`: invalid action");
@@ -335,7 +335,7 @@ describe("error declarative style", () => {
                 },
             });
             const result = main(9);
-            expect(true).toBeFalsy();
+            throw (new Error(`Expect error, but get result: ${result}`));
         }
         catch (error) {
             expect(error.message).toContain("Runtime error, component `run( 9 )`: I hate nine");
@@ -365,7 +365,7 @@ describe("error declarative style", () => {
                 },
             });
             const result = main(9);
-            expect(true).toBeFalsy();
+            throw (new Error(`Expect error, but get result: ${result}`));
         }
         catch (error) {
             expect(error.message).toContain("Runtime error, component `run( 9 )`: I hate nine");
@@ -394,7 +394,7 @@ describe("error declarative style", () => {
         });
         try {
             const result = yield main(9);
-            expect(true).toBeFalsy();
+            throw (new Error(`Expect error, but get result: ${result}`));
         }
         catch (error) {
             expect(error.message).toContain("Runtime error, component `run( 9 )`: I hate nine");
@@ -414,7 +414,7 @@ describe("error declarative style", () => {
         });
         try {
             const result = yield main(9);
-            expect(true).toBeFalsy();
+            throw (new Error(`Expect error, but get result: ${result}`));
         }
         catch (error) {
             expect(error.message).toContain("Runtime error, component `run( 9 )`: I hate nine");
@@ -435,7 +435,7 @@ describe("error declarative style", () => {
                 },
             });
             const result = main();
-            expect(true).toBeFalsy();
+            throw (new Error(`Expect error, but get result: ${result}`));
         }
         catch (error) {
             expect(error.message).toContain("Parse error, component `run`: `four` is not a function");
@@ -456,7 +456,7 @@ describe("error declarative style", () => {
                 },
             });
             const result = main(true);
-            expect(true).toBeFalsy();
+            throw (new Error(`Expect error, but get result: ${result}`));
         }
         catch (error) {
             expect(error.message).toContain("Runtime error, component `run( true )`: Cannot reassign `flag`");
@@ -473,7 +473,7 @@ describe("error declarative style", () => {
                 },
             });
             const result = main();
-            expect(true).toBeFalsy();
+            throw (new Error(`Expect error, but get result: ${result}`));
         }
         catch (error) {
             expect(error.message).toContain("Parse error, component `run`: `four` is not a function");
@@ -492,7 +492,7 @@ describe("error declarative style", () => {
                 },
             });
             const result = main();
-            expect(true).toBeFalsy();
+            throw (new Error(`Expect error, but get result: ${result}`));
         }
         catch (error) {
             expect(error.message).toContain("Parse error, component `run`: Part `four` is not defined");
@@ -511,7 +511,7 @@ describe("error declarative style", () => {
                 },
             });
             const result = main(10);
-            expect(true).toBeFalsy();
+            throw (new Error(`Expect error, but get result: ${result}`));
         }
         catch (error) {
             expect(error.message).toContain("Runtime error, component `run( 10 )`: Maximum call stack size exceeded");

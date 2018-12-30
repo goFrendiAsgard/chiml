@@ -1,6 +1,6 @@
-import { IAnimalCalendarInjection } from "./interfaces/animalCalendarInjection";
+import { IBaseCalendarInjection } from "./interfaces/baseCalendarInjection";
 
-export class AnimalCalendarInjection implements IAnimalCalendarInjection {
+export class BaseCalendarInjection implements IBaseCalendarInjection {
 
     public calCommand: string = "ncal ${1} -h";
     public imageFetcherCommand: string = "curl https://somewhere.com/randomImage.json";

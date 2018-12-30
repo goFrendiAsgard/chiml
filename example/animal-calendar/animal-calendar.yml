@@ -1,7 +1,7 @@
-ins: year
+animalins: year
 out: result
 bootstrap: execute
-injection: ./dist/catCalendarInjection.js
+injection: ./dist/injection.cat.js
 component:
 
     execute:
@@ -23,23 +23,23 @@ component:
             - imageUrl
             - calendar
         out: result
-        perform: composeHtml
+        perform: injection.composeHtml
 
     writeCalendar:
         ins: result
         perform: X.wrapCommand
-        parts: ${writeHtmlCommand}
+        parts: ${injection.writeHtmlCommand}
 
     showCalendar:
         ins: []
         perform: X.wrapCommand
-        parts: ${showCalendarCommand}
+        parts: ${injection.showCalendarCommand}
 
     fetchCalendar:
         ins: year
         out: calendar
         perform: X.wrapCommand
-        parts: ${calCommand}
+        parts: ${injection.calCommand}
 
     fetchImageUrl:
         out: imageUrl
@@ -51,8 +51,8 @@ component:
     fetchImageObj:
         ins: []
         perform: X.wrapCommand
-        parts: ${imageFetcherCommand}
+        parts: ${injection.imageFetcherCommand}
 
     getImageUrl:
         perform: R.prop
-        parts: ${imageKey}
+        parts: ${injection.imageKey}

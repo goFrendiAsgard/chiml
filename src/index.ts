@@ -34,20 +34,52 @@ export function inject(containerFile: string, userInjectionFile: string|string[]
     const dirname = pathResolve(pathDirname(containerFile));
     const yamlScript = fsReadFileSync(containerFile).toString();
     const config = yamlSafeLoad(yamlScript);
-    const rawInjectionFile = userInjectionFile === null ? config.injection : userInjectionFile;
-    const rawInjectionFileList = Array.isArray(rawInjectionFile) ? rawInjectionFile : [rawInjectionFile];
+    const rawInjectionFileList = _getInjectionFileAndAliasList(config, userInjectionFile);
     const injection = rawInjectionFileList
-        .filter((injectionFile) => typeof injectionFile === "string")
-        .reduce((tmpInjection, injectionFile) => {
-            if (injectionFile[0] === ".") {
-                const absoluteInjectionFile = pathJoin(dirname, injectionFile);
-                const absoluteObj = require(absoluteInjectionFile);
-                return Object.assign({ __proto__: absoluteObj.__proto__ }, tmpInjection, absoluteObj);
-            }
-            const obj = require(injectionFile);
-            return Object.assign({ __proto__: obj.__proto__ }, tmpInjection, obj);
+        .reduce((tmpInjection, injectionFileAndAlias) => {
+            const [injectionFile, alias] = _splitInjectionFileAndAlias(injectionFileAndAlias);
+            const absoluteInjectionFile = injectionFile[0] === "." ? pathJoin(dirname, injectionFile) : injectionFile;
+            const obj = require(absoluteInjectionFile);
+            return Object.assign({}, tmpInjection, {[alias]: obj});
         }, { R, X });
     return declare(Object.assign({}, config, { injection }));
+}
+
+function _splitInjectionFileAndAlias(injectionFileAndAlias: string): string[] {
+    // Get alias from file name by using `as` or `:` separator
+    // e.g:
+    //  - `/home/kalimdor/warlock.guldan.js:mage` --> ['mage', '/home/kalimdor/warlock.guldan.js']
+    //  - `/home/kalimdor/warlock.guldan.js as shaman` --> ['shaman', '/home/kalimdor/warlock.guldan.js']
+    const fileAndAlias = [" as ", ":"].reduce((result, separator) => {
+        if (result.length !== 2) {
+            const splitted = injectionFileAndAlias.split(separator);
+            if (splitted.length <= 2) {
+                return splitted;
+            }
+            const aliasPart = splitted.pop();
+            const fileNamePart = splitted.join(separator);
+            return [fileNamePart, aliasPart];
+        }
+        return result;
+    }, []);
+    if (fileAndAlias.length === 2) {
+        return fileAndAlias;
+    }
+    // Infer alias from file name
+    // e.g: `/home/kalimdor/warlock.guldan.js` --> ['warlock', '/home/kalimdor/warlock.guldan.js']
+    const alias = injectionFileAndAlias.split("\\").pop().split("/").pop().split(".").shift();
+    return [injectionFileAndAlias, alias];
+}
+
+function _getInjectionFileAndAliasList(
+    config: {injection?: string|string[]}, userInjectionFile: string|string[],
+): string[] {
+    const { injection } = config;
+    const configInjectionList = Array.isArray(injection) ? injection : [injection];
+    const userInjectionList = Array.isArray(userInjectionFile) ? userInjectionFile : [userInjectionFile];
+    return configInjectionList
+        .concat(userInjectionList)
+        .filter((injectionAndAlias) => typeof injectionAndAlias === "string");
 }
 
 /**
@@ -149,15 +181,27 @@ function _getParsedParts(
 function _getFromParsedDict(parsedDict: {[key: string]: any}, searchKey: string): IKeyInParsedDict {
     const searchKeyParts = searchKey.split(".");
     const initialResult: IKeyInParsedDict = {
+        context: parsedDict,
         value: parsedDict,
         found: false,
     };
-    return searchKeyParts.reduce((result, key) => {
-        if (key in result.value) {
-            return Object.assign({}, result, { found: true, value: result.value[key] });
+    const result = searchKeyParts.reduce((tmpResult, key) => {
+        if (key in tmpResult.value) {
+            return Object.assign({}, tmpResult, { found: true, value: tmpResult.value[key], context: tmpResult.value });
         }
-        return Object.assign({}, result, { found: false });
+        return Object.assign({}, tmpResult, { found: false });
     }, initialResult);
+    // if it is class-instance's method, don't lost the context
+    if (result.found && typeof result.value === "function") {
+        return {
+            found: result.found,
+            context: result.context,
+            value: (...args) => {
+                return result.value.call(result.context, ...args);
+            },
+        } as IKeyInParsedDict;
+    }
+    return result;
 }
 
 function _addToParsedDict(

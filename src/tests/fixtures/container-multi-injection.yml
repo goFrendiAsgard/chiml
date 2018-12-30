@@ -1,0 +1,4 @@
+injection: 
+    - ./operation.add.js
+    - ./operation.minus.js
+bootstrap: operation.operate

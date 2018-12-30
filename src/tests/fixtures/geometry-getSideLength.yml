@@ -1,0 +1,2 @@
+injection: ./geometry.oop.js
+bootstrap: geometry.getSideLength
