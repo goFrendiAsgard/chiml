@@ -24,7 +24,10 @@ const TAG_PATTERN = /^\s*\$\{(.+)\}\s*$/gi;
 exports.R = Ramda;
 exports.X = {
     declare,
-    inject,
+    inject: exports.R.curryN(2, inject),
+    createClassInitiator,
+    createMethodExecutor,
+    createMethodEvaluator,
     foldInput,
     spreadInput,
     concurrent,
@@ -39,7 +42,8 @@ function inject(containerFile, userInjectionFile = null) {
     const rawInjectionFileList = _getInjectionFileAndAliasList(config, userInjectionFile);
     const injection = rawInjectionFileList
         .reduce((tmpInjection, injectionFileAndAlias) => {
-        const [injectionFile, alias] = _splitInjectionFileAndAlias(injectionFileAndAlias);
+        const [injectionFile, alias] = _splitInjectionFileAndAlias(injectionFileAndAlias)
+            .map((part) => part.trim());
         const absoluteInjectionFile = injectionFile[0] === "." ? path_1.join(dirname, injectionFile) : injectionFile;
         const obj = require(absoluteInjectionFile);
         return Object.assign({}, tmpInjection, { [alias]: obj });
@@ -50,8 +54,8 @@ exports.inject = inject;
 function _splitInjectionFileAndAlias(injectionFileAndAlias) {
     // Get alias from file name by using `as` or `:` separator
     // e.g:
-    //  - `/home/kalimdor/warlock.guldan.js:mage` --> ['mage', '/home/kalimdor/warlock.guldan.js']
-    //  - `/home/kalimdor/warlock.guldan.js as shaman` --> ['shaman', '/home/kalimdor/warlock.guldan.js']
+    //  - `/home/kalimdor/warchief.thrall.js:wolfRider` --> ['wolfRider', '/home/kalimdor/warchief.thrall.js']
+    //  - `/home/kalimdor/warchief.thrall.js as shaman` --> ['shaman', '/home/kalimdor/warchief.thrall.js']
     const fileAndAlias = [" as ", ":"].reduce((result, separator) => {
         if (result.length !== 2) {
             const splitted = injectionFileAndAlias.split(separator);
@@ -68,7 +72,7 @@ function _splitInjectionFileAndAlias(injectionFileAndAlias) {
         return fileAndAlias;
     }
     // Infer alias from file name
-    // e.g: `/home/kalimdor/warlock.guldan.js` --> ['warlock', '/home/kalimdor/warlock.guldan.js']
+    // e.g: `/home/kalimdor/warchief.thrall.js` --> ['warchief', '/home/kalimdor/warchief.thrall.js']
     const alias = injectionFileAndAlias.split("\\").pop().split("/").pop().split(".").shift();
     return [injectionFileAndAlias, alias];
 }
@@ -94,7 +98,7 @@ function declare(partialDeclarativeConfig) {
     // parse all `${key}`, create function, and register it to parsedDict
     const parsedDict = componentNameList.reduce((tmpParsedDict, componentName) => {
         return _addToParsedDict(tmpParsedDict, state, componentName, declarativeConfig);
-    }, declarativeConfig.injection);
+    }, Object.assign({}, declarativeConfig.injection));
     // return bootstrap function
     const parsedDictVal = _getFromParsedDict(parsedDict, bootstrap);
     if (!parsedDictVal.found) {
@@ -185,9 +189,7 @@ function _getFromParsedDict(parsedDict, searchKey) {
         return {
             found: result.found,
             context: result.context,
-            value: (...args) => {
-                return result.value.call(result.context, ...args);
-            },
+            value: result.value.bind(result.context),
         };
     }
     return result;
@@ -377,6 +379,25 @@ function _getCompleteComponent(partialComponent) {
     const parts = Array.isArray(filledComponent.parts) ? filledComponent.parts : [filledComponent.parts];
     // return component component
     return Object.assign({}, filledComponent, { ins, parts });
+}
+function createClassInitiator(cls) {
+    function classInitiator(...args) {
+        return new cls(...args);
+    }
+    return classInitiator;
+}
+function createMethodEvaluator(methodName, ...args) {
+    function methodEvaluator(obj) {
+        return obj[methodName](...args);
+    }
+    return methodEvaluator;
+}
+function createMethodExecutor(methodName, ...args) {
+    function methodExecutor(obj) {
+        obj[methodName](...args);
+        return obj;
+    }
+    return methodExecutor;
 }
 /**
  * @param fn AnyFunction

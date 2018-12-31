@@ -21,7 +21,10 @@ export const R: TRamda = Ramda;
 
 export const X: TChimera = {
     declare,
-    inject,
+    inject: R.curryN(2, inject),
+    createClassInitiator,
+    createMethodExecutor,
+    createMethodEvaluator,
     foldInput,
     spreadInput,
     concurrent,
@@ -37,7 +40,8 @@ export function inject(containerFile: string, userInjectionFile: string|string[]
     const rawInjectionFileList = _getInjectionFileAndAliasList(config, userInjectionFile);
     const injection = rawInjectionFileList
         .reduce((tmpInjection, injectionFileAndAlias) => {
-            const [injectionFile, alias] = _splitInjectionFileAndAlias(injectionFileAndAlias);
+            const [injectionFile, alias] = _splitInjectionFileAndAlias(injectionFileAndAlias)
+                .map((part) => part.trim());
             const absoluteInjectionFile = injectionFile[0] === "." ? pathJoin(dirname, injectionFile) : injectionFile;
             const obj = require(absoluteInjectionFile);
             return Object.assign({}, tmpInjection, {[alias]: obj});
@@ -48,8 +52,8 @@ export function inject(containerFile: string, userInjectionFile: string|string[]
 function _splitInjectionFileAndAlias(injectionFileAndAlias: string): string[] {
     // Get alias from file name by using `as` or `:` separator
     // e.g:
-    //  - `/home/kalimdor/warlock.guldan.js:mage` --> ['mage', '/home/kalimdor/warlock.guldan.js']
-    //  - `/home/kalimdor/warlock.guldan.js as shaman` --> ['shaman', '/home/kalimdor/warlock.guldan.js']
+    //  - `/home/kalimdor/warchief.thrall.js:wolfRider` --> ['wolfRider', '/home/kalimdor/warchief.thrall.js']
+    //  - `/home/kalimdor/warchief.thrall.js as shaman` --> ['shaman', '/home/kalimdor/warchief.thrall.js']
     const fileAndAlias = [" as ", ":"].reduce((result, separator) => {
         if (result.length !== 2) {
             const splitted = injectionFileAndAlias.split(separator);
@@ -66,7 +70,7 @@ function _splitInjectionFileAndAlias(injectionFileAndAlias: string): string[] {
         return fileAndAlias;
     }
     // Infer alias from file name
-    // e.g: `/home/kalimdor/warlock.guldan.js` --> ['warlock', '/home/kalimdor/warlock.guldan.js']
+    // e.g: `/home/kalimdor/warchief.thrall.js` --> ['warchief', '/home/kalimdor/warchief.thrall.js']
     const alias = injectionFileAndAlias.split("\\").pop().split("/").pop().split(".").shift();
     return [injectionFileAndAlias, alias];
 }
@@ -96,7 +100,7 @@ function declare(partialDeclarativeConfig: Partial<IUserDeclarativeConfig>): Any
     // parse all `${key}`, create function, and register it to parsedDict
     const parsedDict = componentNameList.reduce((tmpParsedDict, componentName) => {
         return _addToParsedDict(tmpParsedDict, state, componentName, declarativeConfig);
-    }, declarativeConfig.injection);
+    }, Object.assign({}, declarativeConfig.injection));
     // return bootstrap function
     const parsedDictVal = _getFromParsedDict(parsedDict, bootstrap);
     if (!parsedDictVal.found) {
@@ -196,9 +200,7 @@ function _getFromParsedDict(parsedDict: {[key: string]: any}, searchKey: string)
         return {
             found: result.found,
             context: result.context,
-            value: (...args) => {
-                return result.value.call(result.context, ...args);
-            },
+            value: result.value.bind(result.context),
         } as IKeyInParsedDict;
     }
     return result;
@@ -426,6 +428,32 @@ function _getCompleteComponent(partialComponent: Partial<IUserComponent>): IComp
     const parts = Array.isArray(filledComponent.parts) ? filledComponent.parts : [filledComponent.parts];
     // return component component
     return Object.assign({}, filledComponent, { ins, parts });
+}
+
+function createClassInitiator(cls: any): AnyFunction {
+    function classInitiator(...args: any[]): any {
+        return new cls(...args);
+    }
+    return classInitiator;
+}
+
+function createMethodEvaluator(
+    methodName: string, ...args: any[]
+): (obj: {[method: string]: AnyFunction}) => any  {
+    function methodEvaluator(obj: {[method: string]: AnyFunction}): any {
+        return obj[methodName](...args);
+    }
+    return methodEvaluator;
+}
+
+function createMethodExecutor<T extends {[method: string]: AnyFunction}>(
+    methodName: string, ...args: any[]
+): (obj: {[method: string]: AnyFunction}) => T  {
+    function methodExecutor(obj: T): T {
+        obj[methodName](...args);
+        return obj;
+    }
+    return methodExecutor;
 }
 
 /**

@@ -1,4 +1,12 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const path_1 = require("path");
 const index_1 = require("../index");
@@ -14,6 +22,8 @@ const geometryOopPath = path_1.join(fixturePath, "geometry.oop.js");
 const geometryAreaPath = path_1.join(fixturePath, "geometry-area.yml");
 const geometryGetColorPath = path_1.join(fixturePath, "geometry-getColor.yml");
 const geometryGetSideLengthPath = path_1.join(fixturePath, "geometry-getSideLength.yml");
+const playerContainerPath = path_1.join(fixturePath, "player.yml");
+const playerInjectionPath = path_1.join(fixturePath, "Player.js");
 describe("inject with default/no-injection", () => {
     it("works with default injection", () => {
         const main = index_1.inject(containerPath);
@@ -85,5 +95,12 @@ describe("inject with inherited class instance", () => {
             expect(error.message).toBe("Not implemented");
         }
     });
+});
+describe("inject with method chainning", () => {
+    it("works", () => __awaiter(this, void 0, void 0, function* () {
+        const main = index_1.inject(playerContainerPath, playerInjectionPath);
+        const status = yield main("Arthas");
+        expect(status).toBe("Arthas attack with Frostmourne, deal 50 damage");
+    }));
 });
 //# sourceMappingURL=index-inject.test.js.map

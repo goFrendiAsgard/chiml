@@ -320,3 +320,10 @@ tsc --build ./tsconfig.json
 chie -i ./dist/injection.dog.js -c ./animal-calendar.yml 2019
 ```
 
+or
+
+```
+tsc --build ./tsconfig.json
+chie -i "./dist/injection.dog.js as injection" -c ./animal-calendar.yml 2019
+```
+

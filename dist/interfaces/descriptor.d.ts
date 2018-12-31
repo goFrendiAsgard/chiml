@@ -43,6 +43,15 @@ export interface IUserComponent {
 export interface IChimera {
     declare: (partialDeclarativeConfig: Partial<IUserDeclarativeConfig>) => AnyFunction;
     inject: (containerFile: string, injectionFile?: string) => AnyFunction;
+    createClassInitiator: (cls: any) => AnyFunction;
+    createMethodEvaluator: (methodName: string, ...args: any[]) => (obj: {
+        [method: string]: AnyFunction;
+    }) => any;
+    createMethodExecutor: <T extends {
+        [method: string]: AnyFunction;
+    }>(methodName: string, ...args: any[]) => (obj: {
+        [method: string]: AnyFunction;
+    }) => T;
     foldInput: (fn: AnyFunction) => ((arr: any[]) => any);
     spreadInput: (fn: (arr: any[]) => any) => AnyFunction;
     concurrent: (...fnList: AnyAsyncFunction[]) => AnyAsyncFunction;

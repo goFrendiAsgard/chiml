@@ -13,6 +13,8 @@ const geometryOopPath = pathJoin(fixturePath, "geometry.oop.js");
 const geometryAreaPath = pathJoin(fixturePath, "geometry-area.yml");
 const geometryGetColorPath = pathJoin(fixturePath, "geometry-getColor.yml");
 const geometryGetSideLengthPath = pathJoin(fixturePath, "geometry-getSideLength.yml");
+const playerContainerPath = pathJoin(fixturePath, "player.yml");
+const playerInjectionPath = pathJoin(fixturePath, "Player.js");
 
 describe("inject with default/no-injection", () => {
 
@@ -99,6 +101,16 @@ describe("inject with inherited class instance", () => {
         } catch (error) {
             expect(error.message).toBe("Not implemented");
         }
+    });
+
+});
+
+describe("inject with method chainning", () => {
+
+    it("works", async () => {
+        const main = inject(playerContainerPath, playerInjectionPath);
+        const status = await main("Arthas");
+        expect(status).toBe("Arthas attack with Frostmourne, deal 50 damage");
     });
 
 });
