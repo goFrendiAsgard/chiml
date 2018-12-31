@@ -10,6 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const index_1 = require("../index");
 const lib_1 = require("./fixtures/lib");
+const Player_1 = require("./fixtures/Player");
 describe("foldInput", () => {
     it("works", () => {
         const fn = (...args) => index_1.R.sum(args);
@@ -136,6 +137,17 @@ describe("wrapCommand", () => {
         }
         return null;
     }));
+});
+describe("class helpers", () => {
+    it("works", () => {
+        const initPlayer = index_1.X.createClassInitiator(Player_1.Player);
+        const setWeaponToFrostmourne = index_1.X.createMethodExecutor("setWeapon", "Frostmourne");
+        const setDamageTo50 = index_1.X.createMethodExecutor("setDamage", 50);
+        const attack = index_1.X.createMethodEvaluator("attack");
+        const main = index_1.R.pipe(initPlayer, setWeaponToFrostmourne, setDamageTo50, attack);
+        const result = main("Arthas");
+        expect(result).toBe("Arthas attack with Frostmourne, deal 50 damage");
+    });
 });
 describe("imperative style", () => {
     it("works", () => __awaiter(this, void 0, void 0, function* () {

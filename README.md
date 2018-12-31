@@ -38,14 +38,18 @@ By default, Chiml injects 2 Objects:
 
 * R: [Ramda Js](https://ramdajs.com/docs/)
 * X: Chiml parser, injector, and some utilities not provided in ramda
-    - declare: (partialDeclarativeConfig: Partial<IUserDeclarativeConfig>) => AnyFunction;
-    - inject: (containerFile: string, injectionFile?: string) => AnyFunction;
-    - foldInput: (fn: AnyFunction) => ((arr: any[]) => any);
-    - spreadInput: (fn: (arr: any[]) => any) => AnyFunction;
-    - concurrent: (...fnList: AnyAsyncFunction[]) => AnyAsyncFunction;
-    - wrapCommand: (stringCommand: string) => AnyAsyncFunction;
-    - wrapNodeback: (fn: AnyFunction) => AnyAsyncFunction;
-    - wrapSync: (fn: AnyFunction) => AnyAsyncFunction;
+    - `declare: (partialDeclarativeConfig: Partial<IUserDeclarativeConfig>) => AnyFunction;`
+    - `inject: (containerFile: string, injectionFile?: string) => AnyFunction;`
+    - `initClassAndRun: (configs: Partial<IClassRunnerConfig>) => any;`
+    - `createClassInitiator: (cls: any) => (...args: any[]) => IObjectWithMethod;`
+    - `createMethodEvaluator: (methodName: string, ...args: any[]) => (obj: IObjectWithMethod) => any;`
+    - `createMethodExecutor: <T extends IObjectWithMethod>(methodName: string, ...args: any[]) => (obj: T) => T;`
+    - `foldInput: (fn: AnyFunction) => ((arr: any[]) => any);`
+    - `spreadInput: (fn: (arr: any[]) => any) => AnyFunction;`
+    - `concurrent: (...fnList: AnyAsyncFunction[]) => AnyAsyncFunction;`
+    - `wrapCommand: (stringCommand: string) => AnyAsyncFunction;`
+    - `wrapNodeback: (fn: AnyFunction) => AnyAsyncFunction;`
+    - `wrapSync: (fn: AnyFunction) => AnyAsyncFunction;`
 
 # Examples
 

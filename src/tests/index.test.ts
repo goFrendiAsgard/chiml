@@ -1,5 +1,6 @@
 import { R, X } from "../index";
 import { asyncMinus, commandRootSquare, nodebackMultiply, syncAdd } from "./fixtures/lib";
+import { Player } from "./fixtures/Player";
 
 describe("foldInput", () => {
 
@@ -153,9 +154,23 @@ describe("wrapCommand", () => {
 
 });
 
+describe("class helpers", () => {
+
+    it("works", () => {
+        const initPlayer = X.createClassInitiator(Player);
+        const setWeaponToFrostmourne = X.createMethodExecutor("setWeapon", "Frostmourne");
+        const setDamageTo50 = X.createMethodExecutor("setDamage", 50);
+        const attack = X.createMethodEvaluator("attack");
+        const main: (name: string) => string = R.pipe(initPlayer, setWeaponToFrostmourne, setDamageTo50, attack);
+        const result = main("Arthas");
+        expect(result).toBe("Arthas attack with Frostmourne, deal 50 damage");
+    });
+
+});
+
 describe("imperative style", () => {
 
-    it ("works", async () => {
+    it("works", async () => {
         // composition
         const asyncRootSquare = X.wrapCommand(commandRootSquare);
         const asyncMultiply = X.wrapNodeback(nodebackMultiply);

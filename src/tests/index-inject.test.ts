@@ -104,13 +104,3 @@ describe("inject with inherited class instance", () => {
     });
 
 });
-
-describe("inject with method chainning", () => {
-
-    it("works", async () => {
-        const main = inject(playerContainerPath, playerInjectionPath);
-        const status = await main("Arthas");
-        expect(status).toBe("Arthas attack with Frostmourne, deal 50 damage");
-    });
-
-});

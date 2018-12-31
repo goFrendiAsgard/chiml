@@ -6,8 +6,10 @@ import { dirname as pathDirname, join as pathJoin, resolve as pathResolve } from
 import * as Ramda from "ramda";
 import { inspect as utilInspect } from "util";
 import {
-    AnyAsyncFunction, AnyFunction, IComponent, IDeclarativeConfig, IKeyInParsedDict,
-    IUserComponent, IUserDeclarativeConfig, TChimera, TRamda,
+    AnyAsyncFunction, AnyFunction, IClassRunnerConfig, IComponent,
+    IDeclarativeConfig, IKeyInParsedDict, IMethodRunnerConfig,
+    IObjectWithMethod, IUserComponent, IUserDeclarativeConfig,
+    TChimera, TRamda,
 } from "./interfaces/descriptor";
 
 const FG_BRIGHT = "\x1b[1m";
@@ -22,6 +24,7 @@ export const R: TRamda = Ramda;
 export const X: TChimera = {
     declare,
     inject: R.curryN(2, inject),
+    initClassAndRun,
     createClassInitiator,
     createMethodExecutor,
     createMethodEvaluator,
@@ -391,7 +394,7 @@ function _getCompleteDeclarativeConfig(partialConfig: Partial<IUserDeclarativeCo
         out: null,
         injection: {},
         component: {},
-        bootstrap: "main",
+        bootstrap: "run",
     };
     const filledConfig = Object.assign({}, defaultDeclarativeConfig, partialConfig) as IDeclarativeConfig;
     // make sure `ins` is either null or array. Otherwise, turn it into array
@@ -424,25 +427,59 @@ function _getCompleteComponent(partialComponent: Partial<IUserComponent>): IComp
     return Object.assign({}, filledComponent, { ins, parts });
 }
 
-function createClassInitiator(cls: any): AnyFunction {
-    function classInitiator(...args: any[]): any {
-        return new cls(...args);
+function initClassAndRun<T extends IObjectWithMethod>(classRunnerConfig: Partial<IClassRunnerConfig>): any {
+    const { pipe, initClass, initParams, executions, evaluation } = _getCompleteClassRunnerConfig(classRunnerConfig);
+    const classInitiator: (...args: any[]) => T = createClassInitiator(initClass);
+    const executorList: Array<(T) => T> = executions.map((methodRunnerConfig) => {
+        const { method, params } = _getCompleteMethodRunnerConfig(methodRunnerConfig);
+        return createMethodExecutor(method, ...params);
+    });
+    if (evaluation) {
+        const { method, params } = _getCompleteMethodRunnerConfig(evaluation);
+        const evaluator = createMethodEvaluator(method, ...params);
+        const executorAndEvaluatorList = executorList.concat([evaluator]);
+        return pipe(classInitiator, ...executorAndEvaluatorList)(...initParams);
+    }
+    return pipe(classInitiator, ...executorList)(...initParams);
+}
+
+function _getCompleteMethodRunnerConfig(methodRunnerConfig: Partial<IMethodRunnerConfig>): IMethodRunnerConfig {
+    const defaultMethodRunnerConfig: IMethodRunnerConfig = {
+        method: "",
+        params: [],
+    };
+    const filledConfig = Object.assign({}, defaultMethodRunnerConfig, methodRunnerConfig);
+    const params = Array.isArray(filledConfig.params) ? filledConfig.params : [filledConfig.params];
+    return Object.assign({}, filledConfig, { params });
+}
+
+function _getCompleteClassRunnerConfig(classRunnerConfig: Partial<IClassRunnerConfig>): IClassRunnerConfig {
+    const defaultClassRunnerConfig: IClassRunnerConfig = {
+        pipe: R.pipe,
+        initClass: {},
+        initParams: [],
+        executions: [],
+    };
+    const filledConfig = Object.assign({}, defaultClassRunnerConfig, classRunnerConfig);
+    const initParams = Array.isArray(filledConfig.initParams) ? filledConfig.initParams : [filledConfig.initParams];
+    return Object.assign({}, filledConfig, { initParams });
+}
+
+function createClassInitiator<T extends IObjectWithMethod>(cls: any): (...args: any[]) => T {
+    function classInitiator(...args: any[]): T {
+        return new cls(...args) as T;
     }
     return classInitiator;
 }
 
-function createMethodEvaluator(
-    methodName: string, ...args: any[]
-): (obj: {[method: string]: AnyFunction}) => any  {
-    function methodEvaluator(obj: {[method: string]: AnyFunction}): any {
+function createMethodEvaluator(methodName: string, ...args: any[]): (obj: IObjectWithMethod) => any  {
+    function methodEvaluator(obj: IObjectWithMethod): any {
         return obj[methodName](...args);
     }
     return methodEvaluator;
 }
 
-function createMethodExecutor<T extends {[method: string]: AnyFunction}>(
-    methodName: string, ...args: any[]
-): (obj: {[method: string]: AnyFunction}) => T  {
+function createMethodExecutor<T extends IObjectWithMethod>(methodName: string, ...args: any[]): (obj: T) => T  {
     function methodExecutor(obj: T): T {
         obj[methodName](...args);
         return obj;

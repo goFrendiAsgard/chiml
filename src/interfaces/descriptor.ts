@@ -2,6 +2,10 @@ import { Static } from "ramda";
 export type AnyFunction = (...args: any[]) => any;
 export type AnyAsyncFunction = (...args: any[]) => Promise<any>;
 
+export interface IObjectWithMethod {
+    [method: string]: AnyFunction;
+}
+
 export interface IKeyInParsedDict {
     found: boolean;
     value: any;
@@ -37,14 +41,26 @@ export interface IUserComponent {
     parts: any[] | any | null;
 }
 
+export interface IMethodRunnerConfig {
+    method: string;
+    params: any[];
+}
+
+export interface IClassRunnerConfig {
+    pipe: (...args) => AnyFunction;
+    initClass: {[method: string]: AnyFunction};
+    initParams: any[];
+    executions: IMethodRunnerConfig[];
+    evaluation?: IMethodRunnerConfig;
+}
+
 export interface IChimera {
     declare: (partialDeclarativeConfig: Partial<IUserDeclarativeConfig>) => AnyFunction;
     inject: (containerFile: string, injectionFile?: string) => AnyFunction;
-    createClassInitiator: (cls: any) => AnyFunction;
-    createMethodEvaluator: (methodName: string, ...args: any[]) => (obj: {[method: string]: AnyFunction}) => any;
-    createMethodExecutor:
-        <T extends {[method: string]: AnyFunction}>(methodName: string, ...args: any[]) =>
-        (obj: {[method: string]: AnyFunction}) => T;
+    initClassAndRun: (configs: Partial<IClassRunnerConfig>) => any;
+    createClassInitiator: (cls: any) => (...args: any[]) => IObjectWithMethod;
+    createMethodEvaluator: (methodName: string, ...args: any[]) => (obj: IObjectWithMethod) => any;
+    createMethodExecutor: <T extends IObjectWithMethod>(methodName: string, ...args: any[]) => (obj: T) => T;
     foldInput: (fn: AnyFunction) => ((arr: any[]) => any);
     spreadInput: (fn: (arr: any[]) => any) => AnyFunction;
     concurrent: (...fnList: AnyAsyncFunction[]) => AnyAsyncFunction;

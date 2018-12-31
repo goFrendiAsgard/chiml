@@ -25,6 +25,7 @@ exports.R = Ramda;
 exports.X = {
     declare,
     inject: exports.R.curryN(2, inject),
+    initClassAndRun,
     createClassInitiator,
     createMethodExecutor,
     createMethodEvaluator,
@@ -343,7 +344,7 @@ function _getCompleteDeclarativeConfig(partialConfig) {
         out: null,
         injection: {},
         component: {},
-        bootstrap: "main",
+        bootstrap: "run",
     };
     const filledConfig = Object.assign({}, defaultDeclarativeConfig, partialConfig);
     // make sure `ins` is either null or array. Otherwise, turn it into array
@@ -373,6 +374,41 @@ function _getCompleteComponent(partialComponent) {
     const parts = Array.isArray(filledComponent.parts) ? filledComponent.parts : [filledComponent.parts];
     // return component component
     return Object.assign({}, filledComponent, { ins, parts });
+}
+function initClassAndRun(classRunnerConfig) {
+    const { pipe, initClass, initParams, executions, evaluation } = _getCompleteClassRunnerConfig(classRunnerConfig);
+    const classInitiator = createClassInitiator(initClass);
+    const executorList = executions.map((methodRunnerConfig) => {
+        const { method, params } = _getCompleteMethodRunnerConfig(methodRunnerConfig);
+        return createMethodExecutor(method, ...params);
+    });
+    if (evaluation) {
+        const { method, params } = _getCompleteMethodRunnerConfig(evaluation);
+        const evaluator = createMethodEvaluator(method, ...params);
+        const executorAndEvaluatorList = executorList.concat([evaluator]);
+        return pipe(classInitiator, ...executorAndEvaluatorList)(...initParams);
+    }
+    return pipe(classInitiator, ...executorList)(...initParams);
+}
+function _getCompleteMethodRunnerConfig(methodRunnerConfig) {
+    const defaultMethodRunnerConfig = {
+        method: "",
+        params: [],
+    };
+    const filledConfig = Object.assign({}, defaultMethodRunnerConfig, methodRunnerConfig);
+    const params = Array.isArray(filledConfig.params) ? filledConfig.params : [filledConfig.params];
+    return Object.assign({}, filledConfig, { params });
+}
+function _getCompleteClassRunnerConfig(classRunnerConfig) {
+    const defaultClassRunnerConfig = {
+        pipe: exports.R.pipe,
+        initClass: {},
+        initParams: [],
+        executions: [],
+    };
+    const filledConfig = Object.assign({}, defaultClassRunnerConfig, classRunnerConfig);
+    const initParams = Array.isArray(filledConfig.initParams) ? filledConfig.initParams : [filledConfig.initParams];
+    return Object.assign({}, filledConfig, { initParams });
 }
 function createClassInitiator(cls) {
     function classInitiator(...args) {

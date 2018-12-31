@@ -10,6 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const index_1 = require("../index");
 const lib_1 = require("./fixtures/lib");
+const Player_1 = require("./fixtures/Player");
 describe("non-error declarative style", () => {
     it("works for normal config", () => __awaiter(this, void 0, void 0, function* () {
         const main = index_1.X.declare({
@@ -203,6 +204,144 @@ describe("non-error declarative style", () => {
         });
         const result = main();
         expect(result).toBe(9);
+    });
+});
+describe("non-error declarative style with class helpers", () => {
+    it("works with class createClassInitiator, createMethodExecutor, and createMethodEvaluator", () => {
+        const main = index_1.X.declare({
+            ins: "playerName",
+            bootstrap: "run",
+            injection: { Player: Player_1.Player, R: index_1.R, X: index_1.X },
+            component: {
+                run: {
+                    perform: "R.pipe",
+                    parts: [
+                        "${initPlayer}",
+                        "${setWeaponToFrostmourne}",
+                        "${setDamageTo50}",
+                        "${attack}",
+                    ],
+                },
+                initPlayer: {
+                    perform: "X.createClassInitiator",
+                    parts: "${Player}",
+                },
+                setWeaponToFrostmourne: {
+                    perform: "X.createMethodExecutor",
+                    parts: ["setWeapon", "Frostmourne"],
+                },
+                setDamageTo50: {
+                    perform: "X.createMethodExecutor",
+                    parts: ["setDamage", 50],
+                },
+                attack: {
+                    perform: "X.createMethodEvaluator",
+                    parts: "attack",
+                },
+            },
+        });
+        const status = main("Arthas");
+        expect(status).toBe("Arthas attack with Frostmourne, deal 50 damage");
+    });
+    it("works with init class and execute", () => {
+        const main = index_1.X.declare({
+            bootstrap: "run",
+            injection: { Player: Player_1.Player, R: index_1.R, X: index_1.X },
+            component: {
+                run: {
+                    perform: "R.pipe",
+                    parts: ["${initPlayer}", "${attack}"],
+                },
+                initPlayer: {
+                    perform: "X.initClassAndRun",
+                    parts: {
+                        pipe: "${R.pipe}",
+                        initClass: "${Player}",
+                        initParams: ["Guldan"],
+                        executions: [
+                            {
+                                method: "setWeapon",
+                                params: ["Rod"],
+                            },
+                            {
+                                method: "setDamage",
+                                params: 10,
+                            },
+                        ],
+                    },
+                },
+                attack: {
+                    perform: "X.createMethodEvaluator",
+                    parts: "attack",
+                },
+            },
+        });
+        const status = main();
+        expect(status).toBe("Guldan attack with Rod, deal 10 damage");
+    });
+    it("works with init class and evaluate (evaluation params is undefined)", () => {
+        const main = index_1.X.declare({
+            bootstrap: "run",
+            injection: { Player: Player_1.Player, R: index_1.R, X: index_1.X },
+            component: {
+                run: {
+                    perform: "X.initClassAndRun",
+                    parts: {
+                        pipe: "${R.pipe}",
+                        initClass: "${Player}",
+                        initParams: ["Thrall"],
+                        executions: [
+                            {
+                                method: "setWeapon",
+                                params: ["Lightning Bolt"],
+                            },
+                            {
+                                method: "setDamage",
+                                params: 30,
+                            },
+                        ],
+                        evaluation: {
+                            method: "attack",
+                            params: undefined,
+                        },
+                    },
+                },
+            },
+        });
+        const status = main();
+        expect(status).toBe("Thrall attack with Lightning Bolt, deal 30 damage");
+    });
+    it("works with init class and evaluate (init params is not an array, evaluation params is an empty array)", () => {
+        const main = index_1.X.declare({
+            bootstrap: "run",
+            injection: { Player: Player_1.Player, R: index_1.R, X: index_1.X },
+            component: {
+                run: {
+                    perform: "X.initClassAndRun",
+                    parts: {
+                        pipe: "${R.pipe}",
+                        initClass: "${Player}",
+                        initParams: "Thrall",
+                        executions: [
+                            {
+                                method: "setWeapon",
+                                params: ["Lightning Bolt"],
+                            },
+                            {
+                                method: "setDamage",
+                                params: 30,
+                            },
+                        ],
+                        evaluation: {
+                            method: "attack",
+                            params: [],
+                        },
+                    },
+                },
+            },
+        });
+        const status = main();
+        expect(status).toBe("Thrall attack with Lightning Bolt, deal 30 damage");
     });
 });
 describe("error declarative style", () => {

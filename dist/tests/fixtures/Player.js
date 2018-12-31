@@ -1,3 +1,5 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 class Player {
     constructor(name) {
         this.name = name;
@@ -12,5 +14,5 @@ class Player {
         return `${this.name} attack with ${this.weapon}, deal ${this.damage} damage`;
     }
 }
-
-module.exports = Player;
+exports.Player = Player;
+//# sourceMappingURL=Player.js.map
