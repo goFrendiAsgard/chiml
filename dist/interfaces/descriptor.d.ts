@@ -4,7 +4,6 @@ export declare type AnyAsyncFunction = (...args: any[]) => Promise<any>;
 export interface IKeyInParsedDict {
     found: boolean;
     value: any;
-    context: any;
 }
 export interface IDeclarativeConfig {
     injection: {

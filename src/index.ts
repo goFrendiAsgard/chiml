@@ -185,24 +185,18 @@ function _getParsedParts(
 function _getFromParsedDict(parsedDict: {[key: string]: any}, searchKey: string): IKeyInParsedDict {
     const searchKeyParts = searchKey.split(".");
     const initialResult: IKeyInParsedDict = {
-        context: parsedDict,
         value: parsedDict,
         found: false,
     };
     const result = searchKeyParts.reduce((tmpResult, key) => {
         if (key in tmpResult.value) {
-            return Object.assign({}, tmpResult, { found: true, value: tmpResult.value[key], context: tmpResult.value });
+            const oldValue = tmpResult.value;
+            const newValue = tmpResult.value[key];
+            const newBindValue = typeof newValue === "function" ? newValue.bind(oldValue) : newValue;
+            return Object.assign(tmpResult, { found: true, value: newBindValue, context: tmpResult.value });
         }
-        return Object.assign({}, tmpResult, { found: false });
+        return Object.assign(tmpResult, { found: false });
     }, initialResult);
-    // if it is class-instance's method, don't lost the context
-    if (result.found && typeof result.value === "function") {
-        return {
-            found: result.found,
-            context: result.context,
-            value: result.value.bind(result.context),
-        } as IKeyInParsedDict;
-    }
     return result;
 }
 
