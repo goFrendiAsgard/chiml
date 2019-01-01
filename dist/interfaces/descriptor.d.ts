@@ -52,8 +52,8 @@ export interface IClassRunnerConfig {
         [method: string]: AnyFunction;
     };
     initParams: any[];
-    executions: IMethodRunnerConfig[];
-    evaluation?: IMethodRunnerConfig;
+    executions: any[];
+    evaluation?: IMethodRunnerConfig | any[];
 }
 export interface IChimera {
     declare: (partialDeclarativeConfig: Partial<IUserDeclarativeConfig>) => AnyFunction;

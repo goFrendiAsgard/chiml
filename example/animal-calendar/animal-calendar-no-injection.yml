@@ -34,10 +34,7 @@ component:
 
     fetchImageUrl:
         out: imageUrl
-        perform: R.pipeP
-        parts:
-            - $fetchImageObj
-            - $getImageUrl
+        perform: [R.pipeP, $fetchImageObj, $getImageUrl]
 
     fetchImageObj:
         ins: []

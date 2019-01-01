@@ -455,7 +455,7 @@ function _getPartialComponent(rawComponent: Partial<IUserComponent>| string | st
 function initClassAndRun<T extends IObjectWithMethod>(classRunnerConfig: Partial<IClassRunnerConfig>): any {
     const { pipe, initClass, initParams, executions, evaluation } = _getCompleteClassRunnerConfig(classRunnerConfig);
     const classInitiator: (...args: any[]) => T = createClassInitiator(initClass);
-    const executorList: Array<(T) => T> = executions.map((methodRunnerConfig) => {
+    const executorList = executions.map((methodRunnerConfig) => {
         const { method, params } = _getCompleteMethodRunnerConfig(methodRunnerConfig);
         return createMethodExecutor(method, ...params);
     });
@@ -468,14 +468,30 @@ function initClassAndRun<T extends IObjectWithMethod>(classRunnerConfig: Partial
     return pipe(classInitiator, ...executorList)(...initParams);
 }
 
-function _getCompleteMethodRunnerConfig(methodRunnerConfig: Partial<IMethodRunnerConfig>): IMethodRunnerConfig {
+function _getCompleteMethodRunnerConfig(
+    rawMethodRunnerConfig: Partial<IMethodRunnerConfig>| any[],
+): IMethodRunnerConfig {
     const defaultMethodRunnerConfig: IMethodRunnerConfig = {
         method: "",
         params: [],
     };
+    const methodRunnerConfig = _getMethodRunnerConfig(rawMethodRunnerConfig);
     const filledConfig = Object.assign({}, defaultMethodRunnerConfig, methodRunnerConfig);
     const params = Array.isArray(filledConfig.params) ? filledConfig.params : [filledConfig.params];
     return Object.assign({}, filledConfig, { params });
+}
+
+function _getMethodRunnerConfig(
+    rawMethodRunnerConfig: Partial<IMethodRunnerConfig>| any[],
+): Partial<IMethodRunnerConfig> {
+    if (typeof rawMethodRunnerConfig === "string") {
+        return { method: rawMethodRunnerConfig };
+    }
+    if (Array.isArray(rawMethodRunnerConfig)) {
+        const [method, ...params] = rawMethodRunnerConfig;
+        return { method, params };
+    }
+    return rawMethodRunnerConfig as Partial<IMethodRunnerConfig>;
 }
 
 function _getCompleteClassRunnerConfig(classRunnerConfig: Partial<IClassRunnerConfig>): IClassRunnerConfig {

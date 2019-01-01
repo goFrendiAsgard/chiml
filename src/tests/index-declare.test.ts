@@ -405,6 +405,30 @@ describe("non-error declarative style with class helpers", () => {
         expect(result).toBe("Thrall attack with Lightning Bolt, deal 30 damage");
     });
 
+    it("works with init class and evaluate that use brief-config", () => {
+        const main = X.declare({
+            bootstrap: "run",
+            injection: { Player, R, X },
+            component: {
+                run: {
+                    perform: "X.initClassAndRun",
+                    parts: {
+                        pipe: "${R.pipe}",
+                        initClass: "${Player}",
+                        initParams: "Thrall",
+                        executions: [
+                            ["setWeapon", "Lightning Bolt"],
+                            ["setDamage", 30],
+                        ],
+                        evaluation: "attack",
+                    },
+                },
+            },
+        });
+        const result = main();
+        expect(result).toBe("Thrall attack with Lightning Bolt, deal 30 damage");
+    });
+
 });
 
 describe("error declarative style", () => {

@@ -411,14 +411,25 @@ function initClassAndRun(classRunnerConfig) {
     }
     return pipe(classInitiator, ...executorList)(...initParams);
 }
-function _getCompleteMethodRunnerConfig(methodRunnerConfig) {
+function _getCompleteMethodRunnerConfig(rawMethodRunnerConfig) {
     const defaultMethodRunnerConfig = {
         method: "",
         params: [],
     };
+    const methodRunnerConfig = _getMethodRunnerConfig(rawMethodRunnerConfig);
     const filledConfig = Object.assign({}, defaultMethodRunnerConfig, methodRunnerConfig);
     const params = Array.isArray(filledConfig.params) ? filledConfig.params : [filledConfig.params];
     return Object.assign({}, filledConfig, { params });
+}
+function _getMethodRunnerConfig(rawMethodRunnerConfig) {
+    if (typeof rawMethodRunnerConfig === "string") {
+        return { method: rawMethodRunnerConfig };
+    }
+    if (Array.isArray(rawMethodRunnerConfig)) {
+        const [method, ...params] = rawMethodRunnerConfig;
+        return { method, params };
+    }
+    return rawMethodRunnerConfig;
 }
 function _getCompleteClassRunnerConfig(classRunnerConfig) {
     const defaultClassRunnerConfig = {

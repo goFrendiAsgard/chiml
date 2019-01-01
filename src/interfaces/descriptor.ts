@@ -50,8 +50,8 @@ export interface IClassRunnerConfig {
     pipe: (...args) => AnyFunction;
     initClass: {[method: string]: AnyFunction};
     initParams: any[];
-    executions: IMethodRunnerConfig[];
-    evaluation?: IMethodRunnerConfig;
+    executions: any[];
+    evaluation?: IMethodRunnerConfig | any[];
 }
 
 export interface IChimera {
