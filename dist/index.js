@@ -21,6 +21,7 @@ const FG_RED = "\x1b[31m";
 const FG_YELLOW = "\x1b[33m";
 const RESET_COLOR = "\x1b[0m";
 const TAG_PATTERN = /^\s*\$\{(.+)\}\s*$/gi;
+const SHORT_TAG_PATTERN = /^\s*\$([a-z0-9_\-\.]+)\s*$/gi;
 exports.R = Ramda;
 exports.X = {
     declare,
@@ -160,15 +161,15 @@ function _getParsedParts(parsedDict, state, componentDict, parentComponentName, 
     }
     if (typeof parts === "string") {
         const tagPattern = new RegExp(TAG_PATTERN);
-        const match = tagPattern.exec(parts);
+        const shortTagPattern = new RegExp(SHORT_TAG_PATTERN);
+        const match = tagPattern.exec(parts) || shortTagPattern.exec(parts);
         if (match) {
-            // parse `${value}` template
             const key = match[1];
             const parsedDictVal = _getFromParsedDict(parsedDict, key);
             return parsedDictVal.value;
         }
         // un-escape `\${value}` into `${value}`
-        return parts.replace(/^\s*\\\$\{(.+)\}\s*$/gi, "\${$1}");
+        return parts.replace(/^\s*\\\$/gi, "\$");
     }
     return parts;
 }

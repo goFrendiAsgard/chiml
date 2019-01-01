@@ -127,7 +127,7 @@ describe("non-error declarative style", () => {
         const result = main("world");
         expect(result).toBe("Hello world");
     });
-    it("works with escaped template-string", () => {
+    it("works with template-string", () => {
         const main = index_1.X.declare({
             bootstrap: "run",
             injection: {
@@ -150,7 +150,7 @@ describe("non-error declarative style", () => {
         const result = main();
         expect(result).toBe(20);
     });
-    it("works with nested template-string", () => {
+    it("works with escaped template-string", () => {
         const main = index_1.X.declare({
             bootstrap: "run",
             injection: {
@@ -166,6 +166,23 @@ describe("non-error declarative style", () => {
         });
         const result = main("world");
         expect(result).toBe("${hi}world");
+    });
+    it("works with escaped template-string that has no curly brace", () => {
+        const main = index_1.X.declare({
+            bootstrap: "run",
+            injection: {
+                hi: "hello",
+                R: index_1.R,
+            },
+            component: {
+                run: {
+                    perform: "R.concat",
+                    parts: "\\$hi",
+                },
+            },
+        });
+        const result = main("world");
+        expect(result).toBe("$hiworld");
     });
     it("works with component that try to change state, but the state itself should be immutable", () => {
         const main = index_1.X.declare({
@@ -205,13 +222,29 @@ describe("non-error declarative style", () => {
     });
 });
 describe("brief syntax", () => {
-    it("behave correctly", () => {
+    it("works with brief structure", () => {
         const main = index_1.X.declare({
             ins: ["n1", "n2"],
             bootstrap: "run",
             injection: { R: index_1.R, X: index_1.X },
             component: {
                 run: ["R.pipe", "${add}", "${addOne}"],
+                add: "R.add",
+                addOne: {
+                    perform: ["R.add", 1],
+                },
+            },
+        });
+        const result = main(4, 5);
+        expect(result).toBe(10);
+    });
+    it("works with brief component name without curly brace", () => {
+        const main = index_1.X.declare({
+            ins: ["n1", "n2"],
+            bootstrap: "run",
+            injection: { R: index_1.R, X: index_1.X },
+            component: {
+                run: ["R.pipe", "$add", "$addOne"],
                 add: "R.add",
                 addOne: {
                     perform: ["R.add", 1],
