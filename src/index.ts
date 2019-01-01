@@ -410,13 +410,14 @@ function _getCompleteDeclarativeConfig(partialConfig: Partial<IUserDeclarativeCo
     return Object.assign({}, filledConfig, { component, ins });
 }
 
-function _getCompleteComponent(partialComponent: Partial<IUserComponent>): IComponent {
+function _getCompleteComponent(rawComponent: Partial<IUserComponent>| string | string[]): IComponent {
     const defaultComponent = {
         ins: null,
         out: null,
         perform: null,
         parts: [],
     };
+    const partialComponent = _getPartialComponentWithNormalizePerform(rawComponent);
     const filledComponent = Object.assign({}, defaultComponent, partialComponent) as IComponent;
     // make sure `ins` is either null or an array. Otherwise, turn it into an array
     const ins = filledComponent.ins !== null && !Array.isArray(filledComponent.ins) ?
@@ -425,6 +426,29 @@ function _getCompleteComponent(partialComponent: Partial<IUserComponent>): IComp
     const parts = Array.isArray(filledComponent.parts) ? filledComponent.parts : [filledComponent.parts];
     // return component component
     return Object.assign({}, filledComponent, { ins, parts });
+}
+
+function _getPartialComponentWithNormalizePerform(
+    rawComponent: Partial<IUserComponent> | string | string[],
+): Partial<IUserComponent> {
+    const partialComponent = _getPartialComponent(rawComponent);
+    const { perform } = partialComponent;
+    if (Array.isArray(perform)) {
+        const [realPerform, ...parts] = perform;
+        return Object.assign({}, partialComponent, { perform: realPerform, parts });
+    }
+    return partialComponent;
+}
+
+function _getPartialComponent(rawComponent: Partial<IUserComponent>| string | string[]): Partial<IUserComponent> {
+    if (typeof rawComponent === "string") {
+        return { perform: rawComponent };
+    }
+    if (Array.isArray(rawComponent)) {
+        const [perform, ...parts] = rawComponent;
+        return { perform, parts };
+    }
+    return rawComponent;
 }
 
 function initClassAndRun<T extends IObjectWithMethod>(classRunnerConfig: Partial<IClassRunnerConfig>): any {

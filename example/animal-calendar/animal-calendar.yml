@@ -1,4 +1,4 @@
-animalins: year
+ins: year
 out: result
 bootstrap: execute
 injection: ./dist/injection.cat.js

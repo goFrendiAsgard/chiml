@@ -21,7 +21,7 @@ export interface IDeclarativeConfig {
 
 export interface IUserDeclarativeConfig {
     injection: {[key: string]: any};
-    component: {[key: string]: Partial<IUserComponent>};
+    component: {[key: string]: Partial<IUserComponent> | string | any[]};
     bootstrap: string;
     ins: string[] | string | null;
     out: string | null;
@@ -37,7 +37,7 @@ export interface IComponent {
 export interface IUserComponent {
     ins: string[] | string | null;
     out: string;
-    perform: string;
+    perform: string | any[];
     parts: any[] | any | null;
 }
 

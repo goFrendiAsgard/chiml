@@ -17,9 +17,7 @@ describe("non-error declarative style", () => {
             ins: ["a", "b"],
             out: "f",
             bootstrap: "run",
-            // parts can contains any values/JavaScript object
             injection: { asyncMinus: lib_1.asyncMinus, commandRootSquare: lib_1.commandRootSquare, nodebackMultiply: lib_1.nodebackMultiply, syncAdd: lib_1.syncAdd, R: index_1.R, X: index_1.X },
-            // comp should only contains valid JSON object
             component: {
                 run: {
                     perform: "R.pipeP",
@@ -206,6 +204,24 @@ describe("non-error declarative style", () => {
         expect(result).toBe(9);
     });
 });
+describe("brief syntax", () => {
+    it("behave correctly", () => {
+        const main = index_1.X.declare({
+            ins: ["n1", "n2"],
+            bootstrap: "run",
+            injection: { R: index_1.R, X: index_1.X },
+            component: {
+                run: ["R.pipe", "${add}", "${addOne}"],
+                add: "R.add",
+                addOne: {
+                    perform: ["R.add", 1],
+                },
+            },
+        });
+        const result = main(4, 5);
+        expect(result).toBe(10);
+    });
+});
 describe("non-error declarative style with class helpers", () => {
     it("works with class createClassInitiator, createMethodExecutor, and createMethodEvaluator", () => {
         const main = index_1.X.declare({
@@ -240,8 +256,8 @@ describe("non-error declarative style with class helpers", () => {
                 },
             },
         });
-        const status = main("Arthas");
-        expect(status).toBe("Arthas attack with Frostmourne, deal 50 damage");
+        const result = main("Arthas");
+        expect(result).toBe("Arthas attack with Frostmourne, deal 50 damage");
     });
     it("works with init class and execute", () => {
         const main = index_1.X.declare({
@@ -276,8 +292,8 @@ describe("non-error declarative style with class helpers", () => {
                 },
             },
         });
-        const status = main();
-        expect(status).toBe("Guldan attack with Rod, deal 10 damage");
+        const result = main();
+        expect(result).toBe("Guldan attack with Rod, deal 10 damage");
     });
     it("works with init class and evaluate (evaluation params is undefined)", () => {
         const main = index_1.X.declare({
@@ -308,8 +324,8 @@ describe("non-error declarative style with class helpers", () => {
                 },
             },
         });
-        const status = main();
-        expect(status).toBe("Thrall attack with Lightning Bolt, deal 30 damage");
+        const result = main();
+        expect(result).toBe("Thrall attack with Lightning Bolt, deal 30 damage");
     });
     it("works with init class and evaluate (init params is not an array, evaluation params is an empty array)", () => {
         const main = index_1.X.declare({
@@ -340,8 +356,8 @@ describe("non-error declarative style with class helpers", () => {
                 },
             },
         });
-        const status = main();
-        expect(status).toBe("Thrall attack with Lightning Bolt, deal 30 damage");
+        const result = main();
+        expect(result).toBe("Thrall attack with Lightning Bolt, deal 30 damage");
     });
 });
 describe("error declarative style", () => {

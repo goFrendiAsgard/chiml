@@ -359,13 +359,14 @@ function _getCompleteDeclarativeConfig(partialConfig) {
     // return complete config
     return Object.assign({}, filledConfig, { component, ins });
 }
-function _getCompleteComponent(partialComponent) {
+function _getCompleteComponent(rawComponent) {
     const defaultComponent = {
         ins: null,
         out: null,
         perform: null,
         parts: [],
     };
+    const partialComponent = _getPartialComponentWithNormalizePerform(rawComponent);
     const filledComponent = Object.assign({}, defaultComponent, partialComponent);
     // make sure `ins` is either null or an array. Otherwise, turn it into an array
     const ins = filledComponent.ins !== null && !Array.isArray(filledComponent.ins) ?
@@ -374,6 +375,25 @@ function _getCompleteComponent(partialComponent) {
     const parts = Array.isArray(filledComponent.parts) ? filledComponent.parts : [filledComponent.parts];
     // return component component
     return Object.assign({}, filledComponent, { ins, parts });
+}
+function _getPartialComponentWithNormalizePerform(rawComponent) {
+    const partialComponent = _getPartialComponent(rawComponent);
+    const { perform } = partialComponent;
+    if (Array.isArray(perform)) {
+        const [realPerform, ...parts] = perform;
+        return Object.assign({}, partialComponent, { perform: realPerform, parts });
+    }
+    return partialComponent;
+}
+function _getPartialComponent(rawComponent) {
+    if (typeof rawComponent === "string") {
+        return { perform: rawComponent };
+    }
+    if (Array.isArray(rawComponent)) {
+        const [perform, ...parts] = rawComponent;
+        return { perform, parts };
+    }
+    return rawComponent;
 }
 function initClassAndRun(classRunnerConfig) {
     const { pipe, initClass, initParams, executions, evaluation } = _getCompleteClassRunnerConfig(classRunnerConfig);

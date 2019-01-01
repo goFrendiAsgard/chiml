@@ -24,7 +24,7 @@ export interface IUserDeclarativeConfig {
         [key: string]: any;
     };
     component: {
-        [key: string]: Partial<IUserComponent>;
+        [key: string]: Partial<IUserComponent> | string | any[];
     };
     bootstrap: string;
     ins: string[] | string | null;
@@ -39,7 +39,7 @@ export interface IComponent {
 export interface IUserComponent {
     ins: string[] | string | null;
     out: string;
-    perform: string;
+    perform: string | any[];
     parts: any[] | any | null;
 }
 export interface IMethodRunnerConfig {
