@@ -25,6 +25,7 @@ CHIML (Chimera Markup Language) is a declarative dependency injection framework 
 * Composing components is better than creating nested structure.
 * Container and injections should be independent to each others.
 * If you write similar code several times, you do it wrong. You should break down your code into smaller components instead.
+* Brevity matters, but never sacrifice readability for brevity.
 
 # Install
 

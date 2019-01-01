@@ -32,10 +32,10 @@ component:
     execute:
         perform: R.pipeP
         parts:
-            - ${fetchImageAndCalendar}
-            - ${composeCalendar}
-            - ${writeCalendar}
-            - ${showCalendar}
+            - $fetchImageAndCalendar
+            - $composeCalendar
+            - $writeCalendar
+            - $showCalendar
 ```
 
 ## Implementation (without dependency-injection)
@@ -53,8 +53,9 @@ In order to make the implementation, we need to break-down our plan and make it 
 
 Below is the detail implementation, as well as our executable CHIML program:
 
+__animal-calendar.yml__
+
 ```yaml
-# file: animal-calendar-no-injection.yml
 ins: year
 out: result
 bootstrap: execute
@@ -63,59 +64,47 @@ component:
     execute:
         perform: R.pipeP
         parts:
-            - ${fetchImageAndCalendar}
-            - ${composeCalendar}
-            - ${writeCalendar}
-            - ${showCalendar}
+            - $fetchImageAndCalendar
+            - $composeCalendar
+            - $writeCalendar
+            - $showCalendar
 
-    fetchImageAndCalendar:
-        perform: X.concurrent
-        parts:
-            - ${fetchImageUrl}
-            - ${fetchCalendar}
+    fetchImageAndCalendar: [X.concurrent, $fetchImageUrl, $fetchCalendar]
 
     composeCalendar:
-        ins:
-            - imageUrl
-            - calendar
+        ins: [imageUrl, calendar]
         out: result
         perform: X.wrapCommand
         parts: echo '<img src="' ${1} '"/><pre>' ${2} '</pre>'
 
     writeCalendar:
         ins: result
-        perform: X.wrapCommand
-        parts: echo ${1} > ${PWD}/calendar.html
+        perform: [X.wrapCommand, "echo ${1} > ${PWD}/calendar.html"]
 
     showCalendar:
         ins: []
-        perform: X.wrapCommand
-        parts: google-chrome file://${PWD}/calendar.html
+        perform: [X.wrapCommand, "google-chrome file://${PWD}/calendar.html"]
 
     fetchCalendar:
         ins: year
         out: calendar
-        perform: X.wrapCommand
-        parts: ncal ${1} -h
+        perform: [X.wrapCommand, "ncal ${1} -h"]
 
     fetchImageUrl:
         out: imageUrl
         perform: R.pipeP
         parts:
-            - ${fetchImageObj}
-            - ${getImageUrl}
+            - $fetchImageObj
+            - $getImageUrl
 
     fetchImageObj:
         ins: []
-        perform: X.wrapCommand
-        parts: curl https://aws.random.cat/meow
+        perform: [X.wrapCommand, curl https://aws.random.cat/meow]
 
-    getImageUrl:
-        perform: R.prop
-        parts: file
+    getImageUrl: [R.prop, file]
 ```
 
-Now you can simply perform `chie -c animal-calendar-no-injection.yml 2017`
+Now you can simply perform `chie -c animal-calendar.yml 2017`
 
 ## Implementation (with dependency-injection)
 
@@ -125,7 +114,6 @@ We have something named `inversion of control` aka `dependency injection`. What 
 
 ```
 .
-├── animal-calendar-no-injection.yml
 ├── animal-calendar.yml
 ├── src
 │   ├── baseCalendarInjection.ts
@@ -172,39 +160,30 @@ component:
     execute:
         perform: R.pipeP
         parts:
-            - ${fetchImageAndCalendar}
-            - ${composeCalendar}
-            - ${writeCalendar}
-            - ${showCalendar}
+            - $fetchImageAndCalendar
+            - $composeCalendar
+            - $writeCalendar
+            - $showCalendar
 
-    fetchImageAndCalendar:
-        perform: X.concurrent
-        parts:
-            - ${fetchImageUrl}
-            - ${fetchCalendar}
+    fetchImageAndCalendar: [X.concurrent, $fetchImageUrl, $fetchCalendar]
 
     composeCalendar:
-        ins:
-            - imageUrl
-            - calendar
+        ins: [imageUrl, calendar]
         out: result
         perform: injection.composeHtml
 
     writeCalendar:
         ins: result
-        perform: X.wrapCommand
-        parts: ${injection.writeHtmlCommand}
+        perform: [X.wrapCommand, $injection.writeHtmlCommand]
 
     showCalendar:
         ins: []
-        perform: X.wrapCommand
-        parts: ${injection.showCalendarCommand}
+        perform: [X.wrapCommand, $injection.showCalendarCommand]
 
     fetchCalendar:
         ins: year
         out: calendar
-        perform: X.wrapCommand
-        parts: ${injection.calCommand}
+        perform: [X.wrapCommand, $injection.calCommand]
 
     fetchImageUrl:
         out: imageUrl
@@ -215,12 +194,9 @@ component:
 
     fetchImageObj:
         ins: []
-        perform: X.wrapCommand
-        parts: ${injection.imageFetcherCommand}
+        perform: [X.wrapCommand, $injection.imageFetcherCommand]
 
-    getImageUrl:
-        perform: R.prop
-        parts: ${injection.imageKey}
+    getImageUrl: [R.prop, $injection.imageKey]
 ```
 
 By default, this container will use `./dist/catCalendarInjection.js`. The file is currently inexist. You might notice that we have some `undefined components` like `injection.composeHtml`, `injection.writeHtmlCommand`, `injection.showCalendarCommand`, `injection.calCommand`, `injection.imageFetcherCommand`, and `injection.imageKey`. It's okay, we will define the interface and the implementation later.

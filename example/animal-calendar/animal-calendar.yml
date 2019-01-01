@@ -7,39 +7,30 @@ component:
     execute:
         perform: R.pipeP
         parts:
-            - ${fetchImageAndCalendar}
-            - ${composeCalendar}
-            - ${writeCalendar}
-            - ${showCalendar}
+            - $fetchImageAndCalendar
+            - $composeCalendar
+            - $writeCalendar
+            - $showCalendar
 
-    fetchImageAndCalendar:
-        perform: X.concurrent
-        parts:
-            - ${fetchImageUrl}
-            - ${fetchCalendar}
+    fetchImageAndCalendar: [X.concurrent, $fetchImageUrl, $fetchCalendar]
 
     composeCalendar:
-        ins:
-            - imageUrl
-            - calendar
+        ins: [imageUrl, calendar]
         out: result
         perform: injection.composeHtml
 
     writeCalendar:
         ins: result
-        perform: X.wrapCommand
-        parts: ${injection.writeHtmlCommand}
+        perform: [X.wrapCommand, $injection.writeHtmlCommand]
 
     showCalendar:
         ins: []
-        perform: X.wrapCommand
-        parts: ${injection.showCalendarCommand}
+        perform: [X.wrapCommand, $injection.showCalendarCommand]
 
     fetchCalendar:
         ins: year
         out: calendar
-        perform: X.wrapCommand
-        parts: ${injection.calCommand}
+        perform: [X.wrapCommand, $injection.calCommand]
 
     fetchImageUrl:
         out: imageUrl
@@ -50,9 +41,6 @@ component:
 
     fetchImageObj:
         ins: []
-        perform: X.wrapCommand
-        parts: ${injection.imageFetcherCommand}
+        perform: [X.wrapCommand, $injection.imageFetcherCommand]
 
-    getImageUrl:
-        perform: R.prop
-        parts: ${injection.imageKey}
+    getImageUrl: [R.prop, $injection.imageKey]

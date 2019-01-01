@@ -6,53 +6,41 @@ component:
     execute:
         perform: R.pipeP
         parts:
-            - ${fetchImageAndCalendar}
-            - ${composeCalendar}
-            - ${writeCalendar}
-            - ${showCalendar}
+            - $fetchImageAndCalendar
+            - $composeCalendar
+            - $writeCalendar
+            - $showCalendar
 
-    fetchImageAndCalendar:
-        perform: X.concurrent
-        parts:
-            - ${fetchImageUrl}
-            - ${fetchCalendar}
+    fetchImageAndCalendar: [X.concurrent, $fetchImageUrl, $fetchCalendar]
 
     composeCalendar:
-        ins:
-            - imageUrl
-            - calendar
+        ins: [imageUrl, calendar]
         out: result
         perform: X.wrapCommand
         parts: echo '<img src="' ${1} '"/><pre>' ${2} '</pre>'
 
     writeCalendar:
         ins: result
-        perform: X.wrapCommand
-        parts: echo ${1} > ${PWD}/calendar.html
+        perform: [X.wrapCommand, "echo ${1} > ${PWD}/calendar.html"]
 
     showCalendar:
         ins: []
-        perform: X.wrapCommand
-        parts: google-chrome file://${PWD}/calendar.html
+        perform: [X.wrapCommand, "google-chrome file://${PWD}/calendar.html"]
 
     fetchCalendar:
         ins: year
         out: calendar
-        perform: X.wrapCommand
-        parts: ncal ${1} -h
+        perform: [X.wrapCommand, "ncal ${1} -h"]
 
     fetchImageUrl:
         out: imageUrl
         perform: R.pipeP
         parts:
-            - ${fetchImageObj}
-            - ${getImageUrl}
+            - $fetchImageObj
+            - $getImageUrl
 
     fetchImageObj:
         ins: []
-        perform: X.wrapCommand
-        parts: curl https://aws.random.cat/meow
+        perform: [X.wrapCommand, curl https://aws.random.cat/meow]
 
-    getImageUrl:
-        perform: R.prop
-        parts: file
+    getImageUrl: [R.prop, file]
