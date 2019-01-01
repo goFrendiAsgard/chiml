@@ -1,6 +1,6 @@
 import { R, X } from "../index";
 import { asyncMinus, commandRootSquare, nodebackMultiply, syncAdd } from "./fixtures/lib";
-import { Player } from "./fixtures/Player";
+import { initPlayer, Player } from "./fixtures/Player";
 
 describe("non-error declarative style", () => {
 
@@ -415,6 +415,30 @@ describe("non-error declarative style with class helpers", () => {
                     parts: {
                         pipe: "${R.pipe}",
                         initClass: "${Player}",
+                        initParams: "Thrall",
+                        executions: [
+                            ["setWeapon", "Lightning Bolt"],
+                            ["setDamage", 30],
+                        ],
+                        evaluation: "attack",
+                    },
+                },
+            },
+        });
+        const result = main();
+        expect(result).toBe("Thrall attack with Lightning Bolt, deal 30 damage");
+    });
+
+    it("works with init class and evaluate that use initFunction", () => {
+        const main = X.declare({
+            bootstrap: "run",
+            injection: { initPlayer, R, X },
+            component: {
+                run: {
+                    perform: "X.initClassAndRun",
+                    parts: {
+                        pipe: "${R.pipe}",
+                        initFunction: "${initPlayer}",
                         initParams: "Thrall",
                         executions: [
                             ["setWeapon", "Lightning Bolt"],

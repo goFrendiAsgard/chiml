@@ -18,3 +18,7 @@ export class Player {
     }
 
 }
+
+export function initPlayer(name: string): Player {
+    return new Player(name);
+}

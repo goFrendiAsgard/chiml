@@ -7,3 +7,4 @@ export declare class Player {
     setDamage(damage: any): void;
     attack(): string;
 }
+export declare function initPlayer(name: string): Player;

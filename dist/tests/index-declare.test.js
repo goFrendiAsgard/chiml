@@ -415,6 +415,29 @@ describe("non-error declarative style with class helpers", () => {
         const result = main();
         expect(result).toBe("Thrall attack with Lightning Bolt, deal 30 damage");
     });
+    it("works with init class and evaluate that use initFunction", () => {
+        const main = index_1.X.declare({
+            bootstrap: "run",
+            injection: { initPlayer: Player_1.initPlayer, R: index_1.R, X: index_1.X },
+            component: {
+                run: {
+                    perform: "X.initClassAndRun",
+                    parts: {
+                        pipe: "${R.pipe}",
+                        initFunction: "${initPlayer}",
+                        initParams: "Thrall",
+                        executions: [
+                            ["setWeapon", "Lightning Bolt"],
+                            ["setDamage", 30],
+                        ],
+                        evaluation: "attack",
+                    },
+                },
+            },
+        });
+        const result = main();
+        expect(result).toBe("Thrall attack with Lightning Bolt, deal 30 damage");
+    });
 });
 describe("error declarative style", () => {
     it("throw error when given circular state", () => {

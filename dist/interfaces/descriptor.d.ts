@@ -48,9 +48,10 @@ export interface IMethodRunnerConfig {
 }
 export interface IClassRunnerConfig {
     pipe: (...args: any[]) => AnyFunction;
-    initClass: {
+    initClass?: {
         [method: string]: AnyFunction;
     };
+    initFunction?: AnyFunction;
     initParams: any[];
     executions: any[];
     evaluation?: IMethodRunnerConfig | any[];

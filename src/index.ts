@@ -453,8 +453,10 @@ function _getPartialComponent(rawComponent: Partial<IUserComponent>| string | st
 }
 
 function initClassAndRun<T extends IObjectWithMethod>(classRunnerConfig: Partial<IClassRunnerConfig>): any {
-    const { pipe, initClass, initParams, executions, evaluation } = _getCompleteClassRunnerConfig(classRunnerConfig);
-    const classInitiator: (...args: any[]) => T = createClassInitiator(initClass);
+    const {
+        pipe, initClass, initFunction, initParams, executions, evaluation,
+    } = _getCompleteClassRunnerConfig(classRunnerConfig);
+    const classInitiator: (...args: any[]) => T = initClass ? createClassInitiator(initClass) : initFunction;
     const executorList = executions.map((methodRunnerConfig) => {
         const { method, params } = _getCompleteMethodRunnerConfig(methodRunnerConfig);
         return createMethodExecutor(method, ...params);
@@ -497,7 +499,6 @@ function _getMethodRunnerConfig(
 function _getCompleteClassRunnerConfig(classRunnerConfig: Partial<IClassRunnerConfig>): IClassRunnerConfig {
     const defaultClassRunnerConfig: IClassRunnerConfig = {
         pipe: R.pipe,
-        initClass: {},
         initParams: [],
         executions: [],
     };

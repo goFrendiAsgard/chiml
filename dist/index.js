@@ -397,8 +397,8 @@ function _getPartialComponent(rawComponent) {
     return rawComponent;
 }
 function initClassAndRun(classRunnerConfig) {
-    const { pipe, initClass, initParams, executions, evaluation } = _getCompleteClassRunnerConfig(classRunnerConfig);
-    const classInitiator = createClassInitiator(initClass);
+    const { pipe, initClass, initFunction, initParams, executions, evaluation, } = _getCompleteClassRunnerConfig(classRunnerConfig);
+    const classInitiator = initClass ? createClassInitiator(initClass) : initFunction;
     const executorList = executions.map((methodRunnerConfig) => {
         const { method, params } = _getCompleteMethodRunnerConfig(methodRunnerConfig);
         return createMethodExecutor(method, ...params);
@@ -434,7 +434,6 @@ function _getMethodRunnerConfig(rawMethodRunnerConfig) {
 function _getCompleteClassRunnerConfig(classRunnerConfig) {
     const defaultClassRunnerConfig = {
         pipe: exports.R.pipe,
-        initClass: {},
         initParams: [],
         executions: [],
     };

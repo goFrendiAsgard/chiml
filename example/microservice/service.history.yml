@@ -1,32 +1,29 @@
 # if there is a request, respond with all event history
 # subscribe to event service, add history
 injection:
-    - ./dist/coteAdapter.cote.js
+    - ./dist/adapters/cote.baseAdapter.js
     - ./dist/historyHandler.base.js
     - ./dist/storage.file.js
 bootstrap: run
 component:
     run:
-        perform: X.concurrent
-        parts: ["${createResponder}", "${createSubscriber}"]
+        perform: [X.concurrent, $createResponder, $createSubscriber]
 
     createResponder:
         perform: X.initClassAndRun
         parts:
-            initClass: ${coteAdapter.Responder}
+            initClass: ${cote.Responder}
             initParams:
                 name: history responder
                 key: hitory
             executions:
-                - method: on
-                  params: ["get", "${createListHandler}"]
+                - [on, get, $createListHandler]
 
     createSubscriber:
         perform: X.initClassAndRun
         parts:
-            initClas: ${coteAdapter.Subscriber}
+            initClas: ${cote.Subscriber}
             initParams:
                 name: historySubscriber
 
-    createListHandler:
-        perform: historyHandler.createListHandler
+    createListHandler: historyHandler.createListHandler
