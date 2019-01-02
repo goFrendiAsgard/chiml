@@ -106,4 +106,3 @@ describe("inject with invalid container path", () => {
         }
     });
 });
-//# sourceMappingURL=index-inject.test.js.map

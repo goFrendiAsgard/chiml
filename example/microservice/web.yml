@@ -1,8 +1,8 @@
 injection:
-    - ./dist/adapters/cote.baseAdapter.js
-    - ./dist/adapters/bodyParser.baseAdapter.js
-    - ./dist/adapters/http.baseAdapter.js
-    - ./dist/adapters/socketIo.baseAdapter.js
+    - cote
+    - body-parser as bodyParser
+    - http
+    - socket.io as socketIo
 bootstrap: run
 component:
     run: $initApp

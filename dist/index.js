@@ -51,7 +51,7 @@ function inject(containerFile, userInjectionFile = null) {
                 .map((part) => part.trim());
             const obj = relativeRequire(injectionFile);
             return Object.assign({}, tmpInjection, { [alias]: obj });
-        }, { R: exports.R, X: exports.X });
+        }, { R: exports.R, X: exports.X, logger: console });
         return declare(Object.assign({}, config, { injection }));
     }
     catch (error) {
@@ -191,9 +191,12 @@ function _getFromParsedDict(parsedDict, searchKey) {
             const oldValue = tmpResult.value;
             const newValue = tmpResult.value[key];
             const newBindValue = typeof newValue === "function" ? newValue.bind(oldValue) : newValue;
-            return Object.assign(tmpResult, { found: true, value: newBindValue, context: tmpResult.value });
+            tmpResult.value = newBindValue;
+            tmpResult.found = true;
+            return tmpResult;
         }
-        return Object.assign(tmpResult, { found: false });
+        tmpResult.found = false;
+        return tmpResult;
     }, initialResult);
     return result;
 }
@@ -627,4 +630,3 @@ function _isPromise(obj) {
     }
     return false;
 }
-//# sourceMappingURL=index.js.map

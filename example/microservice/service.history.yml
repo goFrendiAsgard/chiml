@@ -2,13 +2,12 @@
 # subscribe to event service, add history
 injection:
     - cote
-      # - ./dist/adapters/cote.baseAdapter.js
     - ./dist/historyHandler.base.js
     - ./dist/storage.file.js
 bootstrap: run
 component:
-    run:
-        perform: [X.concurrent, $createResponder, $createSubscriber]
+
+    run: [X.concurrent, $createResponder, $createSubscriber]
 
     createResponder:
         perform: X.initClassAndRun

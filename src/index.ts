@@ -52,7 +52,7 @@ export function inject(containerFile: string, userInjectionFile: string | string
             .map((part) => part.trim());
             const obj = relativeRequire(injectionFile);
             return Object.assign({}, tmpInjection, {[alias]: obj});
-        }, { R, X });
+        }, { R, X, logger: console });
         return declare(Object.assign({}, config, { injection }));
     } catch (error) {
         error.message = `CONTAINER FILE: ${containerFile}\n${error.message}`;
@@ -204,9 +204,12 @@ function _getFromParsedDict(parsedDict: {[key: string]: any}, searchKey: string)
             const oldValue = tmpResult.value;
             const newValue = tmpResult.value[key];
             const newBindValue = typeof newValue === "function" ? newValue.bind(oldValue) : newValue;
-            return Object.assign(tmpResult, { found: true, value: newBindValue, context: tmpResult.value });
+            tmpResult.value = newBindValue;
+            tmpResult.found = true;
+            return tmpResult;
         }
-        return Object.assign(tmpResult, { found: false });
+        tmpResult.found = false;
+        return tmpResult;
     }, initialResult);
     return result;
 }

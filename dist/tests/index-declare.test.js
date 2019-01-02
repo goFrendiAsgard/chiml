@@ -271,22 +271,10 @@ describe("non-error declarative style with class helpers", () => {
                         "${attack}",
                     ],
                 },
-                initPlayer: {
-                    perform: "X.createClassInitiator",
-                    parts: "${Player}",
-                },
-                setWeaponToFrostmourne: {
-                    perform: "X.createMethodExecutor",
-                    parts: ["setWeapon", "Frostmourne"],
-                },
-                setDamageTo50: {
-                    perform: "X.createMethodExecutor",
-                    parts: ["setDamage", 50],
-                },
-                attack: {
-                    perform: "X.createMethodEvaluator",
-                    parts: "attack",
-                },
+                initPlayer: ["X.createClassInitiator", "${Player}"],
+                setWeaponToFrostmourne: ["X.createMethodExecutor", "setWeapon", "Frostmourne"],
+                setDamageTo50: ["X.createMethodExecutor", "setDamage", 50],
+                attack: ["X.createMethodEvaluator", "attack"],
             },
         });
         const result = main("Arthas");
@@ -402,6 +390,29 @@ describe("non-error declarative style with class helpers", () => {
                     parts: {
                         pipe: "${R.pipe}",
                         initClass: "${Player}",
+                        initParams: "Thrall",
+                        executions: [
+                            ["setWeapon", "Lightning Bolt"],
+                            ["setDamage", 30],
+                        ],
+                        evaluation: "attack",
+                    },
+                },
+            },
+        });
+        const result = main();
+        expect(result).toBe("Thrall attack with Lightning Bolt, deal 30 damage");
+    });
+    it("works when class constructor is on nested structure", () => {
+        const main = index_1.X.declare({
+            bootstrap: "run",
+            injection: { R: index_1.R, X: index_1.X, package: { lib: Player_1.Player } },
+            component: {
+                run: {
+                    perform: "X.initClassAndRun",
+                    parts: {
+                        pipe: "${R.pipe}",
+                        initClass: "${package.lib.Player}",
                         initParams: "Thrall",
                         executions: [
                             ["setWeapon", "Lightning Bolt"],
@@ -752,4 +763,3 @@ describe("error declarative style", () => {
         }
     });
 });
-//# sourceMappingURL=index-declare.test.js.map
