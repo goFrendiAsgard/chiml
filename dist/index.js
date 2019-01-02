@@ -41,7 +41,7 @@ exports.X = {
 function inject(containerFile, userInjectionFile = null) {
     try {
         const dirname = path_1.resolve(path_1.dirname(containerFile));
-        const requireUtil = createRequireFromPath(containerFile);
+        const relativeRequire = createRequireFromPath(containerFile);
         const yamlScript = fs_1.readFileSync(containerFile).toString();
         const config = js_yaml_1.safeLoad(yamlScript);
         const rawInjectionFileList = _getInjectionFileAndAliasList(config, userInjectionFile);
@@ -49,8 +49,7 @@ function inject(containerFile, userInjectionFile = null) {
             .reduce((tmpInjection, injectionFileAndAlias) => {
             const [injectionFile, alias] = _splitInjectionFileAndAlias(injectionFileAndAlias)
                 .map((part) => part.trim());
-            const absoluteInjectionFile = path_1.isAbsolute(injectionFile) ? injectionFile : path_1.join(dirname, injectionFile);
-            const obj = requireUtil(injectionFile);
+            const obj = relativeRequire(injectionFile);
             return Object.assign({}, tmpInjection, { [alias]: obj });
         }, { R: exports.R, X: exports.X });
         return declare(Object.assign({}, config, { injection }));
