@@ -28,3 +28,4 @@ if (require.main === module) {
         console.log(result);
     }
 }
+//# sourceMappingURL=chie.js.map

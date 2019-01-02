@@ -185,6 +185,9 @@ function _getParsedParts(
         if (match) {
             const key = match[1];
             const parsedDictVal = _getFromParsedDict(parsedDict, key);
+            if (!parsedDictVal.found) {
+                throw(new Error(`Component \`${key}\` is not defined`));
+            }
             return parsedDictVal.value;
         }
         // un-escape `\${value}` into `${value}`
@@ -193,25 +196,29 @@ function _getParsedParts(
     return parts;
 }
 
+function _isClass(obj): boolean {
+    if (typeof(obj) === "function" && obj.prototype) {
+        return true;
+    }
+    return false;
+}
+
 function _getFromParsedDict(parsedDict: {[key: string]: any}, searchKey: string): IKeyInParsedDict {
     const searchKeyParts = searchKey.split(".");
-    const initialResult: IKeyInParsedDict = {
-        value: parsedDict,
-        found: false,
-    };
-    const result = searchKeyParts.reduce((tmpResult, key) => {
-        if (key in tmpResult.value) {
-            const oldValue = tmpResult.value;
-            const newValue = tmpResult.value[key];
-            const newBindValue = typeof newValue === "function" ? newValue.bind(oldValue) : newValue;
-            tmpResult.value = newBindValue;
-            tmpResult.found = true;
-            return tmpResult;
-        }
-        tmpResult.found = false;
-        return tmpResult;
-    }, initialResult);
-    return result;
+    try {
+        const value = searchKeyParts.reduce((result, key, keyIndex) => {
+            if (key in result) {
+                if (keyIndex !== 0 && typeof result[key] === "function" && !_isClass(result[key])) {
+                    return result[key].bind(result);
+                }
+                return result[key];
+            }
+            throw new Error("Not found");
+        }, parsedDict);
+        return { value, found: true };
+    } catch (error) {
+        return { found: false, value: null };
+    }
 }
 
 function _addToParsedDict(
@@ -222,6 +229,9 @@ function _addToParsedDict(
         const componentDict = declarativeConfig.component;
         const { ins, out, perform, parts } = componentDict[componentName];
         const parsedDictVal = _getFromParsedDict(parsedDict, perform);
+        if (!parsedDictVal.found) {
+            throw new Error(`\`${perform}\` is not defined`);
+        }
         const performer = parsedDictVal.value;
         if (typeof performer !== "function") {
             throw new Error(`\`${perform}\` is not a function`);
@@ -476,6 +486,9 @@ function initClassAndRun<T extends IObjectWithMethod>(classRunnerConfig: Partial
         const evaluator = createMethodEvaluator(method, ...params);
         const executorAndEvaluatorList = executorList.concat([evaluator]);
         return pipe(classInitiator, ...executorAndEvaluatorList)(...initParams);
+    }
+    if (executorList.length === 0) {
+        throw(new Error("`executions` or `evaluation` expected"));
     }
     return pipe(classInitiator, ...executorList)(...initParams);
 }

@@ -25,5 +25,6 @@ component:
             initClas: ${cote.Subscriber}
             initParams:
                 name: historySubscriber
+            executions: []
 
     createListHandler: historyHandler.createListHandler

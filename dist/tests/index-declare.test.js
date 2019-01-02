@@ -406,7 +406,7 @@ describe("non-error declarative style with class helpers", () => {
     it("works when class constructor is on nested structure", () => {
         const main = index_1.X.declare({
             bootstrap: "run",
-            injection: { R: index_1.R, X: index_1.X, package: { lib: Player_1.Player } },
+            injection: { R: index_1.R, X: index_1.X, package: { lib: { Player: Player_1.Player } } },
             component: {
                 run: {
                     perform: "X.initClassAndRun",
@@ -721,7 +721,7 @@ describe("error declarative style", () => {
             throw (new Error(`Expect error, but get result: ${result}`));
         }
         catch (error) {
-            expect(error.message).toContain("Parse error, component `run`: `four` is not a function");
+            expect(error.message).toContain("Parse error, component `run`: `four` is not defined");
         }
     });
     it("throw error if component's parts is not executable", () => {
@@ -762,4 +762,61 @@ describe("error declarative style", () => {
             expect(error.message).toContain("Runtime error, component `run( 10 )`: Maximum call stack size exceeded");
         }
     });
+    it("throw error on undefined sub-part", () => {
+        try {
+            const main = index_1.X.declare({
+                bootstrap: "run",
+                injection: { R: index_1.R, X: index_1.X },
+                component: {
+                    run: {
+                        perform: "X.initClassAndRun",
+                        parts: {
+                            pipe: "${R.pipe}",
+                            initClass: "${package.lib.Player}",
+                            initParams: "Thrall",
+                            executions: [
+                                ["setWeapon", "Lightning Bolt"],
+                                ["setDamage", 30],
+                            ],
+                            evaluation: "attack",
+                        },
+                    },
+                },
+            });
+            const result = main();
+            throw (new Error(`Expect error, but get result: ${result}`));
+        }
+        catch (error) {
+            expect(error.message).toContain("Runtime error, component `run()`: Component `package.lib.Player` is not defined");
+        }
+    });
+    it("throw error when execution/evaluation not defined", () => {
+        try {
+            const main = index_1.X.declare({
+                bootstrap: "run",
+                injection: {
+                    R: index_1.R, X: index_1.X,
+                    testClass: class {
+                        constructor() { }
+                    }
+                },
+                component: {
+                    run: {
+                        perform: "X.initClassAndRun",
+                        parts: {
+                            pipe: "${R.pipe}",
+                            initClass: "${testClass}",
+                            initParams: "Thrall",
+                        },
+                    },
+                },
+            });
+            const result = main();
+            throw (new Error(`Expect error, but get result: ${result}`));
+        }
+        catch (error) {
+            expect(error.message).toContain("Runtime error, component `run()`: `executions` or `evaluation` expected");
+        }
+    });
 });
+//# sourceMappingURL=index-declare.test.js.map

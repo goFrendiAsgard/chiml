@@ -19,3 +19,4 @@ function initPlayer(name) {
     return new Player(name);
 }
 exports.initPlayer = initPlayer;
+//# sourceMappingURL=Player.js.map
