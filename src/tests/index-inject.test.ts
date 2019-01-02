@@ -72,6 +72,28 @@ describe("inject with custom-injection", () => {
 
 });
 
+describe("geometry.oop behave correctly", () => {
+
+    const coloredSquare = require(geometryOopPath);
+
+    it("show result correctly", () => {
+        expect(coloredSquare.area()).toBe(4);
+        expect(coloredSquare.getSideLength()).toBe(2);
+        expect(coloredSquare.getColor()).toBe("red");
+    });
+
+    it("throw error when access baseClass", () => {
+        try {
+            const shape = new coloredSquare.BaseClass();
+            const area = shape.area();
+            throw(new Error(`Error expected, but get result: ${area}`));
+        } catch (error) {
+            expect(error.message).toBe("Not implemented");
+        }
+    });
+
+});
+
 describe("inject with inherited class instance", () => {
 
     it("can call area()", () => {
@@ -92,14 +114,16 @@ describe("inject with inherited class instance", () => {
         expect(result).toBe(2);
     });
 
-    it("throw error when access baseClass", () => {
+});
+
+describe("inject with invalid container path", () => {
+
+    it("throw error when container path is not exists", () => {
         try {
-            const geometry = require(geometryOopPath);
-            const shape = new geometry.BaseClass();
-            const area = shape.area();
-            throw(new Error(`Error expected, but get result: ${area}`));
+            const main = inject("/dev/null/oraono.yml");
+            throw(new Error(`Error expected, but no error thrown`));
         } catch (error) {
-            expect(error.message).toBe("Not implemented");
+            expect(error.message).toContain("CONTAINER FILE: /dev/null/oraono.yml");
         }
     });
 

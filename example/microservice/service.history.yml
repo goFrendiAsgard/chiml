@@ -1,7 +1,8 @@
 # if there is a request, respond with all event history
 # subscribe to event service, add history
 injection:
-    - ./dist/adapters/cote.baseAdapter.js
+    - cote
+      # - ./dist/adapters/cote.baseAdapter.js
     - ./dist/historyHandler.base.js
     - ./dist/storage.file.js
 bootstrap: run

@@ -2,7 +2,7 @@ import { ChildProcess, exec } from "child_process";
 import { readFileSync as fsReadFileSync } from "fs";
 import { fromJS } from "immutable";
 import { safeLoad as yamlSafeLoad } from "js-yaml";
-import { dirname as pathDirname, join as pathJoin, resolve as pathResolve } from "path";
+import { dirname as pathDirname, isAbsolute, join as pathJoin, resolve as pathResolve } from "path";
 import * as Ramda from "ramda";
 import { inspect as utilInspect } from "util";
 import {
@@ -11,6 +11,8 @@ import {
     IObjectWithMethod, IUserComponent, IUserDeclarativeConfig,
     TChimera, TRamda,
 } from "./interfaces/descriptor";
+
+const { createRequireFromPath } = require("module");
 
 const FG_BRIGHT = "\x1b[1m";
 const FG_CYAN = "\x1b[36m";
@@ -37,20 +39,25 @@ export const X: TChimera = {
     wrapSync,
 };
 
-export function inject(containerFile: string, userInjectionFile: string|string[] = null): AnyFunction {
-    const dirname = pathResolve(pathDirname(containerFile));
-    const yamlScript = fsReadFileSync(containerFile).toString();
-    const config = yamlSafeLoad(yamlScript);
-    const rawInjectionFileList = _getInjectionFileAndAliasList(config, userInjectionFile);
-    const injection = rawInjectionFileList
+export function inject(containerFile: string, userInjectionFile: string | string[] = null): AnyFunction {
+    try {
+        const dirname = pathResolve(pathDirname(containerFile));
+        const relativeRequire = createRequireFromPath(containerFile);
+        const yamlScript = fsReadFileSync(containerFile).toString();
+        const config = yamlSafeLoad(yamlScript);
+        const rawInjectionFileList = _getInjectionFileAndAliasList(config, userInjectionFile);
+        const injection = rawInjectionFileList
         .reduce((tmpInjection, injectionFileAndAlias) => {
             const [injectionFile, alias] = _splitInjectionFileAndAlias(injectionFileAndAlias)
-                .map((part) => part.trim());
-            const absoluteInjectionFile = injectionFile[0] === "." ? pathJoin(dirname, injectionFile) : injectionFile;
-            const obj = require(absoluteInjectionFile);
+            .map((part) => part.trim());
+            const obj = relativeRequire(injectionFile);
             return Object.assign({}, tmpInjection, {[alias]: obj});
         }, { R, X });
-    return declare(Object.assign({}, config, { injection }));
+        return declare(Object.assign({}, config, { injection }));
+    } catch (error) {
+        error.message = `CONTAINER FILE: ${containerFile}\n${error.message}`;
+        throw(error);
+    }
 }
 
 function _splitInjectionFileAndAlias(injectionFileAndAlias: string): string[] {

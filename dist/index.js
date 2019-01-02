@@ -15,6 +15,7 @@ const js_yaml_1 = require("js-yaml");
 const path_1 = require("path");
 const Ramda = require("ramda");
 const util_1 = require("util");
+const { createRequireFromPath } = require("module");
 const FG_BRIGHT = "\x1b[1m";
 const FG_CYAN = "\x1b[36m";
 const FG_RED = "\x1b[31m";
@@ -38,19 +39,26 @@ exports.X = {
     wrapSync,
 };
 function inject(containerFile, userInjectionFile = null) {
-    const dirname = path_1.resolve(path_1.dirname(containerFile));
-    const yamlScript = fs_1.readFileSync(containerFile).toString();
-    const config = js_yaml_1.safeLoad(yamlScript);
-    const rawInjectionFileList = _getInjectionFileAndAliasList(config, userInjectionFile);
-    const injection = rawInjectionFileList
-        .reduce((tmpInjection, injectionFileAndAlias) => {
-        const [injectionFile, alias] = _splitInjectionFileAndAlias(injectionFileAndAlias)
-            .map((part) => part.trim());
-        const absoluteInjectionFile = injectionFile[0] === "." ? path_1.join(dirname, injectionFile) : injectionFile;
-        const obj = require(absoluteInjectionFile);
-        return Object.assign({}, tmpInjection, { [alias]: obj });
-    }, { R: exports.R, X: exports.X });
-    return declare(Object.assign({}, config, { injection }));
+    try {
+        const dirname = path_1.resolve(path_1.dirname(containerFile));
+        const requireUtil = createRequireFromPath(containerFile);
+        const yamlScript = fs_1.readFileSync(containerFile).toString();
+        const config = js_yaml_1.safeLoad(yamlScript);
+        const rawInjectionFileList = _getInjectionFileAndAliasList(config, userInjectionFile);
+        const injection = rawInjectionFileList
+            .reduce((tmpInjection, injectionFileAndAlias) => {
+            const [injectionFile, alias] = _splitInjectionFileAndAlias(injectionFileAndAlias)
+                .map((part) => part.trim());
+            const absoluteInjectionFile = path_1.isAbsolute(injectionFile) ? injectionFile : path_1.join(dirname, injectionFile);
+            const obj = requireUtil(injectionFile);
+            return Object.assign({}, tmpInjection, { [alias]: obj });
+        }, { R: exports.R, X: exports.X });
+        return declare(Object.assign({}, config, { injection }));
+    }
+    catch (error) {
+        error.message = `CONTAINER FILE: ${containerFile}\n${error.message}`;
+        throw (error);
+    }
 }
 exports.inject = inject;
 function _splitInjectionFileAndAlias(injectionFileAndAlias) {
