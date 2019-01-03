@@ -1,4 +1,25 @@
 # if get a request, publish it
-injection: dist/cote.js
-bootstrap: start
+injection:
+    - cote
+    - ./dist/event.base.js
+bootstrap: run
 component:
+
+    run: [X.pipe, $createResponder]
+
+    createResponder:
+        perform: X.initClassAndRun
+        parts:
+            initClass: $cote.Responder
+            initParams:
+                name: event responder
+                key: event
+            executions:
+                - [on, add, $createPublishHandler]
+
+    getPublishNewEventConfig:
+        parts:
+            name: event publisher
+            event: event added
+
+    createPublishHandler: [event.createPublishHandler, $cote.Publisher, $getPublishNewEventConfig]

@@ -1,9 +1,21 @@
 injection:
     - cote
+    - express
     - body-parser as bodyParser
     - http
     - socket.io as socketIo
 bootstrap: run
 component:
-    run: $initApp
-    initApp: express
+
+    run: [X.pipe, $initApp, $createServer]
+
+    initApp:
+        perform: X.initClassAndRun
+        parts:
+            initFunction: $express
+            initParams: []
+            executions:
+                - [use, bodyParser]
+                - [get, "/", ""]
+
+    createServer: $http.Server

@@ -2,7 +2,7 @@
 # subscribe to event service, add history
 injection:
     - cote
-    - ./dist/historyHandler.base.js
+    - ./dist/history.base.js
     - ./dist/storage.file.js
 bootstrap: run
 component:
@@ -12,7 +12,7 @@ component:
     createResponder:
         perform: X.initClassAndRun
         parts:
-            initClass: ${cote.Responder}
+            initClass: $cote.Responder
             initParams:
                 name: history responder
                 key: hitory
@@ -22,9 +22,11 @@ component:
     createSubscriber:
         perform: X.initClassAndRun
         parts:
-            initClas: ${cote.Subscriber}
+            initClas: $cote.Subscriber
             initParams:
                 name: historySubscriber
-            executions: []
+            executions:
+                - [on, event added, $createApppendHandler]
 
-    createListHandler: historyHandler.createListHandler
+    createListHandler: [history.createListHandler, $storage]
+    createAppendHandler: [history.createAppendHandler, $storage]
