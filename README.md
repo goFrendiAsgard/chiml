@@ -13,18 +13,16 @@ CHIML (Chimera Markup Language) is a declarative dependency injection framework 
 ## Who is it for?
 
 * Developers who want to build solution by composing `Javascript module` and `CLI programs` in a declarative way using `YAML`.
-* Developers who don't want to memorize a lot of keyword. CHIML only has 5 keywords: `injection`, `bootstrap`, `component`, `perform`, `parts`.
+* Developers who don't want to memorize a lot of keyword. CHIML only has 5 keywords: `injection`, `bootstrap`, `component`, `arity`, `setup`, `parts`.
 
 # Convention and Philosophy
 
-* Components are functions.
-* Naming is important:
-    - Everything that do something should be named as `verb`
-    - Everything else should be named as `noun`
-* Composing components is better than creating nested structure.
-* Container and injections should be independent to each others.
-* If you write similar code several times, you do it wrong. You should break down your code into smaller components instead.
-* Brevity matters, but never sacrifice readability for brevity.
+* No global state.
+* What to do instead of how to do.
+* Readability matters, brevity follows.
+* Currying and composition are prioritized.
+* Components should be small and composable.
+* Structure should be flat and sparse.
 
 # Install
 

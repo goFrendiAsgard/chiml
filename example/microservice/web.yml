@@ -10,7 +10,7 @@ component:
     run: [X.pipe, $initApp, $createServer]
 
     initApp:
-        perform: X.initClassAndRun
+        setup: X.initClassAndRun
         parts:
             initFunction: $express
             initParams: []

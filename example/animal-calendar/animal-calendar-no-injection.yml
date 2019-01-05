@@ -2,32 +2,39 @@ bootstrap: execute
 component:
 
     execute:
-        perform: R.pipeP
+        setup: R.pipeP
         parts:
             - $fetchImageAndCalendar
             - $composeCalendar
             - $writeHtml
             - $showCalendar
 
-    fetchImageAndCalendar: [X.concurrent, $fetchImageUrl, $fetchCalendar]
+    fetchImageAndCalendar:
+        [X.concurrent, $fetchImageUrl, $fetchCalendar]
 
-    composeCalendar: [R.apply, $composeHtml]
+    composeCalendar:
+        [R.apply, $composeHtml]
 
     composeHtml:
-        perform: X.wrapCommand
+        setup: X.wrapCommand
         parts: echo '<img src="' ${1} '"/><pre>' ${2} '</pre>'
 
-    writeHtml: [X.wrapCommand, "echo ${1} > ${PWD}/calendar.html"]
+    writeHtml:
+        [X.wrapCommand, "echo ${1} > ${PWD}/calendar.html"]
 
-    showCalendar: [X.wrapCommand, "google-chrome file://${PWD}/calendar.html"]
+    showCalendar:
+        [X.wrapCommand, "google-chrome file://${PWD}/calendar.html"]
 
-    fetchCalendar: [X.wrapCommand, "ncal ${1} -h"]
+    fetchCalendar:
+        [X.wrapCommand, "ncal ${1} -h"]
 
-    fetchImageUrl: [R.pipeP, $fetchImageObj, $extractImageUrl]
+    fetchImageUrl:
+        [R.pipeP, $fetchImageObj, $extractImageUrl]
 
     fetchImageObj:
         arity: 0
-        perform: X.wrapCommand
+        setup: X.wrapCommand
         parts: [curl https://aws.random.cat/meow]
 
-    extractImageUrl: [R.prop, file]
+    extractImageUrl:
+        [R.prop, file]

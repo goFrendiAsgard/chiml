@@ -1,4 +1,4 @@
 bootstrap: operation
 component:
     operation:
-        perform: R.add
+        setup: R.add

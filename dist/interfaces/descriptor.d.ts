@@ -28,12 +28,12 @@ export interface IUserDeclarativeConfig {
 }
 export interface IComponent {
     arity: number;
-    perform: string;
+    setup: string;
     parts: any[];
 }
 export interface IUserComponent {
     arity: number;
-    perform: string | any[];
+    setup: string | any[];
     parts: any[] | any | null;
 }
 export interface IMethodRunnerConfig {

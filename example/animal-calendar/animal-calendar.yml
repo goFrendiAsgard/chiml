@@ -3,28 +3,35 @@ injection: ./dist/injection.cat.js
 component:
 
     execute:
-        perform: R.pipeP
+        setup: R.pipeP
         parts:
             - $fetchImageAndCalendar
             - $composeCalendar
             - $writeHtml
             - $showCalendar
 
-    fetchImageAndCalendar: [X.concurrent, $fetchImageUrl, $fetchCalendar]
+    fetchImageAndCalendar:
+        [X.concurrent, $fetchImageUrl, $fetchCalendar]
 
-    composeCalendar: [R.apply, $injection.composeHtml]
+    composeCalendar:
+        [R.apply, $injection.composeHtml]
 
-    writeHtml: [X.wrapCommand, $injection.writeHtmlCommand]
+    writeHtml:
+        [X.wrapCommand, $injection.writeHtmlCommand]
 
-    showCalendar: [X.wrapCommand, $injection.showCalendarCommand]
+    showCalendar:
+        [X.wrapCommand, $injection.showCalendarCommand]
 
-    fetchCalendar: [X.wrapCommand, $injection.calCommand]
+    fetchCalendar:
+        [X.wrapCommand, $injection.calCommand]
 
-    fetchImageUrl: [R.pipeP, $fetchImageObj, $extractImageUrl]
+    fetchImageUrl:
+        [R.pipeP, $fetchImageObj, $extractImageUrl]
 
     fetchImageObj:
         arity: 0
-        perform: X.wrapCommand
+        setup: X.wrapCommand
         parts: [$injection.imageFetcherCommand]
 
-    extractImageUrl: [R.prop, $injection.imageKey]
+    extractImageUrl:
+        [R.prop, $injection.imageKey]

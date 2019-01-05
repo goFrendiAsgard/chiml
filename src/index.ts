@@ -177,28 +177,30 @@ function _addToParsedDict(
 ): {[key: string]: any} {
     try {
         const componentDict = declarativeConfig.component;
-        const { perform, parts } = componentDict[componentName];
-        const parsedDictVal = _getFromParsedDict(parsedDict, perform);
+        const { setup, parts } = componentDict[componentName];
+        const parsedDictVal = _getFromParsedDict(parsedDict, setup);
         if (!parsedDictVal.found) {
-            throw new Error(`\`${perform}\` is not defined`);
+            throw new Error(`\`${setup}\` is not defined`);
         }
-        const performer = parsedDictVal.value;
-        if (typeof performer !== "function") {
-            throw new Error(`\`${perform}\` is not a function`);
+        const assembler = parsedDictVal.value;
+        if (typeof assembler !== "function") {
+            throw new Error(`\`${setup}\` is not a function`);
         }
         if (_isEmptyArray(parts)) {
             function nonComposedFunc(...args) {
-                return performer(...args);
+                return assembler(...args);
             }
             parsedDict[componentName] = _getWrappedFunction(declarativeConfig, componentName, nonComposedFunc);
             return parsedDict;
         }
         const parsedParts = _getParsedParts(parsedDict, declarativeConfig, componentDict, componentName, parts);
+        const runner = assembler(...parsedParts);
+        if (typeof runner !== "function") {
+            const parsedPartsAsString = _getArgsStringRepresentation(parsedParts);
+            throw new Error(`Result of \`${setup}${parsedPartsAsString}\` is not a function`);
+        }
         function composedFunc(...args) {
-            const performerPlusParts = performer(...parsedParts);
-            const realFunction = typeof performerPlusParts === "function" ?
-                performerPlusParts : () => performerPlusParts;
-            return realFunction(...args);
+            return runner(...args);
         }
         parsedDict[componentName] = _getWrappedFunction(declarativeConfig, componentName, composedFunc);
         return parsedDict;
@@ -259,8 +261,8 @@ function _getEmbededRuntimeError(
     error: any, declarativeConfig: IDeclarativeConfig, componentName: string, args: any[],
 ): any {
     const componentDict = declarativeConfig.component;
-    const realArgsAsString = _getArgsStringRepresentation(args);
-    const errorMessage = `Runtime error, component \`${componentName}${realArgsAsString}\`:`;
+    const argsAsString = _getArgsStringRepresentation(args);
+    const errorMessage = `Runtime error, component \`${componentName}${argsAsString}\`:`;
     const structure = { component: {[componentName]: componentDict[componentName]} };
     return _getEmbededError(error, errorMessage, structure, declarativeConfig);
 }
@@ -309,10 +311,10 @@ function _getCompleteDeclarativeConfig(partialConfig: Partial<IUserDeclarativeCo
 function _getCompleteComponent(rawComponent: Partial<IUserComponent>| string | string[]): IComponent {
     const defaultComponent = {
         arity: -1,
-        perform: null,
+        setup: null,
         parts: [],
     };
-    const partialComponent = _getPartialComponentWithNormalizePerform(rawComponent);
+    const partialComponent = _getPartialComponentWithNormalizesetup(rawComponent);
     const filledComponent = Object.assign({}, defaultComponent, partialComponent) as IComponent;
     // make sure `parts` is an array. Otherwise, turn it into an array
     const parts = Array.isArray(filledComponent.parts) ? filledComponent.parts : [filledComponent.parts];
@@ -320,25 +322,25 @@ function _getCompleteComponent(rawComponent: Partial<IUserComponent>| string | s
     return Object.assign({}, filledComponent, { parts });
 }
 
-function _getPartialComponentWithNormalizePerform(
+function _getPartialComponentWithNormalizesetup(
     rawComponent: Partial<IUserComponent> | string | string[],
 ): Partial<IUserComponent> {
     const partialComponent = _getPartialComponent(rawComponent);
-    const { perform } = partialComponent;
-    if (Array.isArray(perform)) {
-        const [realPerform, ...parts] = perform;
-        return Object.assign({}, partialComponent, { perform: realPerform, parts });
+    const { setup } = partialComponent;
+    if (Array.isArray(setup)) {
+        const [realsetup, ...parts] = setup;
+        return Object.assign({}, partialComponent, { setup: realsetup, parts });
     }
     return partialComponent;
 }
 
 function _getPartialComponent(rawComponent: Partial<IUserComponent>| string | string[]): Partial<IUserComponent> {
     if (typeof rawComponent === "string") {
-        return { perform: rawComponent };
+        return { setup: rawComponent };
     }
     if (Array.isArray(rawComponent)) {
-        const [perform, ...parts] = rawComponent;
-        return { perform, parts };
+        const [setup, ...parts] = rawComponent;
+        return { setup, parts };
     }
     return rawComponent;
 }
@@ -356,12 +358,12 @@ function initClassAndRun<T extends IObjectWithMethod>(classRunnerConfig: Partial
         const { method, params } = _getCompleteMethodRunnerConfig(evaluation);
         const evaluator = getMethodEvaluator(method, ...params);
         const executorAndEvaluatorList = executorList.concat([evaluator]);
-        return pipe(classInitiator, ...executorAndEvaluatorList)(...initParams);
+        return (...args) => pipe(classInitiator, ...executorAndEvaluatorList)(...initParams.concat(args));
     }
     if (executorList.length === 0) {
         throw(new Error("`executions` or `evaluation` expected"));
     }
-    return pipe(classInitiator, ...executorList)(...initParams);
+    return (...args) => pipe(classInitiator, ...executorList)(...initParams.concat(args));
 }
 
 function _getCompleteMethodRunnerConfig(

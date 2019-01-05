@@ -28,7 +28,7 @@ bootstrap: execute
 component:
 
     execute:
-        perform: R.pipeP
+        setup: R.pipeP
         parts:
             - $fetchImageAndCalendar
             - $composeCalendar
@@ -44,7 +44,7 @@ In order to make the implementation, we need to break-down our plan and make it 
     * `fetchImageUrl`: fetch random animal picture from the internet.
         * `fetchImageObj`: fetch image from the internet. This link: `https://aws.random.cat/meow` gives you a random cat in JSON format. We can fetch the image using CURL.
         * `getImageUrl`: After fetching the image object, we need to get the url. In our case, since the JSON response is similar to `{file: "http://some-place/random-cat.jpg"}`, we have to extract the `file` key.
-    * `fetchCalendar`: simply perform `ncal <year> -h`, and we will get the calendar
+    * `fetchCalendar`: simply setup `ncal <year> -h`, and we will get the calendar
 * `composeCalendar`: After getting the imageUrl and the calendar, compose them into HTML-script. String concatenation should do it. And in UNIX-like system, we have `echo` command. So, we can just use it. No need to code anything.
 * `writeCalendar`: Save the HTML-script into a HTML-file. Writing to a calendar is as easy as `echo "content" > file.html`
 * `showCalendar`: Open the HTML-file using a browser. We can open google chrome usiing this command: `google-chrome file://some-folder/some-file.html`
@@ -58,38 +58,45 @@ bootstrap: execute
 component:
 
     execute:
-        perform: R.pipeP
+        setup: R.pipeP
         parts:
             - $fetchImageAndCalendar
             - $composeCalendar
             - $writeHtml
             - $showCalendar
 
-    fetchImageAndCalendar: [X.concurrent, $fetchImageUrl, $fetchCalendar]
+    fetchImageAndCalendar:
+        [X.concurrent, $fetchImageUrl, $fetchCalendar]
 
-    composeCalendar: [R.apply, $composeHtml]
+    composeCalendar:
+        [R.apply, $composeHtml]
 
     composeHtml:
-        perform: X.wrapCommand
+        setup: X.wrapCommand
         parts: echo '<img src="' ${1} '"/><pre>' ${2} '</pre>'
 
-    writeHtml: [X.wrapCommand, "echo ${1} > ${PWD}/calendar.html"]
+    writeHtml:
+        [X.wrapCommand, "echo ${1} > ${PWD}/calendar.html"]
 
-    showCalendar: [X.wrapCommand, "google-chrome file://${PWD}/calendar.html"]
+    showCalendar:
+        [X.wrapCommand, "google-chrome file://${PWD}/calendar.html"]
 
-    fetchCalendar: [X.wrapCommand, "ncal ${1} -h"]
+    fetchCalendar:
+        [X.wrapCommand, "ncal ${1} -h"]
 
-    fetchImageUrl: [R.pipeP, $fetchImageObj, $extractImageUrl]
+    fetchImageUrl:
+        [R.pipeP, $fetchImageObj, $extractImageUrl]
 
     fetchImageObj:
         arity: 0
-        perform: X.wrapCommand
+        setup: X.wrapCommand
         parts: [curl https://aws.random.cat/meow]
 
-    extractImageUrl: [R.prop, file]
+    extractImageUrl:
+        [R.prop, file]
 ```
 
-Now you can simply perform `chie -c animal-calendar.yml 2017`
+Now you can simply setup `chie -c animal-calendar.yml 2017`
 
 ## Implementation (with dependency-injection)
 
@@ -141,31 +148,38 @@ injection: ./dist/injection.cat.js
 component:
 
     execute:
-        perform: R.pipeP
+        setup: R.pipeP
         parts:
             - $fetchImageAndCalendar
             - $composeCalendar
             - $writeHtml
             - $showCalendar
 
-    fetchImageAndCalendar: [X.concurrent, $fetchImageUrl, $fetchCalendar]
+    fetchImageAndCalendar:
+        [X.concurrent, $fetchImageUrl, $fetchCalendar]
 
-    composeCalendar: [R.apply, $injection.composeHtml]
+    composeCalendar:
+        [R.apply, $injection.composeHtml]
 
-    writeHtml: [X.wrapCommand, $injection.writeHtmlCommand]
+    writeHtml:
+        [X.wrapCommand, $injection.writeHtmlCommand]
 
-    showCalendar: [X.wrapCommand, $injection.showCalendarCommand]
+    showCalendar:
+        [X.wrapCommand, $injection.showCalendarCommand]
 
-    fetchCalendar: [X.wrapCommand, $injection.calCommand]
+    fetchCalendar:
+        [X.wrapCommand, $injection.calCommand]
 
-    fetchImageUrl: [R.pipeP, $fetchImageObj, $extractImageUrl]
+    fetchImageUrl:
+        [R.pipeP, $fetchImageObj, $extractImageUrl]
 
     fetchImageObj:
         arity: 0
-        perform: X.wrapCommand
+        setup: X.wrapCommand
         parts: [$injection.imageFetcherCommand]
 
-    extractImageUrl: [R.prop, $injection.imageKey]
+    extractImageUrl:
+        [R.prop, $injection.imageKey]
 ```
 
 By default, this container will use `./dist/catCalendarInjection.js`. The file is currently inexist. You might notice that we have some `undefined components` like `injection.composeHtml`, `injection.writeHtmlCommand`, `injection.showCalendarCommand`, `injection.calCommand`, `injection.imageFetcherCommand`, and `injection.imageKey`. It's okay, we will define the interface and the implementation later.

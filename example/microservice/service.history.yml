@@ -7,10 +7,11 @@ injection:
 bootstrap: run
 component:
 
-    run: [X.concurrent, $createResponder, $createSubscriber]
+    run:
+        [X.concurrent, $createResponder, $createSubscriber]
 
     createResponder:
-        perform: X.initClassAndRun
+        setup: X.initClassAndRun
         parts:
             initClass: $cote.Responder
             initParams:
@@ -20,7 +21,7 @@ component:
                 - [on, get, $createListHandler]
 
     createSubscriber:
-        perform: X.initClassAndRun
+        setup: X.initClassAndRun
         parts:
             initClas: $cote.Subscriber
             initParams:
@@ -28,5 +29,7 @@ component:
             executions:
                 - [on, event added, $createApppendHandler]
 
-    createListHandler: [history.createListHandler, $storage]
-    createAppendHandler: [history.createAppendHandler, $storage]
+    createListHandler:
+        [history.createListHandler, $storage]
+    createAppendHandler:
+        [history.createAppendHandler, $storage]

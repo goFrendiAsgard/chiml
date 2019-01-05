@@ -10,7 +10,7 @@ describe("non-error declarative style", () => {
             injection: { asyncMinus, commandRootSquare, nodebackMultiply, syncAdd },
             component: {
                 run: {
-                    perform: "R.pipeP",
+                    setup: "R.pipeP",
                     parts: [
                         "${plusAndMinus}",
                         "${spreadListAndMultiply}",
@@ -18,19 +18,19 @@ describe("non-error declarative style", () => {
                     ],
                 },
                 plusAndMinus: {
-                    perform: "X.concurrent",
+                    setup: "X.concurrent",
                     parts: ["${syncAdd}", "${asyncMinus}"],
                 },
                 spreadListAndMultiply: {
-                    perform: "R.apply",
+                    setup: "R.apply",
                     parts: "${multiply}",
                 },
                 multiply: {
-                    perform: "X.wrapNodeback",
+                    setup: "X.wrapNodeback",
                     parts: "${nodebackMultiply}",
                 },
                 rootSquare: {
-                    perform: "X.wrapCommand",
+                    setup: "X.wrapCommand",
                     parts: ["${commandRootSquare}"],
                 },
             },
@@ -58,7 +58,7 @@ describe("non-error declarative style", () => {
             bootstrap: "addFour",
             component: {
                 addFour: {
-                    perform: "R.add",
+                    setup: "R.add",
                     parts: 4,
                 },
             },
@@ -82,7 +82,7 @@ describe("non-error declarative style", () => {
             injection: {Math},
             component: {
                 powerBy: {
-                    perform: "Math.pow",
+                    setup: "Math.pow",
                 },
             },
         });
@@ -95,7 +95,7 @@ describe("non-error declarative style", () => {
             bootstrap: "sayHello",
             component: {
                 sayHello: {
-                    perform: "R.concat",
+                    setup: "R.concat",
                     parts: "Hello ",
                 },
             },
@@ -116,7 +116,7 @@ describe("non-error declarative style", () => {
             },
             component: {
                 run: {
-                    perform: "createAreaCalculator",
+                    setup: "createAreaCalculator",
                     parts: {
                         width: "${four}",
                         height: "${five}",
@@ -136,7 +136,7 @@ describe("non-error declarative style", () => {
             },
             component: {
                 run: {
-                    perform: "R.concat",
+                    setup: "R.concat",
                     parts: "\\${hi}",
                 },
             },
@@ -153,7 +153,7 @@ describe("non-error declarative style", () => {
             },
             component: {
                 run: {
-                    perform: "R.concat",
+                    setup: "R.concat",
                     parts: "\\$hi",
                 },
             },
@@ -170,7 +170,7 @@ describe("non-error declarative style", () => {
             },
             component: {
                 run: {
-                    perform: "join",
+                    setup: "join",
                 },
             },
         });
@@ -187,30 +187,12 @@ describe("non-error declarative style", () => {
             component: {
                 run: {
                     arity: 2,
-                    perform: "join",
+                    setup: "join",
                 },
             },
         });
         const result = main("a", "b", "c");
         expect(result).toBe("a-b");
-    });
-
-    it("works with non-function component, since it is automatically transformed into function", () => {
-        const main = X.declare({
-            bootstrap: "run",
-            injection: {
-                four: 4,
-                five: 5,
-            },
-            component: {
-                run: {
-                    perform: "R.add",
-                    parts: ["${four}", "${five}"],
-                },
-            },
-        });
-        const result = main();
-        expect(result).toBe(9);
     });
 
 });
@@ -224,7 +206,7 @@ describe("brief syntax", () => {
                 run: ["R.pipe", "${add}", "${addOne}"],
                 add: "R.add",
                 addOne: {
-                    perform: ["R.add", 1],
+                    setup: ["R.add", 1],
                 },
             },
         });
@@ -239,7 +221,7 @@ describe("brief syntax", () => {
                 run: ["R.pipe", "$add", "$addOne"],
                 add: "R.add",
                 addOne: {
-                    perform: ["R.add", 1],
+                    setup: ["R.add", 1],
                 },
             },
         });
@@ -257,7 +239,7 @@ describe("non-error declarative style with class helpers", () => {
             injection: { Player },
             component: {
                 run: {
-                    perform: "R.pipe",
+                    setup: "R.pipe",
                     parts: [
                         "${initPlayer}",
                         "${setWeaponToFrostmourne}",
@@ -281,11 +263,11 @@ describe("non-error declarative style with class helpers", () => {
             injection: { Player },
             component: {
                 run: {
-                    perform: "R.pipe",
+                    setup: "R.pipe",
                     parts: ["${initPlayer}", "${attack}"],
                 },
                 initPlayer: {
-                    perform: "X.initClassAndRun",
+                    setup: "X.initClassAndRun",
                     parts: {
                         pipe: "${R.pipe}",
                         initClass: "${Player}",
@@ -303,7 +285,7 @@ describe("non-error declarative style with class helpers", () => {
                     },
                 },
                 attack: {
-                    perform: "X.getMethodEvaluator",
+                    setup: "X.getMethodEvaluator",
                     parts: "attack",
                 },
             },
@@ -318,7 +300,7 @@ describe("non-error declarative style with class helpers", () => {
             injection: { Player },
             component: {
                 run: {
-                    perform: "X.initClassAndRun",
+                    setup: "X.initClassAndRun",
                     parts: {
                         pipe: "${R.pipe}",
                         initClass: "${Player}",
@@ -351,7 +333,7 @@ describe("non-error declarative style with class helpers", () => {
             injection: { Player },
             component: {
                 run: {
-                    perform: "X.initClassAndRun",
+                    setup: "X.initClassAndRun",
                     parts: {
                         pipe: "${R.pipe}",
                         initClass: "${Player}",
@@ -384,7 +366,7 @@ describe("non-error declarative style with class helpers", () => {
             injection: { Player },
             component: {
                 run: {
-                    perform: "X.initClassAndRun",
+                    setup: "X.initClassAndRun",
                     parts: {
                         pipe: "${R.pipe}",
                         initClass: "${Player}",
@@ -408,7 +390,7 @@ describe("non-error declarative style with class helpers", () => {
             injection: { package: {lib: { Player }} },
             component: {
                 run: {
-                    perform: "X.initClassAndRun",
+                    setup: "X.initClassAndRun",
                     parts: {
                         pipe: "${R.pipe}",
                         initClass: "${package.lib.Player}",
@@ -432,7 +414,7 @@ describe("non-error declarative style with class helpers", () => {
             injection: { initPlayer },
             component: {
                 run: {
-                    perform: "X.initClassAndRun",
+                    setup: "X.initClassAndRun",
                     parts: {
                         pipe: "${R.pipe}",
                         initFunction: "${initPlayer}",
@@ -460,7 +442,7 @@ describe("error declarative style", () => {
                 bootstrap: "average",
                 component: {
                     average: {
-                        perform: "R.pipe",
+                        setup: "R.pipe",
                         parts: "${rataRata}",
                     },
                 },
@@ -480,7 +462,7 @@ describe("error declarative style", () => {
                 bootstrap: "oraono",
                 component: {
                     nor: {
-                        perform: "R.pipe",
+                        setup: "R.pipe",
                         parts: ["${R.or}", "${R.not}"],
                     },
                 },
@@ -494,7 +476,7 @@ describe("error declarative style", () => {
         }
     });
 
-    it("throw error if `perform` yield error", () => {
+    it("throw error if `setup` yield error", () => {
         try {
             const main = X.declare({
                 injection: {
@@ -502,7 +484,7 @@ describe("error declarative style", () => {
                 },
                 component: {
                     errorTest: {
-                        perform: "errorAction",
+                        setup: "errorAction",
                         parts: ["${R.or}"],
                     },
                 },
@@ -512,7 +494,31 @@ describe("error declarative style", () => {
             throw(new Error(`Expect error, but get result: ${result}`));
         } catch (error) {
             expect(error.message).toContain(
-                "Runtime error, component `errorTest()`: invalid action",
+                "Parse error, component `errorTest`: invalid action",
+            );
+        }
+    });
+
+    it("throw error when given non-function component", () => {
+        try {
+            const main = X.declare({
+                bootstrap: "run",
+                injection: {
+                    four: 4,
+                    five: 5,
+                },
+                component: {
+                    run: {
+                        setup: "R.add",
+                        parts: ["${four}", "${five}"],
+                    },
+                },
+            });
+            const result = main();
+            throw(new Error(`Expect error, but get result: ${result}`));
+        } catch (error) {
+            expect(error.message).toContain(
+                "Parse error, component `run`: Result of `R.add( 4, 5 )` is not a function",
             );
         }
     });
@@ -531,7 +537,7 @@ describe("error declarative style", () => {
                 },
                 component: {
                     run: {
-                        perform: "errorComponent",
+                        setup: "errorComponent",
                     },
                 },
             });
@@ -559,7 +565,7 @@ describe("error declarative style", () => {
                 },
                 component: {
                     run: {
-                        perform: "errorComponent",
+                        setup: "errorComponent",
                     },
                 },
             });
@@ -585,7 +591,7 @@ describe("error declarative style", () => {
             },
             component: {
                 run: {
-                    perform: "errorComponent",
+                    setup: "errorComponent",
                 },
             },
         });
@@ -621,7 +627,7 @@ describe("error declarative style", () => {
         }
     });
 
-    it("throw error if component's perform is not executable", () => {
+    it("throw error if component's setup is not executable", () => {
         try {
             const main = X.declare({
                 bootstrap: "run",
@@ -631,7 +637,7 @@ describe("error declarative style", () => {
                 },
                 component: {
                     run: {
-                        perform: "four",
+                        setup: "four",
                     },
                 },
             });
@@ -644,13 +650,13 @@ describe("error declarative style", () => {
         }
     });
 
-    it("throw error if component's perform not found", () => {
+    it("throw error if component's setup not found", () => {
         try {
             const main = X.declare({
                 bootstrap: "run",
                 component: {
                     run: {
-                        perform: "four",
+                        setup: "four",
                     },
                 },
             });
@@ -669,7 +675,7 @@ describe("error declarative style", () => {
                 bootstrap: "run",
                 component: {
                     run: {
-                        perform: "R.add",
+                        setup: "R.add",
                         parts: ["${four}", "${five}"]
                     },
                 },
@@ -689,7 +695,7 @@ describe("error declarative style", () => {
                 bootstrap: "run",
                 component: {
                     run: {
-                        perform: "R.pipe",
+                        setup: "R.pipe",
                         parts: ["${run}"]
                     },
                 },
@@ -709,7 +715,7 @@ describe("error declarative style", () => {
                 bootstrap: "run",
                 component: {
                     run: {
-                        perform: "X.initClassAndRun",
+                        setup: "X.initClassAndRun",
                         parts: {
                             pipe: "${R.pipe}",
                             initClass: "${package.lib.Player}",
@@ -743,7 +749,7 @@ describe("error declarative style", () => {
                 },
                 component: {
                     run: {
-                        perform: "X.initClassAndRun",
+                        setup: "X.initClassAndRun",
                         parts: {
                             pipe: "${R.pipe}",
                             initClass: "${testClass}",
@@ -756,7 +762,7 @@ describe("error declarative style", () => {
             throw(new Error(`Expect error, but get result: ${result}`));
         } catch (error) {
             expect(error.message).toContain(
-                "Runtime error, component `run()`: `executions` or `evaluation` expected",
+                "Parse error, component `run`: `executions` or `evaluation` expected",
             );
         }
     });

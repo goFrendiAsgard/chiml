@@ -5,10 +5,11 @@ injection:
 bootstrap: run
 component:
 
-    run: [X.pipe, $createResponder]
+    run:
+        [X.pipe, $createResponder]
 
     createResponder:
-        perform: X.initClassAndRun
+        setup: X.initClassAndRun
         parts:
             initClass: $cote.Responder
             initParams:
@@ -22,4 +23,5 @@ component:
             name: event publisher
             event: event added
 
-    createPublishHandler: [event.createPublishHandler, $cote.Publisher, $getPublishNewEventConfig]
+    createPublishHandler:
+        [event.createPublishHandler, $cote.Publisher, $getPublishNewEventConfig]
