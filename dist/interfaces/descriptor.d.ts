@@ -12,33 +12,27 @@ export interface IDeclarativeConfig {
     injection: {
         [key: string]: any;
     };
+    bootstrap: string;
     component: {
         [key: string]: Partial<IComponent>;
     };
-    bootstrap: string;
-    ins: string[] | null;
-    out: string | null;
 }
 export interface IUserDeclarativeConfig {
     injection: {
         [key: string]: any;
     };
+    bootstrap: string;
     component: {
         [key: string]: Partial<IUserComponent> | string | any[];
     };
-    bootstrap: string;
-    ins: string[] | string | null;
-    out: string | null;
 }
 export interface IComponent {
-    ins: string[] | null;
-    out: string | null;
+    arity: number;
     perform: string;
     parts: any[];
 }
 export interface IUserComponent {
-    ins: string[] | string | null;
-    out: string;
+    arity: number;
     perform: string | any[];
     parts: any[] | any | null;
 }
@@ -48,9 +42,7 @@ export interface IMethodRunnerConfig {
 }
 export interface IClassRunnerConfig {
     pipe: (...args: any[]) => AnyFunction;
-    initClass?: {
-        [method: string]: AnyFunction;
-    };
+    initClass?: any;
     initFunction?: AnyFunction;
     initParams: any[];
     executions: any[];
@@ -60,15 +52,11 @@ export interface IChimera {
     declare: (partialDeclarativeConfig: Partial<IUserDeclarativeConfig>) => AnyFunction;
     inject: (containerFile: string, injectionFile?: string) => AnyFunction;
     initClassAndRun: (configs: Partial<IClassRunnerConfig>) => any;
-    createClassInitiator: (cls: any) => (...args: any[]) => IObjectWithMethod;
-    createMethodEvaluator: (methodName: string, ...args: any[]) => (obj: IObjectWithMethod) => any;
-    createMethodExecutor: <T extends IObjectWithMethod>(methodName: string, ...args: any[]) => (obj: T) => T;
-    foldInput: (fn: AnyFunction) => ((arr: any[]) => any);
-    spreadInput: (fn: (arr: any[]) => any) => AnyFunction;
-    concurrent: (...fnList: AnyAsyncFunction[]) => AnyAsyncFunction;
+    getMethodEvaluator: (methodName: string, ...args: any[]) => (obj: IObjectWithMethod) => any;
+    getMethodExecutor: <T extends IObjectWithMethod>(methodName: string, ...args: any[]) => (obj: T) => T;
+    concurrent: (...fnList: AnyFunction[]) => AnyAsyncFunction;
     wrapCommand: (stringCommand: string) => AnyAsyncFunction;
     wrapNodeback: (fn: AnyFunction) => AnyAsyncFunction;
-    wrapSync: (fn: AnyFunction) => AnyAsyncFunction;
 }
 export declare type TChimera = IChimera;
 export declare type TRamda = Static;

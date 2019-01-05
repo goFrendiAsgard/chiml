@@ -1,5 +1,3 @@
-ins: year
-out: result
 bootstrap: execute
 injection: ./dist/injection.cat.js
 component:
@@ -9,35 +7,24 @@ component:
         parts:
             - $fetchImageAndCalendar
             - $composeCalendar
-            - $writeCalendar
+            - $writeHtml
             - $showCalendar
 
     fetchImageAndCalendar: [X.concurrent, $fetchImageUrl, $fetchCalendar]
 
-    composeCalendar:
-        ins: [imageUrl, calendar]
-        out: result
-        perform: injection.composeHtml
+    composeCalendar: [R.apply, $injection.composeHtml]
 
-    writeCalendar:
-        ins: result
-        perform: [X.wrapCommand, $injection.writeHtmlCommand]
+    writeHtml: [X.wrapCommand, $injection.writeHtmlCommand]
 
-    showCalendar:
-        ins: []
-        perform: [X.wrapCommand, $injection.showCalendarCommand]
+    showCalendar: [X.wrapCommand, $injection.showCalendarCommand]
 
-    fetchCalendar:
-        ins: year
-        out: calendar
-        perform: [X.wrapCommand, $injection.calCommand]
+    fetchCalendar: [X.wrapCommand, $injection.calCommand]
 
-    fetchImageUrl:
-        out: imageUrl
-        perform: [R.pipeP, $fetchImageObj, $getImageUrl]
+    fetchImageUrl: [R.pipeP, $fetchImageObj, $extractImageUrl]
 
     fetchImageObj:
-        ins: []
-        perform: [X.wrapCommand, $injection.imageFetcherCommand]
+        arity: 0
+        perform: X.wrapCommand
+        parts: [$injection.imageFetcherCommand]
 
-    getImageUrl: [R.prop, $injection.imageKey]
+    extractImageUrl: [R.prop, $injection.imageKey]

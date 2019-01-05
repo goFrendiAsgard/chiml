@@ -14,7 +14,7 @@ const Player_1 = require("./fixtures/Player");
 describe("foldInput", () => {
     it("works", () => {
         const fn = (...args) => index_1.R.sum(args);
-        const foldedFn = index_1.X.foldInput(fn);
+        const foldedFn = index_1.R.apply(fn);
         const result = foldedFn([1, 2, 3]);
         expect(result).toBe(6);
     });
@@ -22,19 +22,10 @@ describe("foldInput", () => {
 describe("spreadInput", () => {
     it("works", () => {
         const fn = (args) => index_1.R.sum(args);
-        const spreadedFn = index_1.X.spreadInput(fn);
+        const spreadedFn = index_1.R.unapply(fn);
         const result = spreadedFn(1, 2, 3);
         expect(result).toBe(6);
     });
-});
-describe("wrapSync", () => {
-    it("works", () => __awaiter(this, void 0, void 0, function* () {
-        const fn = (args) => index_1.R.sum(args);
-        const wrapped = index_1.X.wrapSync(fn);
-        const result = yield wrapped([1, 2, 3]);
-        expect(result).toBe(6);
-        return null;
-    }));
 });
 describe("wrapNodeback", () => {
     it("works", () => __awaiter(this, void 0, void 0, function* () {
@@ -140,10 +131,10 @@ describe("wrapCommand", () => {
 });
 describe("class helpers", () => {
     it("works", () => {
-        const initPlayer = index_1.X.createClassInitiator(Player_1.Player);
-        const setWeaponToFrostmourne = index_1.X.createMethodExecutor("setWeapon", "Frostmourne");
-        const setDamageTo50 = index_1.X.createMethodExecutor("setDamage", 50);
-        const attack = index_1.X.createMethodEvaluator("attack");
+        const initPlayer = index_1.R.construct(Player_1.Player);
+        const setWeaponToFrostmourne = index_1.X.getMethodExecutor("setWeapon", "Frostmourne");
+        const setDamageTo50 = index_1.X.getMethodExecutor("setDamage", 50);
+        const attack = index_1.X.getMethodEvaluator("attack");
         const main = index_1.R.pipe(initPlayer, setWeaponToFrostmourne, setDamageTo50, attack);
         const result = main("Arthas");
         expect(result).toBe("Arthas attack with Frostmourne, deal 50 damage");
@@ -154,10 +145,9 @@ describe("imperative style", () => {
         // composition
         const asyncRootSquare = index_1.X.wrapCommand(lib_1.commandRootSquare);
         const asyncMultiply = index_1.X.wrapNodeback(lib_1.nodebackMultiply);
-        const asyncAdd = index_1.X.wrapSync(lib_1.syncAdd);
-        const asyncAddAndMinus = index_1.X.concurrent(asyncAdd, lib_1.asyncMinus);
-        const convergedAsyncMultiply = index_1.X.foldInput(asyncMultiply);
-        const main = index_1.R.pipeP(asyncAddAndMinus, convergedAsyncMultiply, asyncRootSquare);
+        const asyncAddAndMinus = index_1.X.concurrent(lib_1.syncAdd, lib_1.asyncMinus);
+        const spreadListAndMultiply = index_1.R.apply(asyncMultiply);
+        const main = index_1.R.pipeP(asyncAddAndMinus, spreadListAndMultiply, asyncRootSquare);
         // action
         const result = yield main(10, 6);
         expect(result).toBe(8);

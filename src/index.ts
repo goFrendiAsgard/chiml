@@ -28,15 +28,11 @@ export const X: TChimera = {
     declare,
     inject: R.curryN(2, inject),
     initClassAndRun,
-    createClassInitiator,
-    createMethodExecutor,
-    createMethodEvaluator,
-    foldInput,
-    spreadInput,
+    getMethodExecutor,
+    getMethodEvaluator,
     concurrent,
     wrapCommand,
     wrapNodeback,
-    wrapSync,
 };
 
 export function inject(containerFile: string, userInjectionFile: string | string[] = null): AnyFunction {
@@ -52,7 +48,7 @@ export function inject(containerFile: string, userInjectionFile: string | string
             .map((part) => part.trim());
             const obj = relativeRequire(injectionFile);
             return Object.assign({}, tmpInjection, {[alias]: obj});
-        }, { R, X, logger: console });
+        }, { R, X, console });
         return declare(Object.assign({}, config, { injection }));
     } catch (error) {
         error.message = `CONTAINER FILE: ${containerFile}\n${error.message}`;
@@ -103,78 +99,36 @@ function _getInjectionFileAndAliasList(
 function declare(partialDeclarativeConfig: Partial<IUserDeclarativeConfig>): AnyFunction {
     const declarativeConfig = _getCompleteDeclarativeConfig(partialDeclarativeConfig);
     const componentDict = declarativeConfig.component;
-    const globalIns = declarativeConfig.ins;
-    const globalOut = declarativeConfig.out;
     const { bootstrap } = declarativeConfig;
     const componentNameList = Object.keys(componentDict);
-    const state = {};
     // parse all `${key}`, create function, and register it to parsedDict
     const parsedDict = componentNameList.reduce((tmpParsedDict, componentName) => {
-        return _addToParsedDict(tmpParsedDict, state, componentName, declarativeConfig);
-    }, Object.assign({}, declarativeConfig.injection));
+        return _addToParsedDict(tmpParsedDict, declarativeConfig, componentName);
+    }, Object.assign({}, { R, X, console }, declarativeConfig.injection));
     // return bootstrap function
     const parsedDictVal = _getFromParsedDict(parsedDict, bootstrap);
     if (!parsedDictVal.found) {
         const error = new Error(`\`${bootstrap}\` is not defined`);
-        throw(_getEmbededBootstrapParseError(error, state, declarativeConfig));
+        throw(_getEmbededBootstrapParseError(error, declarativeConfig));
     }
-    return _getWrappedBootstrapFunction(declarativeConfig, parsedDict, state);
-}
-
-function _getWrappedBootstrapFunction(
-    declarativeConfig: IDeclarativeConfig, parsedDict: {[key: string]: any}, state: {[key: string]: any},
-): AnyFunction {
-    const componentDict = declarativeConfig.component;
-    const globalIns = declarativeConfig.ins;
-    const globalOut = declarativeConfig.out;
-    const { bootstrap } = declarativeConfig;
-    function wrappedBootstrapFunction(...args) {
-        if (globalIns !== null) {
-            const structure = { ins: globalIns, out: globalOut, bootstrap };
-            const argsStringRepresentation = _getArgsStringRepresentation(args);
-            const embededErrorMessage = `Runtime error, \`${bootstrap}${argsStringRepresentation}\`:`;
-            if (args.length < globalIns.length) {
-                const error = new Error(`Program expecting ${globalIns.length} arguments, but ${args.length} given`);
-                throw(_getEmbededBootstrapRuntimeError(error, state, declarativeConfig, args));
-            }
-            try {
-                state = args.reduce((tmpState, arg, index) => {
-                    return _setState(tmpState, globalIns[index], arg);
-                }, state);
-            } catch (error) {
-                throw(_getEmbededBootstrapRuntimeError(error, state, declarativeConfig, args));
-            }
-        }
-        const parsedDictVal = _getFromParsedDict(parsedDict, bootstrap);
-        const func = parsedDictVal.value;
-        const wrappedFunction = bootstrap in componentDict && parsedDictVal.found ?
-            func : _getWrappedFunction(declarativeConfig, bootstrap, func, state);
-        const bootstrapOutput = wrappedFunction(...args);
-        if (_isPromise(bootstrapOutput)) {
-            if (globalOut === null) {
-                return bootstrapOutput;
-            }
-            return bootstrapOutput.then((val) => _getFromMaybeImmutable(state[globalOut]));
-        }
-        return globalOut === null ? bootstrapOutput : _getFromMaybeImmutable(state[globalOut]);
-    }
-    return wrappedBootstrapFunction;
+    const fn = parsedDictVal.value;
+    return bootstrap in componentDict ? fn : _getWrappedFunction(declarativeConfig, bootstrap, fn);
 }
 
 function _getParsedParts(
-    parsedDict: {[key: string]: any}, state: {[key: string]: any},
+    parsedDict: {[key: string]: any}, declarativeConfig: IDeclarativeConfig,
     componentDict: {[key: string]: any}, parentComponentName: string, parts: any,
 ): any {
     if (Array.isArray(parts)) {
         return parts.map(
-            (element) => _getParsedParts(parsedDict, state, componentDict, parentComponentName, element),
+            (element) => _getParsedParts(parsedDict, declarativeConfig, componentDict, parentComponentName, element),
         );
     }
     if (typeof parts === "object") {
         return Object.keys(parts).reduce((newObj, key) => {
             const val = parts[key];
             return Object.assign({}, newObj, {
-                [key]: _getParsedParts(parsedDict, state, componentDict, parentComponentName, val),
+                [key]: _getParsedParts(parsedDict, declarativeConfig, componentDict, parentComponentName, val),
             });
         }, {});
     }
@@ -186,6 +140,10 @@ function _getParsedParts(
             const key = match[1];
             const parsedDictVal = _getFromParsedDict(parsedDict, key);
             if (!parsedDictVal.found) {
+                if (key in componentDict) {
+                    _addToParsedDict(parsedDict, declarativeConfig, key);
+                    return _getFromParsedDict(parsedDict, key).value;
+                }
                 throw(new Error(`Component \`${key}\` is not defined`));
             }
             return parsedDictVal.value;
@@ -194,13 +152,6 @@ function _getParsedParts(
         return parts.replace(/^\s*\\\$/gi, "\$");
     }
     return parts;
-}
-
-function _isClass(obj): boolean {
-    if (typeof(obj) === "function" && obj.prototype) {
-        return true;
-    }
-    return false;
 }
 
 function _getFromParsedDict(parsedDict: {[key: string]: any}, searchKey: string): IKeyInParsedDict {
@@ -222,12 +173,11 @@ function _getFromParsedDict(parsedDict: {[key: string]: any}, searchKey: string)
 }
 
 function _addToParsedDict(
-    parsedDict: {[key: string]: any}, state: {[key: string]: any},
-    componentName: string, declarativeConfig: IDeclarativeConfig,
+    parsedDict: {[key: string]: any}, declarativeConfig: IDeclarativeConfig, componentName: string,
 ): {[key: string]: any} {
     try {
         const componentDict = declarativeConfig.component;
-        const { ins, out, perform, parts } = componentDict[componentName];
+        const { perform, parts } = componentDict[componentName];
         const parsedDictVal = _getFromParsedDict(parsedDict, perform);
         if (!parsedDictVal.found) {
             throw new Error(`\`${perform}\` is not defined`);
@@ -240,41 +190,21 @@ function _addToParsedDict(
             function nonComposedFunc(...args) {
                 return performer(...args);
             }
-            parsedDict[componentName] = _getWrappedFunction(declarativeConfig, componentName, nonComposedFunc, state);
+            parsedDict[componentName] = _getWrappedFunction(declarativeConfig, componentName, nonComposedFunc);
             return parsedDict;
         }
-        _checkComponentParts(parsedDict, componentDict, componentName);
+        const parsedParts = _getParsedParts(parsedDict, declarativeConfig, componentDict, componentName, parts);
         function composedFunc(...args) {
-            const parsedParts = _getParsedParts(parsedDict, state, componentDict, componentName, parts);
             const performerPlusParts = performer(...parsedParts);
             const realFunction = typeof performerPlusParts === "function" ?
                 performerPlusParts : () => performerPlusParts;
             return realFunction(...args);
         }
-        parsedDict[componentName] = _getWrappedFunction(declarativeConfig, componentName, composedFunc, state);
+        parsedDict[componentName] = _getWrappedFunction(declarativeConfig, componentName, composedFunc);
         return parsedDict;
     } catch (error) {
-        throw(_getEmbededParseError(error, state, declarativeConfig, componentName));
+        throw(_getEmbededParseError(error, declarativeConfig, componentName));
     }
-}
-
-function _checkComponentParts(
-    parsedDict: {[key: string]: any}, componentDict: {[key: string]: any}, componentName: string,
-) {
-    const { parts } = componentDict[componentName];
-    return parts.reduce((done, part) => {
-        if (typeof part === "string") {
-            const tagPattern = new RegExp(TAG_PATTERN);
-            const match = tagPattern.exec(part);
-            if (match) {
-                const key = match[1];
-                const { found } = _getFromParsedDict(parsedDict, key);
-                if (!(key in componentDict) && !(found)) {
-                    throw new Error(`Part \`${key}\` is not defined`);
-                }
-            }
-        }
-    }, true);
 }
 
 function _getArgsStringRepresentation(args: any[]) {
@@ -282,110 +212,61 @@ function _getArgsStringRepresentation(args: any[]) {
 }
 
 function _getWrappedFunction(
-    declarativeConfig: IDeclarativeConfig, componentName: string,
-    func: AnyFunction, state: {[key: string]: any},
+    declarativeConfig: IDeclarativeConfig, componentName: string, func: AnyFunction,
 ): AnyFunction {
     const componentDict = declarativeConfig.component;
-    const currentComponent = componentName in componentDict ? componentDict[componentName] : {};
-    const { ins, out } = _getCompleteComponent(currentComponent);
-    function wrappedFunction(...args) {
-        const realArgs = ins === null ? args : _getArrayFromObject(ins, state);
+    const currentComponent = componentName in componentDict ? componentDict[componentName] : { arity: -1 };
+    const { arity } = currentComponent;
+    function wrappedFunction(...rawArgs) {
+        const args = arity < 0 ? rawArgs : rawArgs.slice(0, arity);
         try {
-            const funcOut = func(...realArgs);
+            const funcOut = func(...args);
             if (_isPromise(funcOut)) {
                 const funcOutWithErrorHandler = funcOut.catch((error) => {
                     return Promise.reject(
-                        _getEmbededRuntimeError(error, state, declarativeConfig, componentName, realArgs),
+                        _getEmbededRuntimeError(error, declarativeConfig, componentName, args),
                     );
                 });
-                if (out === null) {
-                    return funcOutWithErrorHandler;
-                }
-                return funcOutWithErrorHandler.then((val) => {
-                    _setState(state, out, val);
-                    return val;
-                });
-            }
-            if (out != null) {
-                _setState(state, out, funcOut);
+                return funcOutWithErrorHandler;
             }
             return funcOut;
         } catch (error) {
-            throw(_getEmbededRuntimeError(error, state, declarativeConfig, componentName, realArgs));
+            throw(_getEmbededRuntimeError(error, declarativeConfig, componentName, args));
         }
     }
     return wrappedFunction;
 }
 
-function _setState(state: {[key: string]: any}, key: string, value: any): {[key: string]: any} {
-    if (key in state) {
-        throw(new Error(`Cannot reassign \`${key}\``));
-    }
-    state[key] = fromJS(value);
-    return state;
-}
-
-function _getFromMaybeImmutable(val: any) {
-    if (typeof val === "object" && typeof val.toJS === "function") {
-        return val.toJS();
-    }
-    return val;
-}
-
-function _getArrayFromObject(keys: string[], obj: {[key: string]: any}): any[] {
-    return keys.map((key) => _getFromMaybeImmutable(obj[key]));
-}
-
 function _getEmbededBootstrapParseError(
-    error: any, state: {[key: string]: any},
-    declarativeConfig: IDeclarativeConfig,
+    error: any, declarativeConfig: IDeclarativeConfig,
 ) {
-    const globalIns = declarativeConfig.ins;
-    const globalOut = declarativeConfig.out;
     const { bootstrap } = declarativeConfig;
-    const structure = { ins: globalIns, out: globalOut, bootstrap };
+    const structure = { bootstrap };
     const errorMessage = `Parse error, bootstrap component \`${bootstrap}\`:`;
-    return _getEmbededError(error, errorMessage, state, structure, declarativeConfig);
-}
-
-function _getEmbededBootstrapRuntimeError(
-    error: any, state: {[key: string]: any},
-    declarativeConfig: IDeclarativeConfig,
-    args: any[],
-): any {
-    const globalIns = declarativeConfig.ins;
-    const globalOut = declarativeConfig.out;
-    const { bootstrap } = declarativeConfig;
-    const realArgsAsString = _getArgsStringRepresentation(args);
-    const errorMessage = `Runtime error, bootstrap component \`${bootstrap}${realArgsAsString}\`:`;
-    const structure = { ins: globalIns, out: globalOut, bootstrap };
-    return _getEmbededError(error, errorMessage, state, structure, declarativeConfig);
+    return _getEmbededError(error, errorMessage, structure, declarativeConfig);
 }
 
 function _getEmbededParseError(
-    error: any, state: {[key: string]: any},
-    declarativeConfig: IDeclarativeConfig, componentName: string,
+    error: any, declarativeConfig: IDeclarativeConfig, componentName: string,
 ) {
     const componentDict = declarativeConfig.component;
     const structure = { component: {[componentName]: componentDict[componentName]} };
     const errorMessage = `Parse error, component \`${componentName}\`:`;
-    return _getEmbededError(error, errorMessage, state, structure, declarativeConfig);
+    return _getEmbededError(error, errorMessage, structure, declarativeConfig);
 }
 
 function _getEmbededRuntimeError(
-    error: any, state: {[key: string]: any},
-    declarativeConfig: IDeclarativeConfig, componentName: string, args: any[],
+    error: any, declarativeConfig: IDeclarativeConfig, componentName: string, args: any[],
 ): any {
     const componentDict = declarativeConfig.component;
     const realArgsAsString = _getArgsStringRepresentation(args);
     const errorMessage = `Runtime error, component \`${componentName}${realArgsAsString}\`:`;
     const structure = { component: {[componentName]: componentDict[componentName]} };
-    return _getEmbededError(error, errorMessage, state, structure, declarativeConfig);
+    return _getEmbededError(error, errorMessage, structure, declarativeConfig);
 }
 
 function _getEmbededError(
-    error: any, message: string, state: {[key: string]: any}, structure: {[key: string]: any},
-    declarativeConfig: IDeclarativeConfig,
+    error: any, message: string, structure: {[key: string]: any}, declarativeConfig: IDeclarativeConfig,
 ): any {
     if (typeof error !== "object" || !error.message) {
         error = new Error(error);
@@ -399,11 +280,9 @@ function _getEmbededError(
     const declaredComponentString = utilInspect(declaredComponentList, utilInspectOption);
     const injectedComponentString = utilInspect(injectedComponentList, utilInspectOption);
     const newErrorMessage = `${message} ${error.message}`;
-    const stateString = utilInspect(state, utilInspectOption);
     const structureString = utilInspect(structure, utilInspectOption);
     error.message = `\n${FG_BRIGHT}${FG_RED}ERROR: ${newErrorMessage}${RESET_COLOR}\n` +
         `${FG_BRIGHT}${FG_YELLOW}ON STRUCTURE:${RESET_COLOR} ${structureString}\n` +
-        `${FG_BRIGHT}${FG_CYAN}CURRENT STATE:${RESET_COLOR} ${stateString}\n` +
         `${FG_BRIGHT}${FG_CYAN}DECLARED COMPONENTS:${RESET_COLOR} ${declaredComponentString}\n` +
         `${FG_BRIGHT}${FG_CYAN}INJECTED COMPONENTS:${RESET_COLOR} ${injectedComponentString}\n`;
     return error;
@@ -411,15 +290,11 @@ function _getEmbededError(
 
 function _getCompleteDeclarativeConfig(partialConfig: Partial<IUserDeclarativeConfig>): IDeclarativeConfig {
     const defaultDeclarativeConfig = {
-        ins: null,
-        out: null,
         injection: {},
         component: {},
         bootstrap: "run",
     };
     const filledConfig = Object.assign({}, defaultDeclarativeConfig, partialConfig) as IDeclarativeConfig;
-    // make sure `ins` is either null or array. Otherwise, turn it into array
-    const ins = filledConfig.ins !== null && !Array.isArray(filledConfig.ins) ? [filledConfig.ins] : filledConfig.ins;
     // get complete component
     const componentNameList = Object.keys(filledConfig.component);
     const component = componentNameList.reduce((tmpComponent, componentName) => {
@@ -428,25 +303,21 @@ function _getCompleteDeclarativeConfig(partialConfig: Partial<IUserDeclarativeCo
         });
     }, {});
     // return complete config
-    return Object.assign({}, filledConfig, { component, ins });
+    return Object.assign({}, filledConfig, { component });
 }
 
 function _getCompleteComponent(rawComponent: Partial<IUserComponent>| string | string[]): IComponent {
     const defaultComponent = {
-        ins: null,
-        out: null,
+        arity: -1,
         perform: null,
         parts: [],
     };
     const partialComponent = _getPartialComponentWithNormalizePerform(rawComponent);
     const filledComponent = Object.assign({}, defaultComponent, partialComponent) as IComponent;
-    // make sure `ins` is either null or an array. Otherwise, turn it into an array
-    const ins = filledComponent.ins !== null && !Array.isArray(filledComponent.ins) ?
-        [filledComponent.ins] : filledComponent.ins;
     // make sure `parts` is an array. Otherwise, turn it into an array
     const parts = Array.isArray(filledComponent.parts) ? filledComponent.parts : [filledComponent.parts];
     // return component component
-    return Object.assign({}, filledComponent, { ins, parts });
+    return Object.assign({}, filledComponent, { parts });
 }
 
 function _getPartialComponentWithNormalizePerform(
@@ -476,14 +347,14 @@ function initClassAndRun<T extends IObjectWithMethod>(classRunnerConfig: Partial
     const {
         pipe, initClass, initFunction, initParams, executions, evaluation,
     } = _getCompleteClassRunnerConfig(classRunnerConfig);
-    const classInitiator: (...args: any[]) => T = initClass ? createClassInitiator(initClass) : initFunction;
+    const classInitiator: (...args: any[]) => T = initClass ? R.construct(initClass) : initFunction;
     const executorList = executions.map((methodRunnerConfig) => {
         const { method, params } = _getCompleteMethodRunnerConfig(methodRunnerConfig);
-        return createMethodExecutor(method, ...params);
+        return getMethodExecutor(method, ...params);
     });
     if (evaluation) {
         const { method, params } = _getCompleteMethodRunnerConfig(evaluation);
-        const evaluator = createMethodEvaluator(method, ...params);
+        const evaluator = getMethodEvaluator(method, ...params);
         const executorAndEvaluatorList = executorList.concat([evaluator]);
         return pipe(classInitiator, ...executorAndEvaluatorList)(...initParams);
     }
@@ -530,21 +401,14 @@ function _getCompleteClassRunnerConfig(classRunnerConfig: Partial<IClassRunnerCo
     return Object.assign({}, filledConfig, { initParams });
 }
 
-function createClassInitiator<T extends IObjectWithMethod>(cls: any): (...args: any[]) => T {
-    function classInitiator(...args: any[]): T {
-        return new cls(...args) as T;
-    }
-    return classInitiator;
-}
-
-function createMethodEvaluator(methodName: string, ...args: any[]): (obj: IObjectWithMethod) => any  {
+function getMethodEvaluator(methodName: string, ...args: any[]): (obj: IObjectWithMethod) => any  {
     function methodEvaluator(obj: IObjectWithMethod): any {
         return obj[methodName](...args);
     }
     return methodEvaluator;
 }
 
-function createMethodExecutor<T extends IObjectWithMethod>(methodName: string, ...args: any[]): (obj: T) => T  {
+function getMethodExecutor<T extends IObjectWithMethod>(methodName: string, ...args: any[]): (obj: T) => T  {
     function methodExecutor(obj: T): T {
         obj[methodName](...args);
         return obj;
@@ -553,44 +417,14 @@ function createMethodExecutor<T extends IObjectWithMethod>(methodName: string, .
 }
 
 /**
- * @param fn AnyFunction
- */
-function spreadInput<TArg, TResult>(fn: (arr: TArg[]) => TResult): (...args: TArg[]) => TResult {
-    function spreaded(...args: TArg[]): TResult {
-        return fn(args);
-    }
-    return spreaded;
-}
-
-/**
- * @param fn AnyFunction
- */
-function foldInput<TArg, TResult>(fn: (...args: TArg[]) => TResult): (arr: TArg[]) => TResult {
-    function folded(arr: any[]): any {
-        return fn(...arr);
-    }
-    return folded;
-}
-
-/**
  * @param fnList AnyAsynchronousFunction
  */
-function concurrent(...fnList: AnyAsyncFunction[]): AnyAsyncFunction {
+function concurrent(...fnList: AnyFunction[]): AnyAsyncFunction {
     function concurrentAction(...args: any[]): Promise<any> {
         const promises: Array<Promise<any>> = fnList.map((fn) => fn(...args));
         return Promise.all(promises);
     }
     return concurrentAction;
-}
-
-/**
- * @param fn AnyFunction
- */
-function wrapSync<TArg, TResult>(fn: (...args: TArg[]) => TResult): (...args: TArg[]) => Promise<TResult> {
-    async function wrappedSync(...args: TArg[]): Promise<TResult> {
-        return Promise.resolve(fn(...args));
-    }
-    return wrappedSync;
 }
 
 /**
@@ -716,6 +550,13 @@ function _isEmptyArray(arr: any[]): boolean {
  */
 function _isPromise(obj: any): boolean {
     if (typeof obj === "object" && obj.then) {
+        return true;
+    }
+    return false;
+}
+
+function _isClass(obj): boolean {
+    if (typeof(obj) === "function" && obj.prototype) {
         return true;
     }
     return false;

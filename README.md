@@ -13,11 +13,10 @@ CHIML (Chimera Markup Language) is a declarative dependency injection framework 
 ## Who is it for?
 
 * Developers who want to build solution by composing `Javascript module` and `CLI programs` in a declarative way using `YAML`.
-* Developers who don't want to memorize a lot of keyword. CHIML only has 7 keywords: `ins`, `out`, `injection`, `bootstrap`, `component`, `perform`, `parts`.
+* Developers who don't want to memorize a lot of keyword. CHIML only has 5 keywords: `injection`, `bootstrap`, `component`, `perform`, `parts`.
 
 # Convention and Philosophy
 
-* Once set, States are immutable.
 * Components are functions.
 * Naming is important:
     - Everything that do something should be named as `verb`
@@ -44,15 +43,11 @@ By default, Chiml injects 2 Objects:
     - `declare: (partialDeclarativeConfig: Partial<IUserDeclarativeConfig>) => AnyFunction;`
     - `inject: (containerFile: string, injectionFile?: string) => AnyFunction;`
     - `initClassAndRun: (configs: Partial<IClassRunnerConfig>) => any;`
-    - `createClassInitiator: (cls: any) => (...args: any[]) => IObjectWithMethod;`
-    - `createMethodEvaluator: (methodName: string, ...args: any[]) => (obj: IObjectWithMethod) => any;`
-    - `createMethodExecutor: <T extends IObjectWithMethod>(methodName: string, ...args: any[]) => (obj: T) => T;`
-    - `foldInput: (fn: AnyFunction) => ((arr: any[]) => any);`
-    - `spreadInput: (fn: (arr: any[]) => any) => AnyFunction;`
+    - `getMethodEvaluator: (methodName: string, ...args: any[]) => (obj: IObjectWithMethod) => any;`
+    - `getMethodExecutor: <T extends IObjectWithMethod>(methodName: string, ...args: any[]) => (obj: T) => T;`
     - `concurrent: (...fnList: AnyAsyncFunction[]) => AnyAsyncFunction;`
     - `wrapCommand: (stringCommand: string) => AnyAsyncFunction;`
     - `wrapNodeback: (fn: AnyFunction) => AnyAsyncFunction;`
-    - `wrapSync: (fn: AnyFunction) => AnyAsyncFunction;`
 
 # Examples
 

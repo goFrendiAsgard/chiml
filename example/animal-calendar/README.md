@@ -24,8 +24,6 @@ We want to show calendar on the browser. We also want to show a cute animal imag
 This bird-view planning can be written in YAML as follow:
 
 ```yaml
-ins: year
-out: result
 bootstrap: execute
 component:
 
@@ -56,8 +54,6 @@ Below is the detail implementation, as well as our executable CHIML program:
 __animal-calendar.yml__
 
 ```yaml
-ins: year
-out: result
 bootstrap: execute
 component:
 
@@ -66,42 +62,31 @@ component:
         parts:
             - $fetchImageAndCalendar
             - $composeCalendar
-            - $writeCalendar
+            - $writeHtml
             - $showCalendar
 
     fetchImageAndCalendar: [X.concurrent, $fetchImageUrl, $fetchCalendar]
 
-    composeCalendar:
-        ins: [imageUrl, calendar]
-        out: result
+    composeCalendar: [R.apply, $composeHtml]
+
+    composeHtml:
         perform: X.wrapCommand
         parts: echo '<img src="' ${1} '"/><pre>' ${2} '</pre>'
 
-    writeCalendar:
-        ins: result
-        perform: [X.wrapCommand, "echo ${1} > ${PWD}/calendar.html"]
+    writeHtml: [X.wrapCommand, "echo ${1} > ${PWD}/calendar.html"]
 
-    showCalendar:
-        ins: []
-        perform: [X.wrapCommand, "google-chrome file://${PWD}/calendar.html"]
+    showCalendar: [X.wrapCommand, "google-chrome file://${PWD}/calendar.html"]
 
-    fetchCalendar:
-        ins: year
-        out: calendar
-        perform: [X.wrapCommand, "ncal ${1} -h"]
+    fetchCalendar: [X.wrapCommand, "ncal ${1} -h"]
 
-    fetchImageUrl:
-        out: imageUrl
-        perform: R.pipeP
-        parts:
-            - $fetchImageObj
-            - $getImageUrl
+    fetchImageUrl: [R.pipeP, $fetchImageObj, $extractImageUrl]
 
     fetchImageObj:
-        ins: []
-        perform: [X.wrapCommand, curl https://aws.random.cat/meow]
+        arity: 0
+        perform: X.wrapCommand
+        parts: [curl https://aws.random.cat/meow]
 
-    getImageUrl: [R.prop, file]
+    extractImageUrl: [R.prop, file]
 ```
 
 Now you can simply perform `chie -c animal-calendar.yml 2017`
@@ -151,8 +136,6 @@ Then we define our container, `animal-calendar.yml`:
 __animal-calendar.yml__
 
 ```yaml
-ins: year
-out: result
 bootstrap: execute
 injection: ./dist/injection.cat.js
 component:
@@ -162,41 +145,27 @@ component:
         parts:
             - $fetchImageAndCalendar
             - $composeCalendar
-            - $writeCalendar
+            - $writeHtml
             - $showCalendar
 
     fetchImageAndCalendar: [X.concurrent, $fetchImageUrl, $fetchCalendar]
 
-    composeCalendar:
-        ins: [imageUrl, calendar]
-        out: result
-        perform: injection.composeHtml
+    composeCalendar: [R.apply, $injection.composeHtml]
 
-    writeCalendar:
-        ins: result
-        perform: [X.wrapCommand, $injection.writeHtmlCommand]
+    writeHtml: [X.wrapCommand, $injection.writeHtmlCommand]
 
-    showCalendar:
-        ins: []
-        perform: [X.wrapCommand, $injection.showCalendarCommand]
+    showCalendar: [X.wrapCommand, $injection.showCalendarCommand]
 
-    fetchCalendar:
-        ins: year
-        out: calendar
-        perform: [X.wrapCommand, $injection.calCommand]
+    fetchCalendar: [X.wrapCommand, $injection.calCommand]
 
-    fetchImageUrl:
-        out: imageUrl
-        perform: R.pipeP
-        parts:
-            - ${fetchImageObj}
-            - ${getImageUrl}
+    fetchImageUrl: [R.pipeP, $fetchImageObj, $extractImageUrl]
 
     fetchImageObj:
-        ins: []
-        perform: [X.wrapCommand, $injection.imageFetcherCommand]
+        arity: 0
+        perform: X.wrapCommand
+        parts: [$injection.imageFetcherCommand]
 
-    getImageUrl: [R.prop, $injection.imageKey]
+    extractImageUrl: [R.prop, $injection.imageKey]
 ```
 
 By default, this container will use `./dist/catCalendarInjection.js`. The file is currently inexist. You might notice that we have some `undefined components` like `injection.composeHtml`, `injection.writeHtmlCommand`, `injection.showCalendarCommand`, `injection.calCommand`, `injection.imageFetcherCommand`, and `injection.imageKey`. It's okay, we will define the interface and the implementation later.

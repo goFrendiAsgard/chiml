@@ -1,4 +1,4 @@
-import { IStorage } from "./interfaces/storage";
+import { IStorage } from "./interfaces";
 
 export function createListHandler(storage: IStorage): (req: any, cb: (result: any) => any) => Promise<void> {
     return async (req: any, cb: (result: any) => any): Promise<void> => {

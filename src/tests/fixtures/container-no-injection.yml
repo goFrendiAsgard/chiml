@@ -1,8 +1,4 @@
-ins: [a, b]
-out: c
 bootstrap: operation
 component:
     operation:
-        ins: [a, b]
-        out: c
         perform: R.add

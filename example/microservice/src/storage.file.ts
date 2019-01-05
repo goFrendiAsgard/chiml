@@ -1,11 +1,14 @@
 import { readFile, writeFile } from "fs";
 import { join } from "path";
+import { IStorage } from "./interfaces";
 
 const fileName = join(__dirname, "../event.json");
 
-export async function append(line: string): Promise<any> {
-    return new Promise((resolve, reject) => {
-        read()
+export default class Storage {
+
+    public async append(line: string): Promise<any> {
+        return new Promise((resolve, reject) => {
+            this.read()
             .then((eventList: string[]) => {
                 eventList.push(line);
                 try {
@@ -23,20 +26,22 @@ export async function append(line: string): Promise<any> {
             .catch((readError) => {
                 reject(readError);
             });
-    });
-}
-
-export async function read(): Promise<any> {
-    return new Promise((resolve, reject) => {
-        readFile(fileName, (readError, content) => {
-            if (readError) {
-                return reject(readError);
-            }
-            try {
-                return resolve(JSON.parse(String(content)));
-            } catch (parseError) {
-                return reject(parseError);
-            }
         });
-    });
+    }
+
+    public async read(): Promise<any> {
+        return new Promise((resolve, reject) => {
+            readFile(fileName, (readError, content) => {
+                if (readError) {
+                    return reject(readError);
+                }
+                try {
+                    return resolve(JSON.parse(String(content)));
+                } catch (parseError) {
+                    return reject(parseError);
+                }
+            });
+        });
+    }
+
 }

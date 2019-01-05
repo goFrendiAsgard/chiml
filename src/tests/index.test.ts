@@ -6,7 +6,7 @@ describe("foldInput", () => {
 
     it("works", () => {
         const fn = (...args) => R.sum(args);
-        const foldedFn = X.foldInput(fn);
+        const foldedFn = R.apply(fn);
         const result = foldedFn([1, 2, 3]);
         expect(result).toBe(6);
     });
@@ -17,21 +17,9 @@ describe("spreadInput", () => {
 
     it("works", () => {
         const fn = (args) => R.sum(args);
-        const spreadedFn = X.spreadInput(fn);
+        const spreadedFn = R.unapply(fn);
         const result = spreadedFn(1, 2, 3);
         expect(result).toBe(6);
-    });
-
-});
-
-describe("wrapSync", () => {
-
-    it("works", async () => {
-        const fn = (args) => R.sum(args);
-        const wrapped = X.wrapSync(fn);
-        const result = await wrapped([1, 2, 3]);
-        expect(result).toBe(6);
-        return null;
     });
 
 });
@@ -157,10 +145,10 @@ describe("wrapCommand", () => {
 describe("class helpers", () => {
 
     it("works", () => {
-        const initPlayer = X.createClassInitiator(Player);
-        const setWeaponToFrostmourne = X.createMethodExecutor("setWeapon", "Frostmourne");
-        const setDamageTo50 = X.createMethodExecutor("setDamage", 50);
-        const attack = X.createMethodEvaluator("attack");
+        const initPlayer = R.construct(Player as any);
+        const setWeaponToFrostmourne = X.getMethodExecutor("setWeapon", "Frostmourne");
+        const setDamageTo50 = X.getMethodExecutor("setDamage", 50);
+        const attack = X.getMethodEvaluator("attack");
         const main: (name: string) => string = R.pipe(initPlayer, setWeaponToFrostmourne, setDamageTo50, attack);
         const result = main("Arthas");
         expect(result).toBe("Arthas attack with Frostmourne, deal 50 damage");
@@ -174,12 +162,11 @@ describe("imperative style", () => {
         // composition
         const asyncRootSquare = X.wrapCommand(commandRootSquare);
         const asyncMultiply = X.wrapNodeback(nodebackMultiply);
-        const asyncAdd = X.wrapSync(syncAdd);
-        const asyncAddAndMinus = X.concurrent(asyncAdd, asyncMinus);
-        const convergedAsyncMultiply = X.foldInput(asyncMultiply);
+        const asyncAddAndMinus = X.concurrent(syncAdd, asyncMinus);
+        const spreadListAndMultiply = R.apply(asyncMultiply);
         const main: (a: number, b: number) => Promise<number> = R.pipeP(
             asyncAddAndMinus,
-            convergedAsyncMultiply,
+            spreadListAndMultiply,
             asyncRootSquare,
         );
         // action
