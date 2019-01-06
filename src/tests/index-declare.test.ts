@@ -233,7 +233,7 @@ describe("brief syntax", () => {
 
 describe("non-error declarative style with class helpers", () => {
 
-    it("works with class R.construct, getMethodExecutor, and getMethodEvaluator", () => {
+    it("works with class helper: R.construct, X.invoker", () => {
         const main = X.declare({
             bootstrap: "run",
             injection: { Player },
@@ -243,14 +243,17 @@ describe("non-error declarative style with class helpers", () => {
                     parts: [
                         "${initPlayer}",
                         "${setWeaponToFrostmourne}",
+                        "${R.last}",
                         "${setDamageTo50}",
+                        "${R.last}",
                         "${attack}",
+                        "${R.head}",
                     ],
                 },
                 initPlayer: ["R.construct", "${Player}"],
-                setWeaponToFrostmourne: ["X.getMethodExecutor", "setWeapon", "Frostmourne"],
-                setDamageTo50: ["X.getMethodExecutor", "setDamage", 50],
-                attack: ["X.getMethodEvaluator", "attack"],
+                setWeaponToFrostmourne: ["X.invoker", 1, "setWeapon", "Frostmourne"],
+                setDamageTo50: ["X.invoker", 1, "setDamage", 50],
+                attack: ["X.invoker", 0, "attack"],
             },
         });
         const result = main("Arthas");

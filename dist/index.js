@@ -18,6 +18,7 @@ exports.R = Ramda;
 exports.X = {
     declare,
     inject: exports.R.curryN(2, inject),
+    invoker,
     initClassAndRun,
     getMethodExecutor,
     getMethodEvaluator,
@@ -300,6 +301,22 @@ function _getPartialComponent(rawComponent) {
     }
     return rawComponent;
 }
+function invoker(arity, ...params) {
+    function method(...args) {
+        const methodName = params.shift();
+        const obj = args.pop();
+        const realParams = params.concat(args);
+        const value = obj[methodName](...realParams);
+        return [value, obj];
+    }
+    return exports.R.curryN(arity + 2 - params.length, method);
+}
+/*
+function fluent(invokerConfigs: any[][], obj, ...params: any[]): (...args: any[]) => any {
+    invokerConfigs.reduce((state, invokerConfig, index) => {
+    }, {});
+}
+*/
 function initClassAndRun(classRunnerConfig) {
     const { pipe, initClass, initFunction, initParams, executions, evaluation, } = _getCompleteClassRunnerConfig(classRunnerConfig);
     const classInitiator = initClass ? exports.R.construct(initClass) : initFunction;

@@ -146,10 +146,18 @@ describe("class helpers", () => {
 
     it("works", () => {
         const initPlayer = R.construct(Player as any);
-        const setWeaponToFrostmourne = X.getMethodExecutor("setWeapon", "Frostmourne");
-        const setDamageTo50 = X.getMethodExecutor("setDamage", 50);
-        const attack = X.getMethodEvaluator("attack");
-        const main: (name: string) => string = R.pipe(initPlayer, setWeaponToFrostmourne, setDamageTo50, attack);
+        const setWeapon = X.invoker(1, "setWeapon", "Frostmourne");
+        const setDamage = X.invoker(1, "setDamage");
+        const attack = X.invoker(0, "attack");
+        const main: (name: string) => string = R.pipe(
+            initPlayer,
+            setWeapon,
+            R.last,
+            setDamage(50),
+            R.last,
+            attack(),
+            R.head,
+        );
         const result = main("Arthas");
         expect(result).toBe("Arthas attack with Frostmourne, deal 50 damage");
     });

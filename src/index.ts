@@ -27,6 +27,7 @@ export const R: TRamda = Ramda;
 export const X: TChimera = {
     declare,
     inject: R.curryN(2, inject),
+    invoker,
     initClassAndRun,
     getMethodExecutor,
     getMethodEvaluator,
@@ -344,6 +345,24 @@ function _getPartialComponent(rawComponent: Partial<IUserComponent>| string | st
     }
     return rawComponent;
 }
+
+function invoker(arity: number, ...params: any[]): (...args: any[]) => any {
+    function method(...args: any[]): any[] {
+        const methodName = params.shift();
+        const obj = args.pop();
+        const realParams = params.concat(args);
+        const value = obj[methodName](...realParams);
+        return [value, obj];
+    }
+    return R.curryN(arity + 2 - params.length, method);
+}
+
+/*
+function fluent(invokerConfigs: any[][], obj: any, ...params: any[]): (...args: any[]) => any {
+    const state = invokerConfigs.reduce((currentState, invokerConfig, index) => {
+    }, {configs: [], });
+}
+*/
 
 function initClassAndRun<T extends IObjectWithMethod>(classRunnerConfig: Partial<IClassRunnerConfig>): any {
     const {

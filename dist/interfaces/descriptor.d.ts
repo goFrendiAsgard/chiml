@@ -51,6 +51,7 @@ export interface IClassRunnerConfig {
 export interface IChimera {
     declare: (partialDeclarativeConfig: Partial<IUserDeclarativeConfig>) => AnyFunction;
     inject: (containerFile: string, injectionFile?: string) => AnyFunction;
+    invoker: (arity: number, methodName: string, ...params: any[]) => (...args: any[]) => any;
     initClassAndRun: (configs: Partial<IClassRunnerConfig>) => any;
     getMethodEvaluator: (methodName: string, ...args: any[]) => (obj: IObjectWithMethod) => any;
     getMethodExecutor: <T extends IObjectWithMethod>(methodName: string, ...args: any[]) => (obj: T) => T;

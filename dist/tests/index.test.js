@@ -132,10 +132,10 @@ describe("wrapCommand", () => {
 describe("class helpers", () => {
     it("works", () => {
         const initPlayer = index_1.R.construct(Player_1.Player);
-        const setWeaponToFrostmourne = index_1.X.getMethodExecutor("setWeapon", "Frostmourne");
-        const setDamageTo50 = index_1.X.getMethodExecutor("setDamage", 50);
-        const attack = index_1.X.getMethodEvaluator("attack");
-        const main = index_1.R.pipe(initPlayer, setWeaponToFrostmourne, setDamageTo50, attack);
+        const setWeapon = index_1.X.invoker(1, "setWeapon", "Frostmourne");
+        const setDamage = index_1.X.invoker(1, "setDamage");
+        const attack = index_1.X.invoker(0, "attack");
+        const main = index_1.R.pipe(initPlayer, setWeapon, index_1.R.last, setDamage(50), index_1.R.last, attack(), index_1.R.head);
         const result = main("Arthas");
         expect(result).toBe("Arthas attack with Frostmourne, deal 50 damage");
     });
