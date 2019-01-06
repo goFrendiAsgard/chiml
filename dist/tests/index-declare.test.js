@@ -232,7 +232,7 @@ describe("non-error declarative style with class helpers", () => {
                 run: {
                     setup: "R.pipe",
                     parts: [
-                        "${initPlayer}",
+                        "${constructPlayer}",
                         "${setWeaponToFrostmourne}",
                         "${R.last}",
                         "${setDamageTo50}",
@@ -241,7 +241,7 @@ describe("non-error declarative style with class helpers", () => {
                         "${R.head}",
                     ],
                 },
-                initPlayer: ["R.construct", "${Player}"],
+                constructPlayer: ["R.construct", "${Player}"],
                 setWeaponToFrostmourne: ["X.invoker", 1, "setWeapon", "Frostmourne"],
                 setDamageTo50: ["X.invoker", 1, "setDamage", 50],
                 attack: ["X.invoker", 0, "attack"],
@@ -250,174 +250,44 @@ describe("non-error declarative style with class helpers", () => {
         const result = main("Arthas");
         expect(result).toBe("Arthas attack with Frostmourne, deal 50 damage");
     });
-    it("works with init class and execute", () => {
+    it("works with classHelper: R.construct, X.initAndFluent", () => {
         const main = index_1.X.declare({
             bootstrap: "run",
             injection: { Player: Player_1.Player },
             component: {
                 run: {
-                    setup: "R.pipe",
-                    parts: ["${initPlayer}", "${attack}"],
+                    setup: "X.initAndFluent",
+                    parts: [[
+                            [1, "$constructPlayer"],
+                            [1, "setWeapon"],
+                            [1, "setDamage"],
+                            [0, "attack"],
+                        ]],
                 },
-                initPlayer: {
-                    setup: "X.initClassAndRun",
-                    parts: {
-                        pipe: "${R.pipe}",
-                        initClass: "${Player}",
-                        initParams: ["Guldan"],
-                        executions: [
-                            {
-                                method: "setWeapon",
-                                params: ["Rod"],
-                            },
-                            {
-                                method: "setDamage",
-                                params: 10,
-                            },
-                        ],
-                    },
-                },
-                attack: {
-                    setup: "X.getMethodEvaluator",
-                    parts: "attack",
-                },
+                constructPlayer: ["R.construct", "${Player}"],
             },
         });
-        const result = main();
-        expect(result).toBe("Guldan attack with Rod, deal 10 damage");
+        const result = main("Thrall", "Lightning Bolt", 50);
+        expect(result).toBe("Thrall attack with Lightning Bolt, deal 50 damage");
     });
-    it("works with init class and evaluate (evaluation params is undefined)", () => {
-        const main = index_1.X.declare({
-            bootstrap: "run",
-            injection: { Player: Player_1.Player },
-            component: {
-                run: {
-                    setup: "X.initClassAndRun",
-                    parts: {
-                        pipe: "${R.pipe}",
-                        initClass: "${Player}",
-                        initParams: ["Thrall"],
-                        executions: [
-                            {
-                                method: "setWeapon",
-                                params: ["Lightning Bolt"],
-                            },
-                            {
-                                method: "setDamage",
-                                params: 30,
-                            },
-                        ],
-                        evaluation: {
-                            method: "attack",
-                            params: undefined,
-                        },
-                    },
-                },
-            },
-        });
-        const result = main();
-        expect(result).toBe("Thrall attack with Lightning Bolt, deal 30 damage");
-    });
-    it("works with init class and evaluate (init params is not an array, evaluation params is an empty array)", () => {
-        const main = index_1.X.declare({
-            bootstrap: "run",
-            injection: { Player: Player_1.Player },
-            component: {
-                run: {
-                    setup: "X.initClassAndRun",
-                    parts: {
-                        pipe: "${R.pipe}",
-                        initClass: "${Player}",
-                        initParams: "Thrall",
-                        executions: [
-                            {
-                                method: "setWeapon",
-                                params: ["Lightning Bolt"],
-                            },
-                            {
-                                method: "setDamage",
-                                params: 30,
-                            },
-                        ],
-                        evaluation: {
-                            method: "attack",
-                            params: [],
-                        },
-                    },
-                },
-            },
-        });
-        const result = main();
-        expect(result).toBe("Thrall attack with Lightning Bolt, deal 30 damage");
-    });
-    it("works with init class and evaluate that use brief-config", () => {
-        const main = index_1.X.declare({
-            bootstrap: "run",
-            injection: { Player: Player_1.Player },
-            component: {
-                run: {
-                    setup: "X.initClassAndRun",
-                    parts: {
-                        pipe: "${R.pipe}",
-                        initClass: "${Player}",
-                        initParams: "Thrall",
-                        executions: [
-                            ["setWeapon", "Lightning Bolt"],
-                            ["setDamage", 30],
-                        ],
-                        evaluation: "attack",
-                    },
-                },
-            },
-        });
-        const result = main();
-        expect(result).toBe("Thrall attack with Lightning Bolt, deal 30 damage");
-    });
-    it("works when class constructor is on nested structure", () => {
-        const main = index_1.X.declare({
-            bootstrap: "run",
-            injection: { package: { lib: { Player: Player_1.Player } } },
-            component: {
-                run: {
-                    setup: "X.initClassAndRun",
-                    parts: {
-                        pipe: "${R.pipe}",
-                        initClass: "${package.lib.Player}",
-                        initParams: "Thrall",
-                        executions: [
-                            ["setWeapon", "Lightning Bolt"],
-                            ["setDamage", 30],
-                        ],
-                        evaluation: "attack",
-                    },
-                },
-            },
-        });
-        const result = main();
-        expect(result).toBe("Thrall attack with Lightning Bolt, deal 30 damage");
-    });
-    it("works with init class and evaluate that use initFunction", () => {
+    it("works with classHelper: X.initAndFluent", () => {
         const main = index_1.X.declare({
             bootstrap: "run",
             injection: { initPlayer: Player_1.initPlayer },
             component: {
                 run: {
-                    setup: "X.initClassAndRun",
-                    parts: {
-                        pipe: "${R.pipe}",
-                        initFunction: "${initPlayer}",
-                        initParams: "Thrall",
-                        executions: [
-                            ["setWeapon", "Lightning Bolt"],
-                            ["setDamage", 30],
-                        ],
-                        evaluation: "attack",
-                    },
+                    setup: "X.initAndFluent",
+                    parts: [[
+                            [1, "$initPlayer"],
+                            [1, "setWeapon"],
+                            [1, "setDamage"],
+                            [0, "attack"],
+                        ]],
                 },
             },
         });
-        const result = main();
-        expect(result).toBe("Thrall attack with Lightning Bolt, deal 30 damage");
+        const result = main("Thrall", "Lightning Bolt", 50);
+        expect(result).toBe("Thrall attack with Lightning Bolt, deal 50 damage");
     });
 });
 describe("error declarative style", () => {
@@ -668,60 +538,6 @@ describe("error declarative style", () => {
         }
         catch (error) {
             expect(error.message).toContain("Parse error, component `run`: Maximum call stack size exceeded");
-        }
-    });
-    it("throw error on undefined sub-part", () => {
-        try {
-            const main = index_1.X.declare({
-                bootstrap: "run",
-                component: {
-                    run: {
-                        setup: "X.initClassAndRun",
-                        parts: {
-                            pipe: "${R.pipe}",
-                            initClass: "${package.lib.Player}",
-                            initParams: "Thrall",
-                            executions: [
-                                ["setWeapon", "Lightning Bolt"],
-                                ["setDamage", 30],
-                            ],
-                            evaluation: "attack",
-                        },
-                    },
-                },
-            });
-            const result = main();
-            throw (new Error(`Expect error, but get result: ${result}`));
-        }
-        catch (error) {
-            expect(error.message).toContain("Parse error, component `run`: Component `package.lib.Player` is not defined");
-        }
-    });
-    it("throw error when execution/evaluation not defined", () => {
-        try {
-            const main = index_1.X.declare({
-                bootstrap: "run",
-                injection: {
-                    testClass: class {
-                        constructor() { }
-                    }
-                },
-                component: {
-                    run: {
-                        setup: "X.initClassAndRun",
-                        parts: {
-                            pipe: "${R.pipe}",
-                            initClass: "${testClass}",
-                            initParams: "Thrall",
-                        },
-                    },
-                },
-            });
-            const result = main();
-            throw (new Error(`Expect error, but get result: ${result}`));
-        }
-        catch (error) {
-            expect(error.message).toContain("Parse error, component `run`: `executions` or `evaluation` expected");
         }
     });
 });

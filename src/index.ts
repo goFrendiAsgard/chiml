@@ -28,9 +28,8 @@ export const X: TChimera = {
     declare,
     inject: R.curryN(2, inject),
     invoker,
-    initClassAndRun,
-    getMethodExecutor,
-    getMethodEvaluator,
+    fluent,
+    initAndFluent,
     concurrent,
     wrapCommand,
     wrapNodeback,
@@ -49,7 +48,7 @@ export function inject(containerFile: string, userInjectionFile: string | string
             .map((part) => part.trim());
             const obj = relativeRequire(injectionFile);
             return Object.assign({}, tmpInjection, {[alias]: obj});
-        }, { R, X, console });
+        }, {});
         return declare(Object.assign({}, config, { injection }));
     } catch (error) {
         error.message = `CONTAINER FILE: ${containerFile}\n${error.message}`;
@@ -357,84 +356,51 @@ function invoker(arity: number, ...params: any[]): (...args: any[]) => any {
     return R.curryN(arity + 2 - params.length, method);
 }
 
-/*
-function fluent(invokerConfigs: any[][], obj: any, ...params: any[]): (...args: any[]) => any {
-    const state = invokerConfigs.reduce((currentState, invokerConfig, index) => {
-    }, {configs: [], });
-}
-*/
-
-function initClassAndRun<T extends IObjectWithMethod>(classRunnerConfig: Partial<IClassRunnerConfig>): any {
-    const {
-        pipe, initClass, initFunction, initParams, executions, evaluation,
-    } = _getCompleteClassRunnerConfig(classRunnerConfig);
-    const classInitiator: (...args: any[]) => T = initClass ? R.construct(initClass) : initFunction;
-    const executorList = executions.map((methodRunnerConfig) => {
-        const { method, params } = _getCompleteMethodRunnerConfig(methodRunnerConfig);
-        return getMethodExecutor(method, ...params);
+function fluent(invokerConfigs: any[][], ...fluentParams: any[]): (...args: any[]) => any {
+    const invokerMissingParamCounts = invokerConfigs.map((invokerConfig) => {
+        const [arity, methodName, ...defaultParams] = invokerConfig;
+        return arity - defaultParams.length;
     });
-    if (evaluation) {
-        const { method, params } = _getCompleteMethodRunnerConfig(evaluation);
-        const evaluator = getMethodEvaluator(method, ...params);
-        const executorAndEvaluatorList = executorList.concat([evaluator]);
-        return (...args) => pipe(classInitiator, ...executorAndEvaluatorList)(...initParams.concat(args));
+    function chained(...chainArgs: any[]) {
+        const obj = chainArgs.pop();
+        const args = fluentParams.concat(chainArgs);
+        const chains = invokerConfigs.reduce((tmpChains, invokerConfig, configIndex) => {
+            const takenParamCount = R.sum(invokerMissingParamCounts.slice(0, configIndex));
+            const currentParamCount = invokerMissingParamCounts[configIndex];
+            const currentParams = args.slice(takenParamCount, takenParamCount + currentParamCount);
+            const [arity, methodName, ...defaultParams] = invokerConfig;
+            const invokerParams = defaultParams.concat(currentParams);
+            tmpChains.push(invoker(arity, methodName, ...invokerParams));
+            if (configIndex === invokerConfigs.length - 1) {
+                tmpChains.push(R.head);
+                return tmpChains;
+            }
+            tmpChains.push(R.last);
+            return tmpChains;
+        }, []);
+        const conjunctor: AnyFunction = R.pipe;
+        return conjunctor(R.identity, ...chains)(obj);
     }
-    if (executorList.length === 0) {
-        throw(new Error("`executions` or `evaluation` expected"));
-    }
-    return (...args) => pipe(classInitiator, ...executorList)(...initParams.concat(args));
+    return R.curryN(R.sum(invokerMissingParamCounts) - fluentParams.length + 1, chained);
 }
 
-function _getCompleteMethodRunnerConfig(
-    rawMethodRunnerConfig: Partial<IMethodRunnerConfig>| any[],
-): IMethodRunnerConfig {
-    const defaultMethodRunnerConfig: IMethodRunnerConfig = {
-        method: "",
-        params: [],
-    };
-    const methodRunnerConfig = _getMethodRunnerConfig(rawMethodRunnerConfig);
-    const filledConfig = Object.assign({}, defaultMethodRunnerConfig, methodRunnerConfig);
-    const params = Array.isArray(filledConfig.params) ? filledConfig.params : [filledConfig.params];
-    return Object.assign({}, filledConfig, { params });
-}
-
-function _getMethodRunnerConfig(
-    rawMethodRunnerConfig: Partial<IMethodRunnerConfig>| any[],
-): Partial<IMethodRunnerConfig> {
-    if (typeof rawMethodRunnerConfig === "string") {
-        return { method: rawMethodRunnerConfig };
+function initAndFluent(configs: any[], ...params): (...args: any[]) => any {
+    const missingParamCounts = configs.map((config) => {
+        const [arity, methodNameOrConstructor, ...defaultParams] = config;
+        return arity - defaultParams.length;
+    });
+    function chained(...chainArgs: any[]) {
+        const constructorConfig = configs.shift();
+        const [arity, constructor, ...defaultParams] = constructorConfig;
+        const constructorParamCount = arity - defaultParams.length;
+        const args = params.concat(chainArgs);
+        const constructorParams = args.slice(0, constructorParamCount);
+        const fluentParams = args.slice(constructorParamCount);
+        const obj = constructor(...constructorParams);
+        const chain = fluent(configs, ...fluentParams);
+        return chain(obj);
     }
-    if (Array.isArray(rawMethodRunnerConfig)) {
-        const [method, ...params] = rawMethodRunnerConfig;
-        return { method, params };
-    }
-    return rawMethodRunnerConfig as Partial<IMethodRunnerConfig>;
-}
-
-function _getCompleteClassRunnerConfig(classRunnerConfig: Partial<IClassRunnerConfig>): IClassRunnerConfig {
-    const defaultClassRunnerConfig: IClassRunnerConfig = {
-        pipe: R.pipe,
-        initParams: [],
-        executions: [],
-    };
-    const filledConfig = Object.assign({}, defaultClassRunnerConfig, classRunnerConfig);
-    const initParams = Array.isArray(filledConfig.initParams) ? filledConfig.initParams : [filledConfig.initParams];
-    return Object.assign({}, filledConfig, { initParams });
-}
-
-function getMethodEvaluator(methodName: string, ...args: any[]): (obj: IObjectWithMethod) => any  {
-    function methodEvaluator(obj: IObjectWithMethod): any {
-        return obj[methodName](...args);
-    }
-    return methodEvaluator;
-}
-
-function getMethodExecutor<T extends IObjectWithMethod>(methodName: string, ...args: any[]): (obj: T) => T  {
-    function methodExecutor(obj: T): T {
-        obj[methodName](...args);
-        return obj;
-    }
-    return methodExecutor;
+    return R.curryN(R.sum(missingParamCounts) - params.length, chained);
 }
 
 /**

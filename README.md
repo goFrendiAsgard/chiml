@@ -40,9 +40,9 @@ By default, Chiml injects 2 Objects:
 * X: Chiml parser, injector, and some utilities not provided in ramda
     - `declare: (partialDeclarativeConfig: Partial<IUserDeclarativeConfig>) => AnyFunction;`
     - `inject: (containerFile: string, injectionFile?: string) => AnyFunction;`
-    - `initClassAndRun: (configs: Partial<IClassRunnerConfig>) => any;`
-    - `getMethodEvaluator: (methodName: string, ...args: any[]) => (obj: IObjectWithMethod) => any;`
-    - `getMethodExecutor: <T extends IObjectWithMethod>(methodName: string, ...args: any[]) => (obj: T) => T;`
+    - `invoker: (arity: number, methodName: string, ...params: any[]) => (...args: any[]) => any;`
+    - `fluent: (invokerConfigs: any[][], ...fluentParams: any[]) => (...args: any[]) => any;`
+    - `initAndFluent: (configs: any[], ...params) => (...args: any[]) => any;`
     - `concurrent: (...fnList: AnyAsyncFunction[]) => AnyAsyncFunction;`
     - `wrapCommand: (stringCommand: string) => AnyAsyncFunction;`
     - `wrapNodeback: (fn: AnyFunction) => AnyAsyncFunction;`

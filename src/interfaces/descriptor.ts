@@ -53,9 +53,8 @@ export interface IChimera {
     declare: (partialDeclarativeConfig: Partial<IUserDeclarativeConfig>) => AnyFunction;
     inject: (containerFile: string, injectionFile?: string) => AnyFunction;
     invoker: (arity: number, methodName: string, ...params: any[]) => (...args: any[]) => any;
-    initClassAndRun: (configs: Partial<IClassRunnerConfig>) => any;
-    getMethodEvaluator: (methodName: string, ...args: any[]) => (obj: IObjectWithMethod) => any;
-    getMethodExecutor: <T extends IObjectWithMethod>(methodName: string, ...args: any[]) => (obj: T) => T;
+    fluent: (invokerConfigs: any[][], ...fluentParams: any[]) => (...args: any[]) => any;
+    initAndFluent: (configs: any[], ...params) => (...args: any[]) => any;
     concurrent: (...fnList: AnyFunction[]) => AnyAsyncFunction;
     wrapCommand: (stringCommand: string) => AnyAsyncFunction;
     wrapNodeback: (fn: AnyFunction) => AnyAsyncFunction;

@@ -2,28 +2,6 @@ import { R, X } from "../index";
 import { asyncMinus, commandRootSquare, nodebackMultiply, syncAdd } from "./fixtures/lib";
 import { Player } from "./fixtures/Player";
 
-describe("foldInput", () => {
-
-    it("works", () => {
-        const fn = (...args) => R.sum(args);
-        const foldedFn = R.apply(fn);
-        const result = foldedFn([1, 2, 3]);
-        expect(result).toBe(6);
-    });
-
-});
-
-describe("spreadInput", () => {
-
-    it("works", () => {
-        const fn = (args) => R.sum(args);
-        const spreadedFn = R.unapply(fn);
-        const result = spreadedFn(1, 2, 3);
-        expect(result).toBe(6);
-    });
-
-});
-
 describe("wrapNodeback", () => {
 
     it("works", async () => {
@@ -144,7 +122,7 @@ describe("wrapCommand", () => {
 
 describe("class helpers", () => {
 
-    it("works", () => {
+    it("invoker works", () => {
         const initPlayer = R.construct(Player as any);
         const setWeapon = X.invoker(1, "setWeapon", "Frostmourne");
         const setDamage = X.invoker(1, "setDamage");
@@ -159,6 +137,48 @@ describe("class helpers", () => {
             R.head,
         );
         const result = main("Arthas");
+        expect(result).toBe("Arthas attack with Frostmourne, deal 50 damage");
+    });
+
+    it("fluent works", () => {
+        const initPlayer = R.construct(Player as any);
+        const setDamageAndDoAttack = X.fluent([
+            [1, "setWeapon", "Frostmourne"],
+            [1, "setDamage"],
+            [0, "attack"],
+        ]);
+        const main: (name: string) => string = R.pipe(
+            initPlayer,
+            setDamageAndDoAttack(50),
+        );
+        const result = main("Arthas");
+        expect(result).toBe("Arthas attack with Frostmourne, deal 50 damage");
+    });
+
+    it("fluent works with no default parameters", () => {
+        const initPlayer = R.construct(Player as any);
+        const setDamageAndDoAttack = X.fluent([
+            [1, "setWeapon"],
+            [1, "setDamage"],
+            [0, "attack"],
+        ]);
+        const main: (name: string) => string = R.pipe(
+            initPlayer,
+            setDamageAndDoAttack("Frostmourne", 50),
+        );
+        const result = main("Arthas");
+        expect(result).toBe("Arthas attack with Frostmourne, deal 50 damage");
+    });
+
+    it("initAndFluent works", () => {
+        const initPlayer = R.construct(Player as any);
+        const main = X.initAndFluent([
+            [1, initPlayer],
+            [1, "setWeapon"],
+            [1, "setDamage"],
+            [0, "attack"],
+        ]);
+        const result = main("Arthas", "Frostmourne", 50);
         expect(result).toBe("Arthas attack with Frostmourne, deal 50 damage");
     });
 

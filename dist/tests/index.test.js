@@ -11,22 +11,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const index_1 = require("../index");
 const lib_1 = require("./fixtures/lib");
 const Player_1 = require("./fixtures/Player");
-describe("foldInput", () => {
-    it("works", () => {
-        const fn = (...args) => index_1.R.sum(args);
-        const foldedFn = index_1.R.apply(fn);
-        const result = foldedFn([1, 2, 3]);
-        expect(result).toBe(6);
-    });
-});
-describe("spreadInput", () => {
-    it("works", () => {
-        const fn = (args) => index_1.R.sum(args);
-        const spreadedFn = index_1.R.unapply(fn);
-        const result = spreadedFn(1, 2, 3);
-        expect(result).toBe(6);
-    });
-});
 describe("wrapNodeback", () => {
     it("works", () => __awaiter(this, void 0, void 0, function* () {
         const fn = (a, b, cb) => cb(null, a + b);
@@ -130,13 +114,46 @@ describe("wrapCommand", () => {
     }));
 });
 describe("class helpers", () => {
-    it("works", () => {
+    it("invoker works", () => {
         const initPlayer = index_1.R.construct(Player_1.Player);
         const setWeapon = index_1.X.invoker(1, "setWeapon", "Frostmourne");
         const setDamage = index_1.X.invoker(1, "setDamage");
         const attack = index_1.X.invoker(0, "attack");
         const main = index_1.R.pipe(initPlayer, setWeapon, index_1.R.last, setDamage(50), index_1.R.last, attack(), index_1.R.head);
         const result = main("Arthas");
+        expect(result).toBe("Arthas attack with Frostmourne, deal 50 damage");
+    });
+    it("fluent works", () => {
+        const initPlayer = index_1.R.construct(Player_1.Player);
+        const setDamageAndDoAttack = index_1.X.fluent([
+            [1, "setWeapon", "Frostmourne"],
+            [1, "setDamage"],
+            [0, "attack"],
+        ]);
+        const main = index_1.R.pipe(initPlayer, setDamageAndDoAttack(50));
+        const result = main("Arthas");
+        expect(result).toBe("Arthas attack with Frostmourne, deal 50 damage");
+    });
+    it("fluent works with no default parameters", () => {
+        const initPlayer = index_1.R.construct(Player_1.Player);
+        const setDamageAndDoAttack = index_1.X.fluent([
+            [1, "setWeapon"],
+            [1, "setDamage"],
+            [0, "attack"],
+        ]);
+        const main = index_1.R.pipe(initPlayer, setDamageAndDoAttack("Frostmourne", 50));
+        const result = main("Arthas");
+        expect(result).toBe("Arthas attack with Frostmourne, deal 50 damage");
+    });
+    it("initAndFluent works", () => {
+        const initPlayer = index_1.R.construct(Player_1.Player);
+        const main = index_1.X.initAndFluent([
+            [1, initPlayer],
+            [1, "setWeapon"],
+            [1, "setDamage"],
+            [0, "attack"],
+        ]);
+        const result = main("Arthas", "Frostmourne", 50);
         expect(result).toBe("Arthas attack with Frostmourne, deal 50 damage");
     });
 });
