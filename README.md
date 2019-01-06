@@ -36,16 +36,153 @@ npm install -g chiml
 
 By default, Chiml injects 2 Objects:
 
-* R: [Ramda Js](https://ramdajs.com/docs/)
-* X: Chiml parser, injector, and some utilities not provided in ramda
-    - `declare: (partialDeclarativeConfig: Partial<IUserDeclarativeConfig>) => AnyFunction;`
-    - `inject: (containerFile: string, injectionFile?: string) => AnyFunction;`
-    - `invoker: (arity: number, methodName: string, ...params: any[]) => (...args: any[]) => any;`
-    - `fluent: (invokerConfigs: any[][], ...fluentParams: any[]) => (...args: any[]) => any;`
-    - `initAndFluent: (configs: any[], ...params) => (...args: any[]) => any;`
-    - `concurrent: (...fnList: AnyAsyncFunction[]) => AnyAsyncFunction;`
-    - `wrapCommand: (stringCommand: string) => AnyAsyncFunction;`
-    - `wrapNodeback: (fn: AnyFunction) => AnyAsyncFunction;`
+## R
+[Ramda Js](https://ramdajs.com/docs/)
+
+Some notable functions are: `R.pipe`, `R.pipeP`, `R.apply`, `R.unapply`, `R.init`, `R.last`, `R.head`, `R.tail`, `R.always`, `R.cond`.
+
+## X
+Chiml parser, injector, and some utilities not provided in ramda
+
+### X.invoker
+
+__Definition:__
+
+`invoker: (arity: number, methodName: string, ...params: any[]) => (...args: any[]) => any;`
+
+__Example:__
+
+```javascript
+
+// Example 1:
+
+console.log("01234".slice(1)); // "1234"
+
+const sliceFrom = X.invoker(1, "slice");
+const result = sliceFrom("01234", 1);
+console.log(result[0]); // "1234"
+console.log(result[1]); // "01234"
+
+// Example 2:
+const player = new Player("Arthas");
+player.setWeapon("Frostmourne");
+player.setDamage(50);
+console.log(player.attack()); // will yield something
+
+const initPlayer = R.construct(Player as any);
+const setWeapon = X.invoker(1, "setWeapon", "Frostmourne"); // parameter can be defined here
+const setDamage = X.invoker(1, "setDamage"); // or later
+const attack = X.invoker(0, "attack");
+const initPlayerAndAttack = R.pipe(
+    initPlayer,
+    setWeapon,
+    R.last,
+    setDamage(50),
+    R.last,
+    attack(),
+    R.head,
+);
+console.log(initPlayerAndAttack("Arthas")); // will yield the same thing
+```
+
+### X.fluent
+
+__Definition:__
+
+`fluent: (invokerConfigs: any[][], ...fluentParams: any[]) => (...args: any[]) => any;`
+
+__Example:__
+
+```javascript
+const player = new Player("Arthas");
+player.setWeapon("Frostmourne");
+player.setDamage(50);
+console.log(player.attack()); // will yield something
+
+const initPlayer = R.construct(Player as any);
+const setDamageAndDoAttack = X.fluent([
+    [1, "setWeapon", "Frostmourne"], // parameter can be defined here
+    [1, "setDamage"], // or later
+    [0, "attack"],
+]);
+const initPlayerAndAttack = R.pipe(
+    initPlayer,
+    setDamageAndDoAttack(50),
+);
+console.log(initPlayerAndAttack("Arthas")); // will yield the same thing
+```
+
+### X.initAndFluent
+
+__Definition:__
+
+`initAndFluent: (configs: any[], ...params) => (...args: any[]) => any;`
+
+__Example:__
+
+```javascript
+const player = new Player("Arthas");
+player.setWeapon("Frostmourne");
+player.setDamage(50);
+console.log(player.attack()); // will yield something
+
+const initPlayer = R.construct(Player as any);
+const initPlayerAndAttack = X.initAndFluent([
+    [1, initPlayer],
+    [1, "setWeapon"],
+    [1, "setDamage"],
+    [0, "attack"],
+]);
+console.log(main("Arthas", "Frostmourne", 50)); // will yield the same thing
+```
+
+### X.concurrent
+
+__Definition:__
+
+`concurrent: (...fnList: AnyAsyncFunction[]) => AnyAsyncFunction;`
+
+__Example:__
+
+```javascript
+function add(n1, n2) { return Promise.resolve(n1 + n2); }
+function minus(n1, n2) { return Promise.resolve(n1 - n2); }
+
+Promise.all([add(5, 4), minus(5, 4)]).then(
+    (result) => console.log(result); // [9, 1]
+);
+
+const promise = X.concurrent(add, minus)(5, 4);
+promise.then(
+    (result) => console.log(result); // [9, 1]
+);
+```
+### X.wrapCommand
+
+__Definition:__
+
+`wrapCommand: (stringCommand: string) => AnyAsyncFunction;`
+
+__Example:__
+
+```javascript
+const ls = X.wrapCommand("ls ${1}");
+ls("/home/").then((result) => console.log(result)); // output of `ls /home/`
+```
+### X.wrapNodeback
+
+__Definition:__
+
+`wrapNodeback: (fn: AnyFunction) => AnyAsyncFunction;`
+
+__Example:__
+
+```javascript
+function addNodeback(n1, n2, cb) { cb(null, n1 + n2); }
+const addPromise = X.wrapNodeback(addNodeback);
+addPromise(4, 5).then((result) => console.log(result);) // 9
+```
+### X.wrapNodeback
 
 # Examples
 

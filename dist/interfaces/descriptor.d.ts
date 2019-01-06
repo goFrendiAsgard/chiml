@@ -49,8 +49,6 @@ export interface IClassRunnerConfig {
     evaluation?: IMethodRunnerConfig | any[];
 }
 export interface IChimera {
-    declare: (partialDeclarativeConfig: Partial<IUserDeclarativeConfig>) => AnyFunction;
-    inject: (containerFile: string, injectionFile?: string) => AnyFunction;
     invoker: (arity: number, methodName: string, ...params: any[]) => (...args: any[]) => any;
     fluent: (invokerConfigs: any[][], ...fluentParams: any[]) => (...args: any[]) => any;
     initAndFluent: (configs: any[], ...params: any[]) => (...args: any[]) => any;

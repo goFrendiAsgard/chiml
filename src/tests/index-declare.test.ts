@@ -1,11 +1,11 @@
-import { R, X } from "../index";
+import { declare } from "../index";
 import { asyncMinus, commandRootSquare, nodebackMultiply, syncAdd } from "./fixtures/lib";
 import { initPlayer, Player } from "./fixtures/Player";
 
 describe("non-error declarative style", () => {
 
     it ("works for normal config", async () => {
-        const main = X.declare({
+        const main = declare({
             bootstrap: "run",
             injection: { asyncMinus, commandRootSquare, nodebackMultiply, syncAdd },
             component: {
@@ -42,7 +42,7 @@ describe("non-error declarative style", () => {
     });
 
     it("works when returning promise", async () => {
-        const main = X.declare({
+        const main = declare({
             bootstrap: "hello",
             injection: {
                 hello: (name) => Promise.resolve(`Hello ${name}`),
@@ -54,7 +54,7 @@ describe("non-error declarative style", () => {
     });
 
     it("works with non-string parts", () => {
-        const main = X.declare({
+        const main = declare({
             bootstrap: "addFour",
             component: {
                 addFour: {
@@ -68,7 +68,7 @@ describe("non-error declarative style", () => {
     });
 
     it("works with injected-dotted-element as bootstrap", () => {
-        const main = X.declare({
+        const main = declare({
             bootstrap: "Math.pow",
             injection: {Math},
         });
@@ -77,7 +77,7 @@ describe("non-error declarative style", () => {
     });
 
     it("works with injected-dotted-element as component", () => {
-        const main = X.declare({
+        const main = declare({
             bootstrap: "powerBy",
             injection: {Math},
             component: {
@@ -91,7 +91,7 @@ describe("non-error declarative style", () => {
     });
 
     it("works with non-template-string parts", () => {
-        const main = X.declare({
+        const main = declare({
             bootstrap: "sayHello",
             component: {
                 sayHello: {
@@ -105,7 +105,7 @@ describe("non-error declarative style", () => {
     });
 
     it("works with template-string", () => {
-        const main = X.declare({
+        const main = declare({
             bootstrap: "run",
             injection: {
                 four: 4,
@@ -129,7 +129,7 @@ describe("non-error declarative style", () => {
     });
 
     it("works with escaped template-string", () => {
-        const main = X.declare({
+        const main = declare({
             bootstrap: "run",
             injection: {
                 hi: "hello",
@@ -146,7 +146,7 @@ describe("non-error declarative style", () => {
     });
 
     it("works with escaped template-string that has no curly brace", () => {
-        const main = X.declare({
+        const main = declare({
             bootstrap: "run",
             injection: {
                 hi: "hello",
@@ -163,7 +163,7 @@ describe("non-error declarative style", () => {
     });
 
     it("works with no arity setting", () => {
-        const main = X.declare({
+        const main = declare({
             bootstrap: "run",
             injection: {
                 join: (...args) => args.join("-"),
@@ -179,7 +179,7 @@ describe("non-error declarative style", () => {
     });
 
     it("works with arity setting", () => {
-        const main = X.declare({
+        const main = declare({
             bootstrap: "run",
             injection: {
                 join: (...args) => args.join("-"),
@@ -200,7 +200,7 @@ describe("non-error declarative style", () => {
 describe("brief syntax", () => {
 
     it("works with brief structure", () => {
-        const main = X.declare({
+        const main = declare({
             bootstrap: "run",
             component: {
                 run: ["R.pipe", "${add}", "${addOne}"],
@@ -215,7 +215,7 @@ describe("brief syntax", () => {
     });
 
     it("works with brief component name without curly brace", () => {
-        const main = X.declare({
+        const main = declare({
             bootstrap: "run",
             component: {
                 run: ["R.pipe", "$add", "$addOne"],
@@ -234,7 +234,7 @@ describe("brief syntax", () => {
 describe("non-error declarative style with class helpers", () => {
 
     it("works with class helper: R.construct, X.invoker", () => {
-        const main = X.declare({
+        const main = declare({
             bootstrap: "run",
             injection: { Player },
             component: {
@@ -261,7 +261,7 @@ describe("non-error declarative style with class helpers", () => {
     });
 
     it("works with classHelper: R.construct, X.initAndFluent", () => {
-        const main = X.declare({
+        const main = declare({
             bootstrap: "run",
             injection: { Player },
             component: {
@@ -282,7 +282,7 @@ describe("non-error declarative style with class helpers", () => {
     });
 
     it("works with classHelper: X.initAndFluent", () => {
-        const main = X.declare({
+        const main = declare({
             bootstrap: "run",
             injection: { initPlayer },
             component: {
@@ -307,7 +307,7 @@ describe("error declarative style", () => {
 
     it("throw error if component is not exists ", () => {
         try {
-            const main = X.declare({
+            const main = declare({
                 bootstrap: "average",
                 component: {
                     average: {
@@ -327,7 +327,7 @@ describe("error declarative style", () => {
 
     it("throw error if bootstrap is not exists", () => {
         try {
-            const main = X.declare({
+            const main = declare({
                 bootstrap: "oraono",
                 component: {
                     nor: {
@@ -347,7 +347,7 @@ describe("error declarative style", () => {
 
     it("throw error if `setup` yield error", () => {
         try {
-            const main = X.declare({
+            const main = declare({
                 injection: {
                     errorAction: () => { throw(new Error("invalid action")); },
                 },
@@ -370,7 +370,7 @@ describe("error declarative style", () => {
 
     it("throw error when given non-function component", () => {
         try {
-            const main = X.declare({
+            const main = declare({
                 bootstrap: "run",
                 injection: {
                     four: 4,
@@ -394,7 +394,7 @@ describe("error declarative style", () => {
 
     it("throw error if component yield error-object on execution", () => {
         try {
-            const main = X.declare({
+            const main = declare({
                 bootstrap: "run",
                 injection: {
                     errorComponent: (val) => {
@@ -421,7 +421,7 @@ describe("error declarative style", () => {
 
     it("throw error if component yield error-string on execution", () => {
         try {
-            const main = X.declare({
+            const main = declare({
                 bootstrap: "run",
                 injection: {
                     errorComponent: (val) => {
@@ -448,7 +448,7 @@ describe("error declarative style", () => {
     });
 
     it("throw error if component yield rejected Promise", async () => {
-        const main = X.declare({
+        const main = declare({
             bootstrap: "run",
             injection: {
                 errorComponent: (val) => {
@@ -475,7 +475,7 @@ describe("error declarative style", () => {
     });
 
     it("throw error if component yield rejected Promise", async () => {
-        const main = X.declare({
+        const main = declare({
             bootstrap: "run",
             injection: {
                 run: (val) => {
@@ -498,7 +498,7 @@ describe("error declarative style", () => {
 
     it("throw error if component's setup is not executable", () => {
         try {
-            const main = X.declare({
+            const main = declare({
                 bootstrap: "run",
                 injection: {
                     four: 4,
@@ -521,7 +521,7 @@ describe("error declarative style", () => {
 
     it("throw error if component's setup not found", () => {
         try {
-            const main = X.declare({
+            const main = declare({
                 bootstrap: "run",
                 component: {
                     run: {
@@ -540,7 +540,7 @@ describe("error declarative style", () => {
 
     it("throw error if component's parts is not executable", () => {
         try {
-            const main = X.declare({
+            const main = declare({
                 bootstrap: "run",
                 component: {
                     run: {
@@ -560,7 +560,7 @@ describe("error declarative style", () => {
 
     it("throw error on infinite recursive call", () => {
         try {
-            const main = X.declare({
+            const main = declare({
                 bootstrap: "run",
                 component: {
                     run: {

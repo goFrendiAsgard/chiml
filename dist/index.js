@@ -16,8 +16,6 @@ const TAG_PATTERN = /^\s*\$\{(.+)\}\s*$/gi;
 const SHORT_TAG_PATTERN = /^\s*\$([a-z0-9_\-\.]+)\s*$/gi;
 exports.R = Ramda;
 exports.X = {
-    declare,
-    inject: exports.R.curryN(2, inject),
     invoker,
     fluent,
     initAndFluent,
@@ -101,6 +99,7 @@ function declare(partialDeclarativeConfig) {
     const fn = parsedDictVal.value;
     return bootstrap in componentDict ? fn : _getWrappedFunction(declarativeConfig, bootstrap, fn);
 }
+exports.declare = declare;
 function _getParsedParts(parsedDict, declarativeConfig, componentDict, parentComponentName, parts) {
     if (Array.isArray(parts)) {
         return parts.map((element) => _getParsedParts(parsedDict, declarativeConfig, componentDict, parentComponentName, element));

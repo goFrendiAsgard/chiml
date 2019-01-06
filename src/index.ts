@@ -25,8 +25,6 @@ const SHORT_TAG_PATTERN = /^\s*\$([a-z0-9_\-\.]+)\s*$/gi;
 export const R: TRamda = Ramda;
 
 export const X: TChimera = {
-    declare,
-    inject: R.curryN(2, inject),
     invoker,
     fluent,
     initAndFluent,
@@ -96,7 +94,7 @@ function _getInjectionFileAndAliasList(
 /**
  * @param declarativeConfig IDeclarativeConfig
  */
-function declare(partialDeclarativeConfig: Partial<IUserDeclarativeConfig>): AnyFunction {
+export function declare(partialDeclarativeConfig: Partial<IUserDeclarativeConfig>): AnyFunction {
     const declarativeConfig = _getCompleteDeclarativeConfig(partialDeclarativeConfig);
     const componentDict = declarativeConfig.component;
     const { bootstrap } = declarativeConfig;

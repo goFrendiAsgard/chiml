@@ -13,7 +13,7 @@ const lib_1 = require("./fixtures/lib");
 const Player_1 = require("./fixtures/Player");
 describe("non-error declarative style", () => {
     it("works for normal config", () => __awaiter(this, void 0, void 0, function* () {
-        const main = index_1.X.declare({
+        const main = index_1.declare({
             bootstrap: "run",
             injection: { asyncMinus: lib_1.asyncMinus, commandRootSquare: lib_1.commandRootSquare, nodebackMultiply: lib_1.nodebackMultiply, syncAdd: lib_1.syncAdd },
             component: {
@@ -49,7 +49,7 @@ describe("non-error declarative style", () => {
         return null;
     }));
     it("works when returning promise", () => __awaiter(this, void 0, void 0, function* () {
-        const main = index_1.X.declare({
+        const main = index_1.declare({
             bootstrap: "hello",
             injection: {
                 hello: (name) => Promise.resolve(`Hello ${name}`),
@@ -60,7 +60,7 @@ describe("non-error declarative style", () => {
         return null;
     }));
     it("works with non-string parts", () => {
-        const main = index_1.X.declare({
+        const main = index_1.declare({
             bootstrap: "addFour",
             component: {
                 addFour: {
@@ -73,7 +73,7 @@ describe("non-error declarative style", () => {
         expect(result).toBe(7);
     });
     it("works with injected-dotted-element as bootstrap", () => {
-        const main = index_1.X.declare({
+        const main = index_1.declare({
             bootstrap: "Math.pow",
             injection: { Math },
         });
@@ -81,7 +81,7 @@ describe("non-error declarative style", () => {
         expect(result).toBe(25);
     });
     it("works with injected-dotted-element as component", () => {
-        const main = index_1.X.declare({
+        const main = index_1.declare({
             bootstrap: "powerBy",
             injection: { Math },
             component: {
@@ -94,7 +94,7 @@ describe("non-error declarative style", () => {
         expect(result).toBe(25);
     });
     it("works with non-template-string parts", () => {
-        const main = index_1.X.declare({
+        const main = index_1.declare({
             bootstrap: "sayHello",
             component: {
                 sayHello: {
@@ -107,7 +107,7 @@ describe("non-error declarative style", () => {
         expect(result).toBe("Hello world");
     });
     it("works with template-string", () => {
-        const main = index_1.X.declare({
+        const main = index_1.declare({
             bootstrap: "run",
             injection: {
                 four: 4,
@@ -130,7 +130,7 @@ describe("non-error declarative style", () => {
         expect(result).toBe(20);
     });
     it("works with escaped template-string", () => {
-        const main = index_1.X.declare({
+        const main = index_1.declare({
             bootstrap: "run",
             injection: {
                 hi: "hello",
@@ -146,7 +146,7 @@ describe("non-error declarative style", () => {
         expect(result).toBe("${hi}world");
     });
     it("works with escaped template-string that has no curly brace", () => {
-        const main = index_1.X.declare({
+        const main = index_1.declare({
             bootstrap: "run",
             injection: {
                 hi: "hello",
@@ -162,7 +162,7 @@ describe("non-error declarative style", () => {
         expect(result).toBe("$hiworld");
     });
     it("works with no arity setting", () => {
-        const main = index_1.X.declare({
+        const main = index_1.declare({
             bootstrap: "run",
             injection: {
                 join: (...args) => args.join("-"),
@@ -177,7 +177,7 @@ describe("non-error declarative style", () => {
         expect(result).toBe("a-b-c");
     });
     it("works with arity setting", () => {
-        const main = index_1.X.declare({
+        const main = index_1.declare({
             bootstrap: "run",
             injection: {
                 join: (...args) => args.join("-"),
@@ -195,7 +195,7 @@ describe("non-error declarative style", () => {
 });
 describe("brief syntax", () => {
     it("works with brief structure", () => {
-        const main = index_1.X.declare({
+        const main = index_1.declare({
             bootstrap: "run",
             component: {
                 run: ["R.pipe", "${add}", "${addOne}"],
@@ -209,7 +209,7 @@ describe("brief syntax", () => {
         expect(result).toBe(10);
     });
     it("works with brief component name without curly brace", () => {
-        const main = index_1.X.declare({
+        const main = index_1.declare({
             bootstrap: "run",
             component: {
                 run: ["R.pipe", "$add", "$addOne"],
@@ -225,7 +225,7 @@ describe("brief syntax", () => {
 });
 describe("non-error declarative style with class helpers", () => {
     it("works with class helper: R.construct, X.invoker", () => {
-        const main = index_1.X.declare({
+        const main = index_1.declare({
             bootstrap: "run",
             injection: { Player: Player_1.Player },
             component: {
@@ -251,7 +251,7 @@ describe("non-error declarative style with class helpers", () => {
         expect(result).toBe("Arthas attack with Frostmourne, deal 50 damage");
     });
     it("works with classHelper: R.construct, X.initAndFluent", () => {
-        const main = index_1.X.declare({
+        const main = index_1.declare({
             bootstrap: "run",
             injection: { Player: Player_1.Player },
             component: {
@@ -271,7 +271,7 @@ describe("non-error declarative style with class helpers", () => {
         expect(result).toBe("Thrall attack with Lightning Bolt, deal 50 damage");
     });
     it("works with classHelper: X.initAndFluent", () => {
-        const main = index_1.X.declare({
+        const main = index_1.declare({
             bootstrap: "run",
             injection: { initPlayer: Player_1.initPlayer },
             component: {
@@ -293,7 +293,7 @@ describe("non-error declarative style with class helpers", () => {
 describe("error declarative style", () => {
     it("throw error if component is not exists ", () => {
         try {
-            const main = index_1.X.declare({
+            const main = index_1.declare({
                 bootstrap: "average",
                 component: {
                     average: {
@@ -311,7 +311,7 @@ describe("error declarative style", () => {
     });
     it("throw error if bootstrap is not exists", () => {
         try {
-            const main = index_1.X.declare({
+            const main = index_1.declare({
                 bootstrap: "oraono",
                 component: {
                     nor: {
@@ -329,7 +329,7 @@ describe("error declarative style", () => {
     });
     it("throw error if `setup` yield error", () => {
         try {
-            const main = index_1.X.declare({
+            const main = index_1.declare({
                 injection: {
                     errorAction: () => { throw (new Error("invalid action")); },
                 },
@@ -350,7 +350,7 @@ describe("error declarative style", () => {
     });
     it("throw error when given non-function component", () => {
         try {
-            const main = index_1.X.declare({
+            const main = index_1.declare({
                 bootstrap: "run",
                 injection: {
                     four: 4,
@@ -372,7 +372,7 @@ describe("error declarative style", () => {
     });
     it("throw error if component yield error-object on execution", () => {
         try {
-            const main = index_1.X.declare({
+            const main = index_1.declare({
                 bootstrap: "run",
                 injection: {
                     errorComponent: (val) => {
@@ -397,7 +397,7 @@ describe("error declarative style", () => {
     });
     it("throw error if component yield error-string on execution", () => {
         try {
-            const main = index_1.X.declare({
+            const main = index_1.declare({
                 bootstrap: "run",
                 injection: {
                     errorComponent: (val) => {
@@ -422,7 +422,7 @@ describe("error declarative style", () => {
         }
     });
     it("throw error if component yield rejected Promise", () => __awaiter(this, void 0, void 0, function* () {
-        const main = index_1.X.declare({
+        const main = index_1.declare({
             bootstrap: "run",
             injection: {
                 errorComponent: (val) => {
@@ -447,7 +447,7 @@ describe("error declarative style", () => {
         }
     }));
     it("throw error if component yield rejected Promise", () => __awaiter(this, void 0, void 0, function* () {
-        const main = index_1.X.declare({
+        const main = index_1.declare({
             bootstrap: "run",
             injection: {
                 run: (val) => {
@@ -468,7 +468,7 @@ describe("error declarative style", () => {
     }));
     it("throw error if component's setup is not executable", () => {
         try {
-            const main = index_1.X.declare({
+            const main = index_1.declare({
                 bootstrap: "run",
                 injection: {
                     four: 4,
@@ -489,7 +489,7 @@ describe("error declarative style", () => {
     });
     it("throw error if component's setup not found", () => {
         try {
-            const main = index_1.X.declare({
+            const main = index_1.declare({
                 bootstrap: "run",
                 component: {
                     run: {
@@ -506,7 +506,7 @@ describe("error declarative style", () => {
     });
     it("throw error if component's parts is not executable", () => {
         try {
-            const main = index_1.X.declare({
+            const main = index_1.declare({
                 bootstrap: "run",
                 component: {
                     run: {
@@ -524,7 +524,7 @@ describe("error declarative style", () => {
     });
     it("throw error on infinite recursive call", () => {
         try {
-            const main = index_1.X.declare({
+            const main = index_1.declare({
                 bootstrap: "run",
                 component: {
                     run: {
