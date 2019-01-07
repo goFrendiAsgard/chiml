@@ -32,6 +32,71 @@ This package require nodejs version `10.12.0` or newer since it use `module.crea
 npm install -g chiml
 ```
 
+# Structure
+
+Below is the comparison between `javascript` and `CHIML`:
+
+## Javascript
+
+```javascript
+// filename: cat.js
+const f = require("fs");
+function readFileAndShowContent(fileName) {
+    writeFile(fileName).then(console.log);
+}
+function writeFile(fileName) {
+    return new Promise((resolve, reject) => {
+        f.readFile(fileName, (error, content) => {
+            if (error) {
+                return reject(error);
+            }
+            return resolve(error);
+        });
+    });
+}
+if (require.main === module) {
+    const fileName = process.argv.slice[2];
+    readFileAndShowContent(fileName);
+}
+```
+
+To run the program you can do:
+
+```bash
+node cat.js ./somefile.txt
+```
+
+## Chiml
+
+```yaml
+# filename: cat.yml
+injection: fs as f
+bootstrap: readFileAndShowContent
+component:
+    readFileAndShowContent:
+        setup: R.pipeP
+        parts:
+            - readFile
+            - console.log
+    readFile:
+        setup: X.wrapNodeback
+        parts: f.readFile
+```
+
+To run the program you can do:
+
+```bash
+chie cat.yml ./somefile.txt
+```
+
+Or if you have your own library that behave like `fs` (i.e: Have `readFile` function with same signature), you can also do:
+
+```bash
+chie cat.yml ./somefile.txt --injection "./my-fs.js as f"
+```
+
+That's how chiml's dependency injection works. You can define the default injection, but in the runtime, you can always swap the injected components with something else. Not only useful for `mocking` and `testing`, dependency injection let you leverage the capability of your program (i.e: read from database instead of from text file).
+
 # API
 
 By default, Chiml injects 2 Objects:

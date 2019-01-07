@@ -1,6 +1,5 @@
 import { ChildProcess, exec } from "child_process";
 import { readFileSync as fsReadFileSync } from "fs";
-import { fromJS } from "immutable";
 import { safeLoad as yamlSafeLoad } from "js-yaml";
 import { dirname as pathDirname, isAbsolute, join as pathJoin, resolve as pathResolve } from "path";
 import * as Ramda from "ramda";
