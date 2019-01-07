@@ -1,6 +1,6 @@
 {
   "name": "chiml",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "description": "Declarative dependency injection based on ramda",
   "main": "dist/index.js",
   "bin": {
