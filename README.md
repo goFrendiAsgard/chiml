@@ -76,11 +76,11 @@ component:
     readFileAndShowContent:
         setup: R.pipeP
         parts:
-            - readFile
-            - console.log
+            - $readFile
+            - $console.log
     readFile:
         setup: X.wrapNodeback
-        parts: f.readFile
+        parts: $f.readFile
 ```
 
 To run the program you can do:
