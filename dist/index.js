@@ -90,16 +90,30 @@ function declare(partialDeclarativeConfig) {
     const parsedDict = componentNameList.reduce((tmpParsedDict, componentName) => {
         return _addToParsedDict(tmpParsedDict, declarativeConfig, componentName);
     }, Object.assign({}, { R: exports.R, X: exports.X, console }, declarativeConfig.injection));
-    // return bootstrap function
+    // get `bootstrapFunction`
     const parsedDictVal = _getFromParsedDict(parsedDict, bootstrap);
     if (!parsedDictVal.found) {
         const error = new Error(`\`${bootstrap}\` is not defined`);
         throw (_getEmbededBootstrapParseError(error, declarativeConfig));
     }
-    const fn = parsedDictVal.value;
-    return bootstrap in componentDict ? fn : _getWrappedFunction(declarativeConfig, bootstrap, fn);
+    const bootstrapComponent = parsedDictVal.value;
+    return _getBootstrapFunction(declarativeConfig, componentDict, bootstrap, bootstrapComponent);
 }
 exports.declare = declare;
+function _getBootstrapFunction(declarativeConfig, componentDict, bootstrap, bootstrapComponent) {
+    if (bootstrap in componentDict) {
+        // the bootstrap component is already in componentDict,
+        // it means that if the component is a function, it's already wrapped
+        if (_isFunction(bootstrapComponent)) {
+            return bootstrapComponent;
+        }
+        return _getWrappedFunction(declarativeConfig, bootstrap, exports.R.always(bootstrapComponent));
+    }
+    // the bootstrap component is not in componentDict,
+    // it's probably declared as injection component, thus not wrapped yet
+    const bootstrapFunction = _isFunction(bootstrapComponent) ? bootstrapComponent : exports.R.always(bootstrapComponent);
+    return _getWrappedFunction(declarativeConfig, bootstrap, bootstrapFunction);
+}
 function _getParsedParts(parsedDict, declarativeConfig, componentDict, parentComponentName, parts) {
     if (Array.isArray(parts)) {
         return parts.map((element) => _getParsedParts(parsedDict, declarativeConfig, componentDict, parentComponentName, element));
@@ -138,7 +152,7 @@ function _getFromParsedDict(parsedDict, searchKey) {
     try {
         const value = searchKeyParts.reduce((result, key, keyIndex) => {
             if (key in result) {
-                if (keyIndex !== 0 && typeof result[key] === "function" && !_isClass(result[key])) {
+                if (keyIndex !== 0 && _isFunction(result[key]) && !_isClass(result[key])) {
                     return result[key].bind(result);
                 }
                 return result[key];
@@ -160,26 +174,20 @@ function _addToParsedDict(parsedDict, declarativeConfig, componentName) {
             throw new Error(`\`${setup}\` is not defined`);
         }
         const assembler = parsedDictVal.value;
-        if (typeof assembler !== "function") {
+        if (!_isFunction(assembler)) {
             throw new Error(`\`${setup}\` is not a function`);
         }
         if (_isEmptyArray(parts)) {
-            function nonComposedFunc(...args) {
-                return assembler(...args);
-            }
-            parsedDict[componentName] = _getWrappedFunction(declarativeConfig, componentName, nonComposedFunc);
+            parsedDict[componentName] = _getWrappedFunction(declarativeConfig, componentName, assembler);
             return parsedDict;
         }
         const parsedParts = _getParsedParts(parsedDict, declarativeConfig, componentDict, componentName, parts);
-        const runner = assembler(...parsedParts);
-        if (typeof runner !== "function") {
-            const parsedPartsAsString = _getArgsStringRepresentation(parsedParts);
-            throw new Error(`Result of \`${setup}${parsedPartsAsString}\` is not a function`);
+        const assembledComponent = assembler(...parsedParts);
+        if (!_isFunction(assembledComponent)) {
+            parsedDict[componentName] = assembledComponent;
+            return parsedDict;
         }
-        function composedFunc(...args) {
-            return runner(...args);
-        }
-        parsedDict[componentName] = _getWrappedFunction(declarativeConfig, componentName, composedFunc);
+        parsedDict[componentName] = _getWrappedFunction(declarativeConfig, componentName, assembledComponent);
         return parsedDict;
     }
     catch (error) {
@@ -189,14 +197,14 @@ function _addToParsedDict(parsedDict, declarativeConfig, componentName) {
 function _getArgsStringRepresentation(args) {
     return util_1.inspect(args).replace(/^\[/g, "(").replace(/\]$/g, ")");
 }
-function _getWrappedFunction(declarativeConfig, componentName, func) {
+function _getWrappedFunction(declarativeConfig, componentName, funcOrVal) {
     const componentDict = declarativeConfig.component;
     const currentComponent = componentName in componentDict ? componentDict[componentName] : { arity: -1 };
     const { arity } = currentComponent;
     function wrappedFunction(...rawArgs) {
         const args = arity < 0 ? rawArgs : rawArgs.slice(0, arity);
         try {
-            const funcOut = func(...args);
+            const funcOut = funcOrVal(...args);
             if (_isPromise(funcOut)) {
                 const funcOutWithErrorHandler = funcOut.catch((error) => {
                     return Promise.reject(_getEmbededRuntimeError(error, declarativeConfig, componentName, args));
@@ -486,7 +494,13 @@ function _isPromise(obj) {
     return false;
 }
 function _isClass(obj) {
-    if (typeof (obj) === "function" && obj.prototype) {
+    if (typeof obj === "function" && obj.prototype) {
+        return true;
+    }
+    return false;
+}
+function _isFunction(obj) {
+    if (typeof obj === "function") {
         return true;
     }
     return false;

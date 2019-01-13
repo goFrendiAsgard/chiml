@@ -67,6 +67,15 @@ describe("non-error declarative style", () => {
         expect(result).toBe(7);
     });
 
+    it("works with injected value as bootstrap", () => {
+        const main = declare({
+            bootstrap: "seven",
+            injection: {seven: 7},
+        });
+        const result = main();
+        expect(result).toBe(7);
+    });
+
     it("works with injected-dotted-element as bootstrap", () => {
         const main = declare({
             bootstrap: "Math.pow",
@@ -193,6 +202,24 @@ describe("non-error declarative style", () => {
         });
         const result = main("a", "b", "c");
         expect(result).toBe("a-b");
+    });
+
+    it("works with non-function component", () => {
+        const main = declare({
+            bootstrap: "run",
+            injection: {
+                four: 4,
+                five: 5,
+            },
+            component: {
+                run: {
+                    setup: "R.add",
+                    parts: ["${four}", "${five}"],
+                },
+            },
+        });
+        const result = main();
+        expect(result).toBe(9);
     });
 
 });
@@ -364,30 +391,6 @@ describe("error declarative style", () => {
         } catch (error) {
             expect(error.message).toContain(
                 "Parse error, component `errorTest`: invalid action",
-            );
-        }
-    });
-
-    it("throw error when given non-function component", () => {
-        try {
-            const main = declare({
-                bootstrap: "run",
-                injection: {
-                    four: 4,
-                    five: 5,
-                },
-                component: {
-                    run: {
-                        setup: "R.add",
-                        parts: ["${four}", "${five}"],
-                    },
-                },
-            });
-            const result = main();
-            throw(new Error(`Expect error, but get result: ${result}`));
-        } catch (error) {
-            expect(error.message).toContain(
-                "Parse error, component `run`: Result of `R.add( 4, 5 )` is not a function",
             );
         }
     });
