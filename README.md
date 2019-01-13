@@ -26,10 +26,20 @@ CHIML (Chimera Markup Language) is a declarative dependency injection framework 
 
 # Install
 
-This package require nodejs version `10.12.0` or newer since it use `module.createRequireFromPath`.
-
 ```
 npm install -g chiml
+```
+
+__NOTE:__ 
+
+* You might need `root` privilege to install package as global.
+* This package require nodejs version `10.12.0` or newer since it use `module.createRequireFromPath`. To install the newest stable node.js you can do the following:
+
+```
+sudo npm cache clean -f
+sudo npm install -g n
+sudo n stable
+sudo npm config set scripts-prepend-node-path true
 ```
 
 # Structure
